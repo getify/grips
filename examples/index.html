@@ -1,0 +1,30 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>HandlebarJS Templating Engine</title>
+</head>
+
+<body>
+
+<div id="content"></div>
+
+
+<script type="text/javascript" src="LAB.min.js"></script>
+<script type="text/javascript">
+$LAB
+	.script("handlebar.js").wait()
+	.script("util.handlebar.js").wait()
+	.script("xhr-loader.handlebar.js",
+			"xhr-dataclient.handlebar.js"
+	)
+	.wait(function(){Handlebar.init();})
+	.script("http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js",
+			"app.js"
+	)
+	.wait(function(){buildPage();})
+;
+</script>
+
+</body>
+</html>

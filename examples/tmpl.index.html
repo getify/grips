@@ -1,0 +1,105 @@
+{$+ "tmpl.master.html" $}
+
+
+
+{$: "#content" }
+	<h1>HandlebarJS Template Engine</h1>
+
+	<p>This is how a HandlebarJS Template works.</p>
+	
+	{$/
+		Here is a template comment block
+	/$}
+	
+	<p>
+	{$% 
+		<!-- start of a raw template tag, which disables template parsing inside -->
+		Here's how to put in some completely raw $} 
+		{$/ unparsed /$} content!
+		<!-- here comes the end of the raw tag -->  
+	%$}
+	</p>
+	
+	<hr />
+			
+	{$= @"#userdetails" $}
+{$}
+
+
+
+{$: "#userdetails" | mylinks=data.links.length?"#links":"#nolinks" | controls=data.user_id?"#logout":"#login" | info=data.info?"#info" }
+	<div id="userdetails">
+		<p>{$= @controls $}</p>
+	
+		<h3>User Details</h3>
+
+		<p>Welcome back, {$= data.full_name $}!</p>
+		
+		{$= @info $}
+		
+		<h3>Your Links</h3>
+		
+		{$= @mylinks $}
+	</div>
+{$}
+
+
+
+{$: "#info" }
+	<h3>Random Info</h3>
+	
+	<p>{$= data.info $}</p>
+{$}
+
+
+
+{$: "#login" }<a class="controls login" href="#">Login</a>{$}
+{$: "#logout" }<a class="controls logout" href="#">Logout</a>{$}
+
+
+
+{$: "#links" | data=data.links }
+	<ul>
+	{$* data }
+		<!-- li:{$= item.key $} -->
+		{$= @"#listitem" $}
+	{$}
+	</ul>
+{$}
+
+
+
+{$: "#listitem" | data=item | evenodd=data.even?"even":"odd" | first=data.first?"first" | last=data.last?"last" }
+	<li id="link_{$= data.key $}" class="{$= evenodd $} {$= first $} {$= last $}">
+		<a href="{$= data.value $}">{$= data.value $}</a>
+	</li>
+{$}
+
+
+
+{$: "#nolinks" }
+	<p>-no links yet-</p>
+{$}
+
+
+
+{$: "#footer" }
+
+<script type="text/javascript" src="LAB.min.js"></script>
+<script type="text/javascript">
+$LAB
+	.script("handlebar.js").wait()
+	.script("util.handlebar.js").wait()
+	.script("xhr-loader.handlebar.js",
+			"xhr-dataclient.handlebar.js"
+	)
+	.wait(function(){Handlebar.init();})
+	.script("http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js",
+			"app.js"
+	)
+	.wait(function(){attachControlsBehavior();})
+;
+</script>
+
+{$}
+
