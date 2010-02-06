@@ -8,10 +8,6 @@
 		oACTIVEX = global.ActiveXObject
 	;
 	
-	function global_eval(code) {	// by default the scope will be "global"
-		return eval(code);
-	}
-	
 	global.Handlebar.Util = {
 		cacheBuster:function(src) {
 			var rand = Math.round(Math.random()*100000000);
@@ -56,9 +52,6 @@
 				clone = obj;
 			}
 			return clone;
-		},
-		globalEval:function(code) {
-			return global_eval.call(global,code);	// force the scope to be "global" just in case
 		},
 		noConflict:function() {
 			var _u = global.Handlebar.Util;

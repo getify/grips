@@ -157,20 +157,23 @@
 				rightContext,
 				tmpl_regex = /(\{\$([%=*]))|(\{\$\})|(%?\$?\})/g,
 				tmpl = _templates[file][id].text, 
-				tvars = _templates[file][id].vars
+				tvars = _templates[file][id].vars,
+				fn_source,
+				fn_name = name.replace(/[^a-zA-Z0-9_]/g,"_")
 			;
 			tmpl_regex.lastIndex = 0;	// stupid browser "caching" bug
 			
-			out[cnt++] = "(function($HB,fnHash,name){";
-			out[cnt++] = "var fn=fnHash[name];";
-			out[cnt++] = "fn.hash=\"\";";	// TODO: add MD5 hash of source 'tmpl'
-			out[cnt++] = "fn.func=function(_){";
+			out[cnt++] = "var OBJTOSTRING=Object.prototype.toString,";
+			out[cnt++] = "$UTIL=$HB.Util;";
+			out[cnt++] = "function "+fn_name+"(_){";
 
 			if (tmpl == "") out[cnt++] = "return \"\";";
 			else {
-				// handle template variable declarations
+				out[cnt++] = "var out=[],c=0;";
+				
+				// handle template variable declarations, if any
 				if (tvars.length > 0) {
-					out[cnt++] = "_=$HB.Util.cloneObj(_);";	// sandbox sub-template namespace by cloning it
+					out[cnt++] = "_=$UTIL.cloneObj(_);";	// sandbox sub-template namespace by cloning it
 
 					// add declarations
 					for (i=0, len=tvars.length; i<len; i++) {
@@ -182,8 +185,6 @@
 					}
 				}
 				
-				out[cnt++] = "var out=[],c=0;";
-
 				len = tmpl.length;
 				do {
 					tmp = tmpl_regex.exec(tmpl);
@@ -205,13 +206,14 @@
 									
 									out[cnt++] = "out[c++]=\""+quote_str(_raw_masks["{$%"+tmp2+"%$}"])+"\";";
 								}
-								else if (tmp[2] == "*") {	// loop tag, set up for-loop
+								else if (tmp[2] == "*") {	// loop tag, set up loop function
 									tmp2 = tmp2[1];
 									loop_count++;
 									loop_level++;
 									out[cnt++] = "var iter_"+loop_count+" = _."+tmp2+",";
-									out[cnt++] = "loop_ns = $HB.Util.cloneObj(_),";
+									out[cnt++] = "loop_ns = $UTIL.cloneObj(_),";
 									out[cnt++] = "item,";
+									out[cnt++] = "i";
 									out[cnt++] = "idx,";
 									out[cnt++] = "tmp,";
 									out[cnt++] = "queue;";
@@ -226,15 +228,15 @@
 										if (tmp3[2] != null && tmp3[2] !== "") {
 											// TODO: capture and resolve data ref to put on _check_queue
 											// _check_queue[_check_queue.length] = ...
-											out[cnt++] = "tmp=$HB.Util.uriCanonical(_."+tmp3[2]+",\""+file+"\");";
+											out[cnt++] = "tmp=$UTIL.uriCanonical(_."+tmp3[2]+",\""+file+"\");";
 										}
 										else if (tmp3[5] != null && tmp3[5] !== "") {
 											_check_queue[_check_queue.length] = publicAPI.Util.uriCanonical(tmp3[5],file);
-											out[cnt++] = "tmp=$HB.Util.uriCanonical(\""+tmp3[5]+"\",\""+file+"\");";
+											out[cnt++] = "tmp=$UTIL.uriCanonical(\""+tmp3[5]+"\",\""+file+"\");";
 										}
 
-										out[cnt++] = "if(fnHash[tmp] && fnHash[tmp].func){";
-										out[cnt++] = "out[c++] = fnHash[tmp].func(_);";
+										out[cnt++] = "if(fnStore[tmp]&&fnStore[tmp].func){";
+										out[cnt++] = "out[c++]=fnStore[tmp].func(_);";
 										out[cnt++] = "}";
 									}
 									else {
@@ -243,26 +245,26 @@
 								}
 							}
 							else if (tmp[3] != null && tmp[3] !== "") { // tag-block close found
-								if (loop_level > 0) {
+								if (loop_level > 0) {	// closing a loop block
 									out[cnt++] = "}";
 									out[cnt++] = "if(typeof iter_"+loop_count+"!=\"object\"){";
 									out[cnt++] = "iter_"+loop_count+"=[iter_"+loop_count+"];";
 									out[cnt++] = "}";
-									out[cnt++] = "if(typeof Object.prototype.toString.call(iter_"+loop_count+")==\"[object Array]\"){"
-									out[cnt++] = "for(var i=0,len=iter_"+loop_count+".length;i<len;i++){";
+									out[cnt++] = "if(typeof OBJTOSTRING.call(iter_"+loop_count+")==\"[object Array]\"){"; // loop over an array
+									out[cnt++] = "for(i=0,len=iter_"+loop_count+".length;i<len;i++){";
 									out[cnt++] = "loop_"+loop_count+"(loop_ns,{key:i,value:iter_"+loop_count+"[i],first:(i===0),last:(i===(len-1)),odd:(i%2==1),even:(i%2==0)});";
 									out[cnt++] = "}";
 									out[cnt++] = "}";
-									out[cnt++] = "else{";
+									out[cnt++] = "else{";	// loop over an object
 									out[cnt++] = "queue=[];";
 									out[cnt++] = "idx=0;";
-									out[cnt++] = "for(var i in iter_"+loop_count+"){";
+									out[cnt++] = "for(i in iter_"+loop_count+"){";	// loop over object's properties
 									out[cnt++] = "if(iter_"+loop_count+".hasOwnProperty(i)){";
 									out[cnt++] = "queue[idx]={key:i,value:iter_"+loop_count+"[i],first:(idx===0),odd:(idx%2==1),even:(idx%2==0)};";
 									out[cnt++] = "idx++;";
 									out[cnt++] = "}";	// TODO: loop over shadowed properties as well
 									out[cnt++] = "}";
-									out[cnt++] = "for (i=0,len=queue.length;i<len;i++){";
+									out[cnt++] = "for(i=0,len=queue.length;i<len;i++){";
 									out[cnt++] = "queue[i].last=(i===(len-1));";
 									out[cnt++] = "loop_"+loop_count+"(loop_ns,queue[i]);";
 									out[cnt++] = "}";
@@ -285,10 +287,13 @@
 				
 				out[cnt++] = "return out.join(\"\");";
 			}
-			out[cnt++] = "};";
-			out[cnt++] = "})(this.Handlebar,this.Handlebar.fnHash,\""+name+"\");";
+			out[cnt++] = "}";
 			
-			publicAPI.fnHash[name] = {source:out.join("")};
+			out[cnt++] = "return "+fn_name+";";
+			
+			fn_source = out.join("");
+			
+			publicAPI.fnStore[name] = {source:fn_source,hash:""};
 		}
 		
 		function processSubTemplates(content,file,onlyID) {
@@ -388,14 +393,16 @@
 					for (var i in _templates[file]) {
 						compileSubTemplate(file,i);
 						
-						if (publicAPI.fnHash[file+i]) _util.globalEval(publicAPI.fnHash[file+i].source);
+						if (publicAPI.fnStore[file+i] && !publicAPI.fnStore[file+i].func) {
+							publicAPI.fnStore[file+i].func = new Function("$HB","fnStore",publicAPI.fnStore[file+i].source)(publicAPI,publicAPI.fnStore);
+						}
 					}
 					
 					// TODO: process _check_queue
 					
 				}
 			}
-			if (publicAPI.fnHash[file+id] && publicAPI.fnHash[file+id].func) cb(publicAPI.fnHash[file+id].func({data:data}));
+			if (publicAPI.fnStore[file+id] && publicAPI.fnStore[file+id].func) cb(publicAPI.fnStore[file+id].func({data:data}));
 			else cb("");
 		}
 		
@@ -420,7 +427,7 @@
 		}
 		
 		publicAPI = {
-			fnHash:{},
+			fnStore:{},
 			
 			init:init,
 			processTemplate:handleTemplate,
