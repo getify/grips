@@ -58,9 +58,10 @@
 
 
 
-{$: "#links" | data=data.links }
+{$: "#links" }
 	<ul>
-	{$* data }
+	{$/ loop over the "links" array /$}
+	{$* data.links }
 		<!-- li:{$= item.key $} -->
 		{$= @"#listitem" $}
 	{$}
@@ -69,9 +70,18 @@
 
 
 
-{$: "#listitem" | data=item | evenodd=data.even?"even":"odd" | first=data.first?"first" | last=data.last?"last" }
-	<li id="link_{$= data.key $}" class="{$= evenodd $} {$= first $} {$= last $}">
-		<a href="{$= data.value $}">{$= data.value $}</a>
+{$: "#listitem" | evenodd=item.even?"even":"odd" | first=item.first?"first" | last=item.last?"last" }
+	<li id="link_{$= item.key $}" class="{$= evenodd $} {$= first $} {$= last $}">
+		<a href="{$= item.value $}">{$= item.value $}</a>
+
+		{$/ loop over the "item" object's properties /$}
+		<div>item:</div>
+		<ul>
+		{$* item }
+			<li>{$= item.key $}: {$= item.value $}</li>
+		{$}
+		</ul>
+
 	</li>
 {$}
 
