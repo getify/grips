@@ -373,7 +373,7 @@
 				if (extends_tag && extends_tag[3]) {	// template extends another template; grab and concat
 					var extends_tmpl = templateURLsplit(extends_tag[3]), orig_content = content.replace(extends_tag_regex,"");
 									
-					publicAPI.Loader.get(extends_tmpl.src,function(content){
+					return publicAPI.Loader.get(extends_tmpl.src,function(content){
 						if (extends_tmpl.id) {
 							var sub_extends = content.match(extends_tag_regex);
 							processSubTemplates(content,file,extends_tmpl.id);
@@ -381,9 +381,8 @@
 							_templates[file][extends_tmpl.id] = null;
 							if (sub_extends) content = sub_extends[3]+"\n\n"+content;
 						}
-						handleTemplate(content+"\n\n"+orig_content,id,data,cb,file);
+						return handleTemplate(content+"\n\n"+orig_content,id,data,cb,file);
 					});
-					return;
 				}
 				else {
 					processSubTemplates(content,file);
@@ -400,27 +399,27 @@
 					
 				}
 			}
-			if (publicAPI.fnStore[file+id] && publicAPI.fnStore[file+id].func) cb(publicAPI.fnStore[file+id].func({data:data}));
-			else cb("");
+			if (publicAPI.fnStore[file+id] && publicAPI.fnStore[file+id].func) return cb(publicAPI.fnStore[file+id].func({data:data}));
+			else return cb("");
 		}
 		
 		function passthruFile(src,cb) {
 			var template = templateURLsplit(src);
 			if (template.src) {
-				publicAPI.Loader.get(template.src,cb);
+				return publicAPI.Loader.get(template.src,cb);
 			}
 		}
 		
 		function processFileTemplate(src,data,cb) {
 			var template = templateURLsplit(src);
 			if (template.src) {
-				publicAPI.Loader.get(template.src,function(content){handleTemplate(content,template.id,data,cb,template.src);});
+				return publicAPI.Loader.get(template.src,function(content){handleTemplate(content,template.id,data,cb,template.src);});
 			}
 		}
 		
 		function processStateTemplate(state,data,cb) {
 			if (manifest[state]) {
-				processFileTemplate(manifest[state],data,cb);
+				return processFileTemplate(manifest[state],data,cb);
 			}
 		}
 		
@@ -433,8 +432,11 @@
 			processFile:processFileTemplate,	
 			processState:function(){
 				var args = arguments;
-				if (_manifest_loading) _queue[_queue.length] = function(){processStateTemplate.apply(null,args);};
-				else processStateTemplate.apply(null,args);
+				if (_manifest_loading) {
+					_queue[_queue.length] = function(){processStateTemplate.apply(null,args);};
+					return null;
+				}
+				else return processStateTemplate.apply(null,args);
 			},	
 			
 			clone:function(){return engine();},
