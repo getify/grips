@@ -297,14 +297,14 @@
 		function processSubTemplates(content,file,onlyID) {
 			var template_regex = /\{\$\:\s*(["'])#[^"']+\1[^}]*\$?\}/g, 
 				template_id_regex = /\{\$\:\s*(["'])(#[^"']+)\1/, 
-				template_comment_regex = /\{\$\/[^\/]*?\/\$\}/,
+				template_comment_regex = /\{\$\/(?:.|\n|\r)*?\/\$\}/g,
 				template_raw_regex = /\{\$%(?:.|\n|\r)*?%\$\}/g,
 				template_extras_regex = /((\|\s*[^|$]+\s*)*)\$?\}$/,
 				end_template_regex = /\{?\$\}?/g,
 				id, extras, st, et, raw, mask, template, start, end, level
 			;
 			
-			template_regex.lastIndex = template_raw_regex.lastIndex = end_template_regex.lastIndex = 0;	// stupid browser "caching" bug
+			template_regex.lastIndex = template_comment_regex.lastIndex = template_raw_regex.lastIndex = end_template_regex.lastIndex = 0;	// stupid browser "caching" bug
 			
 			// mask out raw sections
 			while (raw = template_raw_regex.exec(content)) {
