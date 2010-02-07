@@ -260,12 +260,11 @@
 									out[cnt++] = "idx=0;";
 									out[cnt++] = "for(i in iterobj){";	// loop over object's properties
 									out[cnt++] = "if(iterobj.hasOwnProperty(i)){";
-									out[cnt++] = "items[idx++]={key:i,value:iterobj[i],first:(idx===0),odd:(idx%2==1),even:(idx%2==0)};";
+									out[cnt++] = "items[idx++]={key:i,value:iterobj[i]};";
 									out[cnt++] = "}";	// end if-statement		TODO: loop over shadowed properties as well
 									out[cnt++] = "}";	// end for-loop
 									out[cnt++] = "for(i=0,len=items.length;i<len;i++){";
-									out[cnt++] = "items[i].last=(i===(len-1));";
-									out[cnt++] = "do_loop(items[i]);";
+									out[cnt++] = "do_loop({key:items[i].key,value:items[i].value,first:(i===0),last:(i===(len-1)),odd:(i%2==1),even:(i%2==0)});";
 									out[cnt++] = "}";	// end for-loop
 									out[cnt++] = "}";	// end else
 									out[cnt++] = "})($UTIL.cloneObj(_));";	// end loop namespace function definition, execute it with copy of "_" namespace
