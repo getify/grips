@@ -153,7 +153,7 @@
 			if (!_templates[file][id]) return;
 			
 			var name = file+id, out = [], tmp, tmp2, tmp3, tokens, i, len, 
-				captured_idx = 0, cnt=0, loop_count = 0, loop_level = 0,
+				captured_idx = 0, cnt=0, loop_level = 0,
 				rightContext,
 				tmpl_regex = /(\{\$([%=*]))|(\{\$\})|(%?\$?\})/g,
 				tmpl = _templates[file][id].text, 
@@ -163,9 +163,9 @@
 			;
 			tmpl_regex.lastIndex = 0;	// stupid browser "caching" bug
 			
-			out[cnt++] = "var OBJTOSTRING=Object.prototype.toString,";
+			out[cnt++] = "var OBJTOSTRING=Object.prototype.toString,";	// start outer "closure" definition
 			out[cnt++] = "$UTIL=$HB.Util;";
-			out[cnt++] = "function "+fn_name+"(_){";
+			out[cnt++] = "function "+fn_name+"(_){";	// start main template function definition
 
 			if (tmpl == "") out[cnt++] = "return \"\";";
 			else {
@@ -208,17 +208,16 @@
 								}
 								else if (tmp[2] == "*") {	// loop tag, set up loop function
 									tmp2 = tmp2[1];
-									loop_count++;
-									loop_level++;
-									out[cnt++] = "var iter_"+loop_count+" = _."+tmp2+",";
-									out[cnt++] = "loop_ns = $UTIL.cloneObj(_),";
-									out[cnt++] = "item,";
-									out[cnt++] = "i";
+									out[cnt++] = "(function(_){";	// start loop namespace function definition
+									out[cnt++] = "var tmp,";	// declare some private helper variables
+									out[cnt++] = "len,";
+									out[cnt++] = "i,";
 									out[cnt++] = "idx,";
-									out[cnt++] = "tmp,";
-									out[cnt++] = "queue;";
-									out[cnt++] = "function loop_"+loop_count+"(_,item){";
+									out[cnt++] = "items,";
+									out[cnt++] = "iterobj=_."+tmp2+";";
+									out[cnt++] = "function do_loop(item){";	// start "do_loop" definition
 									out[cnt++] = "_.item=item;";
+									loop_level++;
 								}
 								else if (tmp[2] == "=") {	// replacement/include tag
 									tmp2 = tmp2[1];
@@ -245,30 +244,31 @@
 								}
 							}
 							else if (tmp[3] != null && tmp[3] !== "") { // tag-block close found
-								if (loop_level > 0) {	// closing a loop block
-									out[cnt++] = "}";
-									out[cnt++] = "if(typeof iter_"+loop_count+"!=\"object\"){";
-									out[cnt++] = "iter_"+loop_count+"=[iter_"+loop_count+"];";
-									out[cnt++] = "}";
-									out[cnt++] = "if(typeof OBJTOSTRING.call(iter_"+loop_count+")==\"[object Array]\"){"; // loop over an array
-									out[cnt++] = "for(i=0,len=iter_"+loop_count+".length;i<len;i++){";
-									out[cnt++] = "loop_"+loop_count+"(loop_ns,{key:i,value:iter_"+loop_count+"[i],first:(i===0),last:(i===(len-1)),odd:(i%2==1),even:(i%2==0)});";
-									out[cnt++] = "}";
-									out[cnt++] = "}";
-									out[cnt++] = "else{";	// loop over an object
-									out[cnt++] = "queue=[];";
+								if (loop_level > 0) {	// closing a loop block, set up loop iterators
+									out[cnt++] = "}";	// end "do_loop" definition
+
+									out[cnt++] = "if(typeof iterobj!=\"object\"){";
+									out[cnt++] = "iterobj=[iterobj];";
+									out[cnt++] = "}";	// end if-statement
+									out[cnt++] = "if(typeof OBJTOSTRING.call(iterobj)==\"[object Array]\"){"; // loop over an array
+									out[cnt++] = "for(i=0,len=iterobj.length;i<len;i++){";
+									out[cnt++] = "do_loop({key:i,value:iterobj[i],first:(i===0),last:(i===(len-1)),odd:(i%2==1),even:(i%2==0)});";
+									out[cnt++] = "}";	// end for-loop
+									out[cnt++] = "}";	// end if-statement
+									out[cnt++] = "else{";	// loop over a regular object
+									out[cnt++] = "items=[];";
 									out[cnt++] = "idx=0;";
-									out[cnt++] = "for(i in iter_"+loop_count+"){";	// loop over object's properties
-									out[cnt++] = "if(iter_"+loop_count+".hasOwnProperty(i)){";
-									out[cnt++] = "queue[idx]={key:i,value:iter_"+loop_count+"[i],first:(idx===0),odd:(idx%2==1),even:(idx%2==0)};";
-									out[cnt++] = "idx++;";
-									out[cnt++] = "}";	// TODO: loop over shadowed properties as well
-									out[cnt++] = "}";
-									out[cnt++] = "for(i=0,len=queue.length;i<len;i++){";
-									out[cnt++] = "queue[i].last=(i===(len-1));";
-									out[cnt++] = "loop_"+loop_count+"(loop_ns,queue[i]);";
-									out[cnt++] = "}";
-									out[cnt++] = "}";
+									out[cnt++] = "for(i in iterobj){";	// loop over object's properties
+									out[cnt++] = "if(iterobj.hasOwnProperty(i)){";
+									out[cnt++] = "items[idx++]={key:i,value:iterobj[i],first:(idx===0),odd:(idx%2==1),even:(idx%2==0)};";
+									out[cnt++] = "}";	// end if-statement		TODO: loop over shadowed properties as well
+									out[cnt++] = "}";	// end for-loop
+									out[cnt++] = "for(i=0,len=items.length;i<len;i++){";
+									out[cnt++] = "items[i].last=(i===(len-1));";
+									out[cnt++] = "do_loop(items[i]);";
+									out[cnt++] = "}";	// end for-loop
+									out[cnt++] = "}";	// end else
+									out[cnt++] = "})($UTIL.cloneObj(_));";	// end loop namespace function definition, execute it with copy of "_" namespace
 									loop_level--;
 								}
 							}
@@ -287,12 +287,11 @@
 				
 				out[cnt++] = "return out.join(\"\");";
 			}
-			out[cnt++] = "}";
+			out[cnt++] = "}";	// end main template function definition
+			out[cnt++] = "return "+fn_name+";";	// end outer closer definition
 			
-			out[cnt++] = "return "+fn_name+";";
-			
-			fn_source = out.join("");
-			
+			fn_source = out.join("");	// TODO: optimize; look for and collapse mutliple subsequent "out[c++]=..." occurences
+						
 			publicAPI.fnStore[name] = {source:fn_source,hash:""};
 		}
 		
