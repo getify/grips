@@ -69,9 +69,9 @@
 				CustomError.apply(_this,arguments);
 				return _this;
 			}
-			if (arguments.length == 0) return this; // exit early, nothing else to do
-
 			var tmp = Error.prototype.constructor.apply(this,arguments);
+
+			if (arguments.length == 0) return this; // exit early, nothing else to do
 			for (var i in tmp) {
 				if (tmp.hasOwnProperty(i)) this[i] = tmp[i];
 			}
@@ -96,9 +96,9 @@
 				CustomError.apply(_this,arguments);
 				return _this;
 			}
-			if (arguments.length == 0) return this; // exit early, nothing else to do
-
 			var tmp = global.Handlebar.TemplateError.prototype.constructor.apply(this,arguments);
+
+			if (arguments.length == 0) return this; // exit early, nothing else to do
 			for (var i in tmp) {
 				if (tmp.hasOwnProperty(i)) this[i] = tmp[i];
 			}
