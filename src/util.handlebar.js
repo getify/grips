@@ -5,6 +5,8 @@
 
 (function(global){
 	var _Util = global.Handlebar.Util || null,
+		_TemplateError = global.Handlebar.TemplateError || null,
+		_MissingTemplateError = global.Handlebar.MissingTemplateError || null,
 		oACTIVEX = global.ActiveXObject
 	;
 	
@@ -59,6 +61,57 @@
 			return _u;
 		}
 	}
+
+	global.Handlebar.TemplateError = (function() {
+		function CustomError() {
+			if (this===global) {	// not called with "new", so correct
+				var _this = new CustomError();
+				CustomError.apply(_this,arguments);
+				return _this;
+			}
+			var tmp = Error.prototype.constructor.apply(this,arguments);
+			for (var i in tmp) {
+				if (tmp.hasOwnProperty(i)) this[i] = tmp[i];
+			}
+		}
+		function SubClass(){}
+		SubClass.prototype = Error.prototype;
+		CustomError.prototype = new SubClass();
+		CustomError.prototype.constructor = CustomError;
+		
+		return CustomError;
+	})();
+	global.Handlebar.TemplateError.noConflict = function(){
+		var _te = global.Handlebar.TemplateError;
+		global.Handlebar.TemplateError = _TemplateError;
+		return _te;
+	};
+	
+	global.Handlebar.MissingTemplateError = (function() {
+		function CustomError() {
+			if (this===global) {	// not called with "new", so correct
+				var _this = new CustomError();
+				CustomError.apply(_this,arguments);
+				return _this;
+			}
+			var tmp = global.Handlebar.TemplateError.prototype.constructor.apply(this,arguments);
+			for (var i in tmp) {
+				if (tmp.hasOwnProperty(i)) this[i] = tmp[i];
+			}
+		}
+		function SubClass(){}
+		SubClass.prototype = global.Handlebar.TemplateError.prototype;
+		CustomError.prototype = new SubClass();
+		CustomError.prototype.constructor = CustomError;
+		
+		return CustomError;
+	})();
+	global.Handlebar.MissingTemplateError.noConflict = function(){
+		var _mte = global.Handlebar.MissingTemplateError;
+		global.Handlebar.MissingTemplateError = _MissingTemplateError;
+		return _mte;
+	};
+
 })(this);
 
 /*!

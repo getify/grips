@@ -447,20 +447,19 @@
 	};
 
 	function rollback(deep) {
-		var _hb = global.Handlebar, _hb_util, _hb_loader, _hb_dataclient;
-		
-		if (deep) {
-			_hb_util = global.Handlebar.Util.noConflict();
-			_hb_loader = global.Handlebar.Loader.noConflict();
-			_hb_dataclient = global.Handlebar.DataClient.noConflict();
-		}
+		var _hb = global.Handlebar;
 		
 		global.Handlebar = _Handlebar;
 		global.$HB = _$HB;
 		
-		global.Handlebar.Util = _hb_util;
-		global.Handlebar.Loader = _hb_loader;
-		global.Handlebar.DataClient = _hb_dataclient;
+		if (deep) {
+			global.Handlebar.Util = _hb.Util.noConflict(deep);
+			global.Handlebar.Loader = _hb.Loader.noConflict(deep);
+			global.Handlebar.DataClient = _hb.DataClient.noConflict(deep);
+			global.Handlebar.TemplateError = _hb.TemplateError.noConflict(deep);
+			global.Handlebar.MissingTemplateError = _hb.MissingTemplateError.noConflict(deep);
+		}
+		
 		return _hb;
 	}
 	
