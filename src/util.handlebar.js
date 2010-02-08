@@ -71,10 +71,10 @@
 			}
 			var tmp = Error.prototype.constructor.apply(this,arguments);
 
-			if (arguments.length == 0) return this; // exit early, nothing else to do
 			for (var i in tmp) {
 				if (tmp.hasOwnProperty(i)) this[i] = tmp[i];
 			}
+			if (arguments.length == 0) return this; // exit early, nothing else to do
 		}
 		function SubClass(){}
 		SubClass.prototype = Error.prototype;
@@ -97,11 +97,10 @@
 				return _this;
 			}
 			var tmp = global.Handlebar.TemplateError.prototype.constructor.apply(this,arguments);
-
-			if (arguments.length == 0) return this; // exit early, nothing else to do
 			for (var i in tmp) {
 				if (tmp.hasOwnProperty(i)) this[i] = tmp[i];
 			}
+			if (arguments.length == 0) return this; // exit early, nothing else to do
 		}
 		function SubClass(){}
 		SubClass.prototype = global.Handlebar.TemplateError.prototype;
