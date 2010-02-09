@@ -122,7 +122,6 @@
 		}
 		function SubClass(){}
 		SubClass.prototype = global.Handlebar.TemplateError.prototype;
-
 		F.prototype = CustomError.prototype = new SubClass();
 		CustomError.prototype.constructor = CustomError;
 		

@@ -32,7 +32,6 @@
 			_queue = [],
 			_templates = {},
 			_raw_masks = {},
-			_check_queue = [],
 			_manifest_loading = false
 		;
 		
@@ -192,13 +191,13 @@
 
 					if (tmp != null) {
 						if ((tmp[1] != null && tmp[1] != "") || (tmp[3] != null && tmp[3] != "")) {	// found a template-tag start or end token
-							if ((tmpl_regex.lastIndex-tmp[0].length) > captured_idx) {
+							if ((tmpl_regex.lastIndex-tmp[0].length) > captured_idx) {	// capture preceeding uncaptured raw text
 								out[cnt++] = "out[c++]=\""+quote_str(tmpl.substring(captured_idx,tmpl_regex.lastIndex-tmp[0].length))+"\";";
 							}
 							captured_idx = tmpl_regex.lastIndex;
 							
 							if (tmp[2] != null && tmp[2] !== "") {	// tag type-identifier
-								tmp2 = rightContext.match(/\s*([^\s\$\}]+)/);
+								tmp2 = rightContext.match(/\s*((?:.|\n|\r)*?)\s*(?:%?\$?)\}/);
 							
 								if (tmp[2] == "%") {	// raw-output tag, drop in masked token
 									tmp2 = tmp2[1];
@@ -225,28 +224,64 @@
 
 									if (tmp3) {
 										if (tmp3[2] != null && tmp3[2] !== "") {
-											// TODO: capture and resolve data ref to put on _check_queue
-											// _check_queue[_check_queue.length] = ...
-											out[cnt++] = "tmp=$UTIL.uriCanonical(_."+tmp3[2]+",\""+file+"\");";
+											out[cnt++] = "try{";
+											out[cnt++] = "if((tmp=_."+tmp3[2]+")==null){";
+											out[cnt++] = "throw new Error(\"Template include reference undefined.\");";
+											out[cnt++] = "}";
+											out[cnt++] = "tmp=$UTIL.uriCanonical(tmp,\""+file+"\");";
+											out[cnt++] = "}";
+											out[cnt++] = "catch(terr){";
+											out[cnt++] = "terr=new $HB.TemplateError(terr.message);";
+											out[cnt++] = "terr.TemplateName(\""+name+"\");";
+											out[cnt++] = "terr.TemplateTag(\"{$= @"+tmp3[2]+" $}\");";
+											out[cnt++] = "throw terr;";
+											out[cnt++] = "}";
 										}
 										else if (tmp3[5] != null && tmp3[5] !== "") {
-											_check_queue[_check_queue.length] = publicAPI.Util.uriCanonical(tmp3[5],file);
-											out[cnt++] = "tmp=$UTIL.uriCanonical(\""+tmp3[5]+"\",\""+file+"\");";
+											out[cnt++] = "tmp=\""+publicAPI.Util.uriCanonical(tmp3[5],file)+"\";";
 										}
 
-										out[cnt++] = "if(fnStore[tmp]&&fnStore[tmp].func){";
+										out[cnt++] = "if(fnStore[tmp]&&fnStore[tmp].func){";	// template function defined?
+										out[cnt++] = "try{";
 										out[cnt++] = "out[c++]=fnStore[tmp].func(_);";
+										out[cnt++] = "}";
+										out[cnt++] = "catch(terr){";	// call to template function threw error
+										out[cnt++] = "if(terr instanceof $HB.TemplateError){";	// already a TemplateError
+										out[cnt++] = "throw terr;";	// just re-throw
+										out[cnt++] = "}";
+										out[cnt++] = "else{";	// general exception, cast as TemplateError
+										out[cnt++] = "terr=new $HB.TemplateError(terr.message);";
+										out[cnt++] = "terr.TemplateName(\""+name+"\");";
+										out[cnt++] = "terr.TemplateTag(\"{$= "+quote_str(tmp3[0])+" $}\");";
+										out[cnt++] = "terr.Value(tmp);";
+										out[cnt++] = "throw terr;";
+										out[cnt++] = "}";	// end else
+										out[cnt++] = "}";	// end catch
+										out[cnt++] = "}";	// end if statement
+										out[cnt++] = "else if(tmp!=\"\"){";	// template function not found, throw TemplateMissingError
+										out[cnt++] = "var terr=new $HB.MissingTemplateError(\"Template missing.\");";
+										out[cnt++] = "terr.TemplateName(\""+name+"\");";
+										out[cnt++] = "terr.TemplateTag(\"{$= "+quote_str(tmp3[0])+" $}\");";
+										out[cnt++] = "terr.Value(tmp);";
+										out[cnt++] = "throw terr;";
 										out[cnt++] = "}";
 									}
 									else {
+										out[cnt++] = "try{";
 										out[cnt++] = "out[c++]=_."+tmp2+";";
+										out[cnt++] = "}";
+										out[cnt++] = "catch(terr){";
+										out[cnt++] = "terr=new $HB.TemplateError(\"Variable reference invalid.\");";
+										out[cnt++] = "terr.TemplateName(\""+name+"\");";
+										out[cnt++] = "terr.TemplateTag(\"{$= "+quote_str(tmp2)+" $}\");";
+										out[cnt++] = "throw terr;";
+										out[cnt++] = "}";
 									}
 								}
 							}
 							else if (tmp[3] != null && tmp[3] !== "") { // tag-block close found
 								if (loop_level > 0) {	// closing a loop block, set up loop iterators
 									out[cnt++] = "}";	// end "do_loop" definition
-
 									out[cnt++] = "if(typeof iterobj!=\"object\"){";
 									out[cnt++] = "iterobj=[iterobj];";
 									out[cnt++] = "}";	// end if-statement
@@ -290,7 +325,7 @@
 			out[cnt++] = "return "+fn_name+";";	// end outer closer definition
 			
 			fn_source = out.join("");	// TODO: optimize; look for and collapse mutliple subsequent "out[c++]=..." occurences
-						
+
 			publicAPI.fnStore[name] = {source:fn_source,hash:""};
 		}
 		
@@ -395,12 +430,23 @@
 						}
 					}
 					
-					// TODO: process _check_queue
-					
 				}
 			}
-			if (publicAPI.fnStore[file+id] && publicAPI.fnStore[file+id].func) return cb(publicAPI.fnStore[file+id].func({data:data}));
-			else return cb("");
+			if (publicAPI.fnStore[file+id] && publicAPI.fnStore[file+id].func) {
+				try {
+					var out = publicAPI.fnStore[file+id].func({data:data});
+					return cb(out);
+				}
+				catch (err) {
+					if (!(err instanceof publicAPI.TemplateError)) {	// some generic JS interpreter exception
+						err = new publicAPI.TemplateError(err.message);	// cast generic exception as Template Error
+						err.TemplateName(file+id);
+					}
+					//throw err;
+					alert(err);	// TODO: remove alert, wire into some better error-handling callback mechanism
+				}
+			}
+			return cb(null);	// default: return empty content if nothing valid previously found
 		}
 		
 		function passthruFile(src,cb) {
