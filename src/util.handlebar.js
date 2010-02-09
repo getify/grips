@@ -90,8 +90,13 @@
 			return this.template_tag;
 		}
 		
+		CustomError.prototype.Value = function(tval) {
+			if (tval != null) this.value = tval;
+			return this.value;
+		}
+		
 		CustomError.prototype.toString = function() {
-			return "TemplateError: "+this.message+(this.template_name!=null?"\nTemplate: "+this.template_name:"")+(this.template_tag!=null?"\nExpression: "+this.template_tag:"");
+			return "TemplateError: "+this.message+(this.template_name!=null?"\nTemplate: "+this.template_name:"")+(this.template_tag!=null?"\nExpression: "+this.template_tag:"")+(this.value!=null?"\nValue: "+this.value:"");
 		}
 		
 		return CustomError;
@@ -117,16 +122,12 @@
 		}
 		function SubClass(){}
 		SubClass.prototype = global.Handlebar.TemplateError.prototype;
+
 		F.prototype = CustomError.prototype = new SubClass();
 		CustomError.prototype.constructor = CustomError;
 		
-		CustomError.prototype.MissingTemplate = function(mtemp) {
-			if (mtemp != null) this.missing_template = mtemp;
-			return this.missing_template;
-		}
-		
 		CustomError.prototype.toString = function() {
-			return "MissingTemplateError: "+this.message+(this.template_name!=null?"\nTemplate: "+this.template_name:"")+(this.template_tag!=null?"\nExpression: "+this.template_tag:"")+(this.missing_template!=null?"\nValue: "+this.missing_template:"");
+			return "MissingTemplateError: "+this.message+(this.template_name!=null?"\nTemplate: "+this.template_name:"")+(this.template_tag!=null?"\nExpression: "+this.template_tag:"")+(this.value!=null?"\nValue: "+this.value:"");
 		}
 		
 		return CustomError;
