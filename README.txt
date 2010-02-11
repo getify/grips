@@ -13,7 +13,7 @@ HandlebarJS will "compile" requested templates into executable JavaScript functi
 
 -------
 
-The examples/ directory has two sample template files, a "manifest" called "templates.json" (which is the JSON dictionary that maps "states" to templates for the engine), "index.html" file showing how to intialize the template engine, and a "app.js" file showing how to use the engine to request remote data and parse templates for dynamic output.
+The examples/ directory has three sample template files, a "manifest" called "templates.json" (which is the JSON dictionary that maps "states" to templates for the engine), "index.html" file showing how to intialize the template engine, and a "app.js" file showing how to use the engine to request remote data and parse templates for dynamic output.
 
 NOTE: the "index.html" makes use of LABjs (http://labjs.com) to load scripts. It is not included in this source tree, nor is it required for HandlebarJS. LABjs can also be found on github: http://github.com/getify/LABjs
 
