@@ -168,11 +168,12 @@
 
 			if (tmpl == "") out[cnt++] = "return \"\";";
 			else {
-				out[cnt++] = "var out=[],c=0;";
+				out[cnt++] = "var out=[],c=0,tmp;";
 				
 				// handle template variable declarations, if any
 				if (tvars.length > 0) {
 					out[cnt++] = "_=$UTIL.cloneObj(_);";	// sandbox sub-template namespace by cloning it
+					out[cnt++] = "try{";
 
 					// add declarations
 					for (i=0, len=tvars.length; i<len; i++) {
@@ -180,8 +181,16 @@
 						
 						tokens = tokenizeExtraVars(tmp);
 						
+						out[cnt++] = "tmp=\""+quote_str(tmp)+"\";";	// save each variable declaration for error reporting if it fails
 						out[cnt++] = qualifyExtraVars(tokens) + ";";
 					}
+					out[cnt++] = "}";
+					out[cnt++] = "catch(terr){";
+					out[cnt++] = "terr=new $HB.TemplateError(\"Variable reference invalid.\");";
+					out[cnt++] = "terr.TemplateName(\""+name+"\");";
+					out[cnt++] = "terr.TemplateTag(tmp);";
+					out[cnt++] = "throw terr;";
+					out[cnt++] = "}";
 				}
 				
 				len = tmpl.length;
@@ -212,8 +221,20 @@
 									out[cnt++] = "len,";
 									out[cnt++] = "i,";
 									out[cnt++] = "idx,";
-									out[cnt++] = "items,";
-									out[cnt++] = "iterobj=_."+tmp2+";";
+									out[cnt++] = "items;";
+									out[cnt++] = "try{";	// check if iteration object reference is valid
+									out[cnt++] = "var iterobj=_."+tmp2+";";
+									out[cnt++] = "}";
+									out[cnt++] = "catch(terr){";	// if not, throw error
+									out[cnt++] = "terr=new $HB.TemplateError(\"Iteration variable reference invalid.\");";
+									out[cnt++] = "terr.TemplateName(\""+name+"\");";
+									out[cnt++] = "terr.TemplateTag(\"{$* "+tmp2+" }\");";
+									out[cnt++] = "throw terr;";
+									out[cnt++] = "}";
+									out[cnt++] = "if(iterobj==null){";	// if specified iteration variable is undefined or null
+									out[cnt++] = "return;";	// exit early, nothing to iterate on
+									out[cnt++] = "}";
+									
 									out[cnt++] = "function do_loop(item){";	// start "do_loop" definition
 									out[cnt++] = "_.item=item;";
 									loop_level++;
@@ -224,13 +245,13 @@
 
 									if (tmp3) {
 										if (tmp3[2] != null && tmp3[2] !== "") {
-											out[cnt++] = "try{";
+											out[cnt++] = "try{";	// check if template include reference is valid
 											out[cnt++] = "if((tmp=_."+tmp3[2]+")==null){";
 											out[cnt++] = "throw new Error(\"Template include reference undefined.\");";
 											out[cnt++] = "}";
 											out[cnt++] = "tmp=$UTIL.uriCanonical(tmp,\""+file+"\");";
 											out[cnt++] = "}";
-											out[cnt++] = "catch(terr){";
+											out[cnt++] = "catch(terr){";	// if not, throw error
 											out[cnt++] = "terr=new $HB.TemplateError(terr.message);";
 											out[cnt++] = "terr.TemplateName(\""+name+"\");";
 											out[cnt++] = "terr.TemplateTag(\"{$= @"+tmp3[2]+" $}\");";
@@ -242,14 +263,14 @@
 										}
 
 										out[cnt++] = "if(fnStore[tmp]&&fnStore[tmp].func){";	// template function defined?
-										out[cnt++] = "try{";
+										out[cnt++] = "try{";	// check if include of sub-template has an error
 										out[cnt++] = "out[c++]=fnStore[tmp].func(_);";
 										out[cnt++] = "}";
-										out[cnt++] = "catch(terr){";	// call to template function threw error
-										out[cnt++] = "if(terr instanceof $HB.TemplateError){";	// already a TemplateError
-										out[cnt++] = "throw terr;";	// just re-throw
+										out[cnt++] = "catch(terr){";	// if so, throw error
+										out[cnt++] = "if(terr instanceof $HB.TemplateError){";	// already a typed TemplateError
+										out[cnt++] = "throw terr;";	// so, just re-throw
 										out[cnt++] = "}";
-										out[cnt++] = "else{";	// general exception, cast as TemplateError
+										out[cnt++] = "else{";	// general exception, so cast as TemplateError
 										out[cnt++] = "terr=new $HB.TemplateError(terr.message);";
 										out[cnt++] = "terr.TemplateName(\""+name+"\");";
 										out[cnt++] = "terr.TemplateTag(\"{$= "+quote_str(tmp3[0])+" $}\");";
@@ -267,10 +288,10 @@
 										out[cnt++] = "}";
 									}
 									else {
-										out[cnt++] = "try{";
+										out[cnt++] = "try{";	// check if variable include reference is valid
 										out[cnt++] = "out[c++]=_."+tmp2+";";
 										out[cnt++] = "}";
-										out[cnt++] = "catch(terr){";
+										out[cnt++] = "catch(terr){";	// if not, throw error
 										out[cnt++] = "terr=new $HB.TemplateError(\"Variable reference invalid.\");";
 										out[cnt++] = "terr.TemplateName(\""+name+"\");";
 										out[cnt++] = "terr.TemplateTag(\"{$= "+quote_str(tmp2)+" $}\");";
