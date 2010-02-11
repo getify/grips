@@ -12,8 +12,10 @@
 	}
 
 	function templateURLsplit(src) {
-		var parts = src.match(/^([^#]+)(#.*)?$/);
-		return {"src":orEmptyStr(parts[1]),"id":orEmptyStr(parts[2])};
+		var parts;
+		if (src === "") parts = ["","",""];
+		else parts = src.match(/^([^#]+)?(#.+)?$/);
+		return {src:orEmptyStr(parts[1]),id:orEmptyStr(parts[2])};
 	}
 	
 	function quote_str(str) {
@@ -453,7 +455,7 @@
 					
 				}
 			}
-			if (publicAPI.fnStore[file+id] && publicAPI.fnStore[file+id].func) {
+			if (cb && publicAPI.fnStore[file+id] && publicAPI.fnStore[file+id].func) {
 				try {
 					var out = publicAPI.fnStore[file+id].func({data:data});
 					return cb(out);
@@ -463,11 +465,29 @@
 						err = new publicAPI.TemplateError(err.message);	// cast generic exception as Template Error
 						err.TemplateName(file+id);
 					}
+					
+					if (err instanceof publicAPI.MissingTemplateError) {	// was a missing template, try once to request it to resolve the dependency error
+						var requested_template = templateURLsplit(err.Value());
+						var current_template = templateURLsplit(err.TemplateName());
+						if (!requested_template.src) requested_template.src = current_template.src;
+						
+						if (!requested_template.id) {
+							err.message = err.description = "No template id defined.";
+						}
+						else if (!_templates[requested_template.src]) {
+							return publicAPI.Loader.get(requested_template.src,function(content){
+								handleTemplate(content,requested_template.id,false,false,requested_template.src);	// first process/compile returned template content
+								return handleTemplate("",id,data,cb,file);	// then reattempt to execute
+							});
+						}
+					}
+					
 					//throw err;
 					alert(err);	// TODO: remove alert, wire into some better error-handling callback mechanism
 				}
 			}
-			return cb(null);	// default: return empty content if nothing valid previously found
+			if (cb) return cb(null);	// default: return empty content if nothing valid previously found
+			return null;
 		}
 		
 		function passthruFile(src,cb) {
@@ -480,7 +500,7 @@
 		function processFileTemplate(src,data,cb) {
 			var template = templateURLsplit(src);
 			if (template.src) {
-				return publicAPI.Loader.get(template.src,function(content){handleTemplate(content,template.id,data,cb,template.src);});
+				return publicAPI.Loader.get(template.src,function(content){return handleTemplate(content,template.id,data,cb,template.src);});
 			}
 		}
 		

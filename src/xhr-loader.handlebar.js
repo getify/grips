@@ -36,6 +36,7 @@
 			xhr.setRequestHeader("X-Handlebar-Mode","raw");
 			xhr.onreadystatechange = function(){ handleFile(xhr,src,cb); };
 			xhr.send("");
+			return null;
 		}
 		
 		publicAPI = {

@@ -28,6 +28,7 @@
 			xhr.setRequestHeader("X-Handlebar-Mode","raw");
 			xhr.onreadystatechange = function(){ handleData(xhr,cb); };
 			xhr.send("");
+			return null;
 		}
 		
 		publicAPI = {
