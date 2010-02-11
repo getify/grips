@@ -65,15 +65,13 @@
 	global.Handlebar.TemplateError = (function() {
 		function F(){}
 		function CustomError() {
-			if (this===global) {	// not called with "new", so correct
-				var _this = new F();
-				CustomError.apply(_this,arguments);
-				return _this;
-			}
-			var tmp = Error.prototype.constructor.apply(this,arguments);
+			var _this = (this===global) ? new F() : this, // correct if not called with "new" 
+				tmp = Error.prototype.constructor.apply(_this,arguments)
+			;
 			for (var i in tmp) {
-				if (tmp.hasOwnProperty(i)) this[i] = tmp[i];
+				if (tmp.hasOwnProperty(i)) _this[i] = tmp[i];
 			}
+			return _this;
 		}
 		function SubClass(){}
 		SubClass.prototype = Error.prototype;
@@ -110,15 +108,13 @@
 	global.Handlebar.MissingTemplateError = (function() {
 		function F(){}
 		function CustomError() {
-			if (this===global) {	// not called with "new", so correct
-				var _this = new F();
-				CustomError.apply(_this,arguments);
-				return _this;
-			}
-			var tmp = global.Handlebar.TemplateError.prototype.constructor.apply(this,arguments);
+			var _this = (this===global) ? new F() : this, // correct if not called with "new" 
+				tmp = global.Handlebar.TemplateError.prototype.constructor.apply(_this,arguments)
+			;
 			for (var i in tmp) {
-				if (tmp.hasOwnProperty(i)) this[i] = tmp[i];
+				if (tmp.hasOwnProperty(i)) _this[i] = tmp[i];
 			}
+			return _this;
 		}
 		function SubClass(){}
 		SubClass.prototype = global.Handlebar.TemplateError.prototype;
