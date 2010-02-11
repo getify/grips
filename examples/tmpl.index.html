@@ -27,7 +27,7 @@
 
 
 
-{$: "#userdetails" | mylinks=data.links.length?"#links":"#nolinks" | controls=data.user_id?"#logout":"#login" | info=data.info?"#info" }
+{$: "#userdetails" | mylinks=data.links.length?"#links":"#nolinks" | controls=data.user_id?"#logout":"tmpl.other.html#login" | info=data.info?"#info" }
 	<div id="userdetails">
 		<p>{$= @controls $}</p>
 	
@@ -53,7 +53,6 @@
 
 
 
-{$: "#login" }<a class="controls login" href="#">Login</a>{$}
 {$: "#logout" }<a class="controls logout" href="#">Logout</a>{$}
 
 
