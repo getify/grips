@@ -269,7 +269,7 @@
 										out[cnt++] = "out[c++]=fnStore[tmp].func(_);";
 										out[cnt++] = "}";
 										out[cnt++] = "catch(terr){";	// if so, throw error
-										out[cnt++] = "if(terr.constructor === $HB.TemplateError){";	// already a typed TemplateError
+										out[cnt++] = "if(terr.constructor===$HB.TemplateError||terr.constructor===$HB.MissingTemplateError){";	// already a typed TemplateError
 										out[cnt++] = "throw terr;";	// so, just re-throw
 										out[cnt++] = "}";
 										out[cnt++] = "else{";	// general exception, so cast as TemplateError
@@ -461,7 +461,7 @@
 					return cb(out);
 				}
 				catch (err) {
-					if (!(err.constructor === publicAPI.TemplateError)) {	// some generic JS interpreter exception
+					if (!(err.constructor === publicAPI.TemplateError || err.constructor === publicAPI.MissingTemplateError)) {	// some generic JS interpreter exception
 						err = new publicAPI.TemplateError(err.message);	// cast generic exception as Template Error
 						err.TemplateName(file+id);
 					}
