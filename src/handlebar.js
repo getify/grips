@@ -6,16 +6,11 @@
 (function(global){
 	var _Handlebar = global.Handlebar || null, _$HB = global.$HB || null;
 
-	function orEmptyStr(val) {
-		if (!val) return "";
-		return val;
-	}
-
 	function templateURLsplit(src) {
 		var parts;
 		if (src === "") parts = ["","",""];
 		else parts = src.match(/^([^#]+)?(#.+)?$/);
-		return {src:orEmptyStr(parts[1]),id:orEmptyStr(parts[2])};
+		return {src:(parts[1]||""),id:(parts[2]||"")};
 	}
 	
 	function quote_str(str) {
@@ -424,7 +419,7 @@
 			var extends_tag_regex = /^\s*(\{\$\+\s*(["'])([^"]*)\2\s*\$\})/, 
 				extends_tag = content.match(extends_tag_regex)
 			;
-			file = orEmptyStr(file);
+			file = file || "";
 			
 			if (!_templates[file] || !_templates[file][id]) {
 				
