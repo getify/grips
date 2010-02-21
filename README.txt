@@ -84,7 +84,7 @@ Templating sytax:
 
 	...
 
-$%}
+%$}
 
 
 
