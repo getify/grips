@@ -1,4 +1,4 @@
-/*! XHR-Loader.Handlebar.js (Simple Templating Engine)
+/*! Local-Loader.Handlebar.js (Simple Templating Engine)
 	v0.0.1 (c) Kyle Simpson
 	MIT License
 */
@@ -12,40 +12,27 @@
 	function engine() {
 		var publicAPI,
 			_util = global.Handlebar.Util,
-			_file_cache = {}
+			_file_cache = {},
+			FS = require("fs")
 		;
-		
-		function handleFile(xhr,src,cb) {
-			if (xhr.readyState == 4) {
-				xhr.onreadystatechange = fNOOP;
-				_file_cache[src] = xhr.responseText;
-				cb(xhr.responseText);
-			}
-		}
 		
 		function requestFile(src,forceReload) {
 			forceReload = !(!forceReload);
 			return global.Handlebar.Promise(function(P){
-					if (!forceReload && _file_cache[src]) {
-						P.fulfill(_file_cache[src]);
-					}
-					else {
-						if (forceReload) src = _util.cacheBuster(src);
-						var xhr = _util.createXHR();
-						xhr.open("GET",src);
-						xhr.setRequestHeader("X-Handlebar-Mode","raw");
-						xhr.onreadystatechange = function(){ handleFile(xhr,src,P.fulfill); };
-						xhr.send("");
-					}
-				})
-			;
+				if (!forceReload && _file_cache[src]) {
+					P.fulfill(_file_cache[src]);
+				}
+				else {
+					P.fulfill(_file_cache[src] = FS.read(src));
+				}
+			});
 		}
 		
 		publicAPI = {
 			get:function(src,cb,forceReload){
 				return requestFile(src,forceReload)
 					.then(function(P){
-						if (cb) return cb(P.value);
+						if (cb) return cb(P.value);	// allows for Loader.get() to be used with promises or with callbacks
 						else return P.value;
 					})
 				;

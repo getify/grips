@@ -36,7 +36,10 @@
 			_util = publicAPI.Util;
 			_manifest_loading = true;
 			publicAPI.manifest = manifest || publicAPI.manifest || "templates.json";
-			publicAPI.Loader.get(publicAPI.manifest,processManifest);
+			publicAPI.Loader.get(publicAPI.manifest)
+			.then(function(P){
+				return processManifest(P.value);
+			});
 		}
 		
 		function mask_raw(raw,content) {
@@ -162,7 +165,7 @@
 			out[cnt++] = "var OBJTOSTRING=Object.prototype.toString,";	// start outer "closure" definition
 			out[cnt++] = "$UTIL=$HB.Util;";
 			out[cnt++] = "function "+fn_name+"(_){";	// start main template function definition
-
+			
 			if (tmpl == "") out[cnt++] = "return \"\";";
 			else {
 				out[cnt++] = "var out=[],c=0,tmp;";
@@ -180,6 +183,7 @@
 						
 						out[cnt++] = "tmp=\""+quote_str(tmp)+"\";";	// save each variable declaration for error reporting if it fails
 						out[cnt++] = qualifyExtraVars(tokens) + ";";
+						
 					}
 					out[cnt++] = "}";
 					out[cnt++] = "catch(terr){";
@@ -343,7 +347,7 @@
 			out[cnt++] = "return "+fn_name+";";	// end outer closer definition
 			
 			fn_source = out.join("");	// TODO: optimize; look for and collapse mutliple subsequent "out[c++]=..." occurences
-
+			
 			publicAPI.fnStore[name] = {source:fn_source,hash:""};
 		}
 		
@@ -415,7 +419,7 @@
 			}
 		}
 				
-		function handleTemplate(content,id,data,cb,file) {
+		function handleTemplate(content,id,data,file) {
 			var extends_tag_regex = /^\s*(\{\$\+\s*(["'])([^"]*)\2\s*\$\})/, 
 				extends_tag = content.match(extends_tag_regex)
 			;
@@ -426,34 +430,48 @@
 				if (extends_tag && extends_tag[3]) {	// template extends another template; grab and concat
 					var extends_tmpl = templateURLsplit(extends_tag[3]), orig_content = content.replace(extends_tag_regex,"");
 									
-					return publicAPI.Loader.get(extends_tmpl.src,function(content){
-						if (extends_tmpl.id) {
-							var sub_extends = content.match(extends_tag_regex);
-							processSubTemplates(content,file,extends_tmpl.id);
-							content = "{$: \""+extends_tmpl.id+"\""+(_templates[file][extends_tmpl.id].vars.length?" | "+_templates[file][extends_tmpl.id].vars.join(" | "):"")+" }"+unmask_raw(_templates[file][extends_tmpl.id].text)+"{$}";
-							_templates[file][extends_tmpl.id] = null;
-							if (sub_extends) content = sub_extends[3]+"\n\n"+content;
-						}
-						return handleTemplate(content+"\n\n"+orig_content,id,data,cb,file);
-					});
+					return publicAPI.Loader.get(extends_tmpl.src)
+						.then(function(P){
+							var content = P.value;
+							if (extends_tmpl.id) {
+								var sub_extends = content.match(extends_tag_regex);
+								processSubTemplates(content,file,extends_tmpl.id);
+								content = "{$: \""+extends_tmpl.id+"\""+(_templates[file][extends_tmpl.id].vars.length?" | "+_templates[file][extends_tmpl.id].vars.join(" | "):"")+" }"+unmask_raw(_templates[file][extends_tmpl.id].text)+"{$}";
+								_templates[file][extends_tmpl.id] = null;
+								if (sub_extends) content = sub_extends[3]+"\n\n"+content;
+							}
+							return handleTemplate(content+"\n\n"+orig_content,id,data,file);
+						})
+					;
 				}
 				else {
-					processSubTemplates(content,file);
-					
-					for (var i in _templates[file]) {
-						compileSubTemplate(file,i);
-						
-						if (publicAPI.fnStore[file+i] && !publicAPI.fnStore[file+i].func) {
-							publicAPI.fnStore[file+i].func = new Function("$HB","fnStore",publicAPI.fnStore[file+i].source)(publicAPI,publicAPI.fnStore);
-						}
-					}
-					
+					return global.Handlebar.Promise(function(P){
+							processSubTemplates(content,file);
+							
+							for (var i in _templates[file]) {
+								compileSubTemplate(file,i);
+								
+								if (publicAPI.fnStore[file+i] && !publicAPI.fnStore[file+i].func) {
+									publicAPI.fnStore[file+i].func = new Function("$HB","fnStore",publicAPI.fnStore[file+i].source)(publicAPI,publicAPI.fnStore);
+								}
+							}
+							P.fulfill();
+						})
+					;
 				}
 			}
-			if (cb && publicAPI.fnStore[file+id] && publicAPI.fnStore[file+id].func) {
+			else {
+				return global.Handlebar.Promise(function(P){
+					P.fulfill();
+				});
+			}
+		}
+		
+		function runTemplate(id,data,file) {
+			if (publicAPI.fnStore[file+id] && publicAPI.fnStore[file+id].func) {
 				try {
 					var out = publicAPI.fnStore[file+id].func({data:data});
-					return cb(out);
+					return out;
 				}
 				catch (err) {
 					if (!(err.constructor === publicAPI.TemplateError || err.constructor === publicAPI.MissingTemplateError)) {	// some generic JS interpreter exception
@@ -470,10 +488,16 @@
 							err.message = err.description = "No template id defined.";
 						}
 						else if (!_templates[requested_template.src]) {
-							return publicAPI.Loader.get(requested_template.src,function(content){
-								handleTemplate(content,requested_template.id,false,false,requested_template.src);	// first process/compile returned template content
-								return handleTemplate("",id,data,cb,file);	// then reattempt to execute
-							});
+							return publicAPI.Loader.get(requested_template.src)
+								.then(function(P){
+									var out = handleTemplate(P.value,requested_template.id,data,requested_template.src);	// first process/compile returned template content -- compile only, no execute
+									return out;
+								})
+								.then(function(P){
+									var out = runTemplate(id,data,file);	// then reattempt to execute
+									return out;
+								})
+							;
 						}
 					}
 					
@@ -481,44 +505,88 @@
 					alert(err);	// TODO: remove alert, wire into some better error-handling callback mechanism
 				}
 			}
-			if (cb) return cb(null);	// default: return empty content if nothing valid previously found
-			return null;
-		}
-		
-		function passthruFile(src,cb) {
-			var template = templateURLsplit(src);
-			if (template.src) {
-				return publicAPI.Loader.get(template.src,cb);
+			else {
+				return global.Handlebar.Promise(function(P){
+					P.fulfill();
+				});
 			}
 		}
 		
-		function processFileTemplate(src,data,cb) {
+		function passthruFile(src) {
 			var template = templateURLsplit(src);
 			if (template.src) {
-				return publicAPI.Loader.get(template.src,function(content){return handleTemplate(content,template.id,data,cb,template.src);});
+				return publicAPI.Loader.get(template.src);
 			}
 		}
 		
-		function processStateTemplate(state,data,cb) {
+		function processFileTemplate(src,data) {
+			var template = templateURLsplit(src);
+			if (template.src) {
+				return publicAPI.Loader.get(template.src)
+				.then(function(P){
+					return handleTemplate(P.value,template.id,data,template.src)
+						.then(function(P){
+							return runTemplate(template.id,data,template.src);
+						})
+					;
+				});
+			}
+		}
+		
+		function processStateTemplate(state,data) {
 			if (manifest[state]) {
-				return processFileTemplate(manifest[state],data,cb);
+				return processFileTemplate(manifest[state],data);
 			}
+			// TODO: throw error if unknown state
 		}
 		
 		publicAPI = {
 			fnStore:{},
 			
 			init:init,
-			processTemplate:handleTemplate,
-			passthruFile:passthruFile,
-			processFile:processFileTemplate,	
-			processState:function(){
+			processTemplate:function(content,id,data,cb,file){
+				return handleTemplate(content,id,data,file)
+					.then(function(P){
+						return runTemplate(id,data,file);
+					})
+					.then(function(P){
+						if (cb) return cb(P.value);
+						else return P.value
+					})
+				;
+			},
+			passthruFile:function(src,cb){
+				return passthruFile(src)
+					.then(function(P){
+						if (cb) return cb(P.value);
+						else return P.value;
+					})
+				;
+			},
+			processFile:function(src,data,cb){
+				return processFileTemplate(src,data)
+					.then(function(P){
+						if (cb) return cb(P.value);
+						else return P.value;
+					})
+				;
+			},
+			processState:function(state,data,cb){
 				var args = arguments;
-				if (_manifest_loading) {
-					_queue[_queue.length] = function(){processStateTemplate.apply(null,args);};
-					return null;
-				}
-				else return processStateTemplate.apply(null,args);
+				return publicAPI.Promise(function(P){
+						if (_manifest_loading) {
+							_queue[_queue.length] = P.fulfill
+						}
+						else P.fulfill();
+					})
+					.then(function(P){
+						return processStateTemplate(state,data);
+					})
+					.then(function(P){
+						if (cb) return cb(P.value);
+						else return P.value;
+					})
+				;
 			},	
 			
 			clone:function(){return engine();},
