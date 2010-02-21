@@ -1,20 +1,28 @@
 function login() {
-	Handlebar.DataClient.get("app.php",{user_id:1},function(data){
-		Handlebar.processState(data.APP_STATE,data.APP_DATA,function(content){
-			detachControlsBehavior();
-			$("#userdetails").html(content);
-			attachControlsBehavior();
-		});
+	Handlebar.DataClient.get("app.php",{user_id:1})
+	.then(function(P){
+		var data = P.value;
+		return Handlebar.processState(data.APP_STATE,data.APP_DATA)
+	})
+	.then(function(P){
+		var content = P.value;
+		detachControlsBehavior();
+		$("#userdetails").html(content);
+		attachControlsBehavior();
 	});
 }
 
 function logout() {
-	Handlebar.DataClient.get("app.php",{user_id:0},function(data){
-		Handlebar.processState(data.APP_STATE,data.APP_DATA,function(content){
-			detachControlsBehavior();
-			$("#userdetails").html(content);
-			attachControlsBehavior();
-		});
+	Handlebar.DataClient.get("app.php",{user_id:0})
+	.then(function(P){
+		var data = P.value;
+		return Handlebar.processState(data.APP_STATE,data.APP_DATA)
+	})
+	.then(function(P){
+		var content = P.value;
+		detachControlsBehavior();
+		$("#userdetails").html(content);
+		attachControlsBehavior();
 	});
 }
 
@@ -33,10 +41,14 @@ function detachControlsBehavior() {
 }
 
 function buildPage() {
-	Handlebar.DataClient.get("app.php",{},function(data){
-		Handlebar.processState(data.APP_STATE,data.APP_DATA,function(content){
-			$("#content").html(content);
-			attachControlsBehavior();
-		});
+	Handlebar.DataClient.get("app.php",{})
+	.then(function(P){
+		var data = P.value;
+		return Handlebar.processState(data.APP_STATE,data.APP_DATA)
+	})
+	.then(function(P){
+		var content = P.value;
+		$("#content").html(content);
+		attachControlsBehavior();
 	});
 }
