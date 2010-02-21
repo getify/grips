@@ -445,25 +445,20 @@
 					;
 				}
 				else {
-					return global.Handlebar.Promise(function(P){
-							processSubTemplates(content,file);
-							
-							for (var i in _templates[file]) {
-								compileSubTemplate(file,i);
-								
-								if (publicAPI.fnStore[file+i] && !publicAPI.fnStore[file+i].func) {
-									publicAPI.fnStore[file+i].func = new Function("$HB","fnStore",publicAPI.fnStore[file+i].source)(publicAPI,publicAPI.fnStore);
-								}
-							}
-							P.fulfill();
-						})
-					;
+					processSubTemplates(content,file);
+					
+					for (var i in _templates[file]) {
+						compileSubTemplate(file,i);
+						
+						if (publicAPI.fnStore[file+i] && !publicAPI.fnStore[file+i].func) {
+							publicAPI.fnStore[file+i].func = new Function("$HB","fnStore",publicAPI.fnStore[file+i].source)(publicAPI,publicAPI.fnStore);
+						}
+					}
+					return global.Handlebar.Promise();	// empty promise to keep the chain alive
 				}
 			}
 			else {
-				return global.Handlebar.Promise(function(P){
-					P.fulfill();
-				});
+				return global.Handlebar.Promise();	// empty promise to keep the chain alive
 			}
 		}
 		
@@ -506,9 +501,7 @@
 				}
 			}
 			else {
-				return global.Handlebar.Promise(function(P){
-					P.fulfill();
-				});
+				return global.Handlebar.Promise();	// empty promise to keep the chain alive
 			}
 		}
 		

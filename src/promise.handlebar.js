@@ -49,10 +49,15 @@
 				return publicAPI;
 			};
 			
-			cb.call(publicAPI,{fulfill:function(val){
+			if (cb == null) {
 				promise_fulfilled = true;
-				fulfill.call(publicAPI,val);
-			},value:undef});
+			}
+			else {
+				cb.call(publicAPI,{fulfill:function(val){
+					promise_fulfilled = true;
+					fulfill.call(publicAPI,val);
+				},value:undef});
+			}
 			
 			return publicAPI;
 		};
