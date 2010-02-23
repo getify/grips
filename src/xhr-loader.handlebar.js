@@ -25,20 +25,19 @@
 		
 		function requestFile(src,forceReload) {
 			forceReload = !(!forceReload);
-			return global.Handlebar.Promise(function(P){
-					if (!forceReload && _file_cache[src]) {
-						P.fulfill(_file_cache[src]);
-					}
-					else {
-						if (forceReload) src = _util.cacheBuster(src);
-						var xhr = _util.createXHR();
-						xhr.open("GET",src);
-						xhr.setRequestHeader("X-Handlebar-Mode","raw");
-						xhr.onreadystatechange = function(){ handleFile(xhr,src,P.fulfill); };
-						xhr.send("");
-					}
-				})
-			;
+			if (!forceReload && _file_cache[src]) {
+				return global.Handlebar.Promise(_file_cache[src]);
+			}
+			else {
+				return global.Handlebar.Promise(function(P){
+					if (forceReload) src = _util.cacheBuster(src);
+					var xhr = _util.createXHR();
+					xhr.open("GET",src);
+					xhr.setRequestHeader("X-Handlebar-Mode","raw");
+					xhr.onreadystatechange = function(){ handleFile(xhr,src,P.fulfill); };
+					xhr.send("");
+				});
+			}
 		}
 		
 		publicAPI = {

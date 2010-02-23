@@ -21,10 +21,7 @@
 			var pipes = OS.command.apply(global,cmds);
 			if (data != null) pipes.stdin.write(data);
 			
-			return global.Handlebar.Promise(function(P){
-					P.fulfill(JSON.parse(pipes.stdout.read()));
-				})
-			;
+			return global.Handlebar.Promise(JSON.parse(pipes.stdout.read()));
 		}
 		
 		publicAPI = {

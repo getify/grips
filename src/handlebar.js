@@ -485,12 +485,10 @@
 						else if (!_templates[requested_template.src]) {
 							return publicAPI.Loader.get(requested_template.src)
 								.then(function(P){
-									var out = handleTemplate(P.value,requested_template.id,data,requested_template.src);	// first process/compile returned template content -- compile only, no execute
-									return out;
+									return handleTemplate(P.value,requested_template.id,data,requested_template.src);	// first process/compile returned template content -- compile only, no execute
 								})
 								.then(function(P){
-									var out = runTemplate(id,data,file);	// then reattempt to execute
-									return out;
+									return runTemplate(id,data,file);	// then reattempt to execute
 								})
 							;
 						}
@@ -516,13 +514,13 @@
 			var template = templateURLsplit(src);
 			if (template.src) {
 				return publicAPI.Loader.get(template.src)
-				.then(function(P){
-					return handleTemplate(P.value,template.id,data,template.src)
-						.then(function(P){
-							return runTemplate(template.id,data,template.src);
-						})
-					;
-				});
+					.then(function(P){
+						return handleTemplate(P.value,template.id,data,template.src);
+					})
+					.then(function(P){
+						return runTemplate(template.id,data,template.src);
+					})
+				;
 			}
 		}
 		

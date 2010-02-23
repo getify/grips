@@ -18,14 +18,7 @@
 		
 		function requestFile(src,forceReload) {
 			forceReload = !(!forceReload);
-			return global.Handlebar.Promise(function(P){
-				if (!forceReload && _file_cache[src]) {
-					P.fulfill(_file_cache[src]);
-				}
-				else {
-					P.fulfill(_file_cache[src] = FS.read(src));
-				}
-			});
+			return global.Handlebar.Promise((!forceReload && _file_cache[src]) ? _file_cache[src] : (_file_cache[src] = FS.read(src)));
 		}
 		
 		publicAPI = {
