@@ -29,11 +29,11 @@
 						ret_val = queue[0].call(publicAPI,ret_val);
 						
 						if (typeof ret_val == "undefined") { ret_val = old_ret; }
-						else if (ret_val && ret_val.constructor !== Promise) old_ret = ret_val;	// lame, V8 "instanceof" currently broken
+						else if (ret_val && ret_val.constructor !== Promise) old_ret = ret_val;
 											
 						queue.shift();
 						
-						if (ret_val && ret_val.constructor === Promise) {	// lame, V8 "instanceof" currently broken
+						if (ret_val && ret_val.constructor === Promise) {
 							promise_fulfilled = false;
 							ret_val.then(function(P){ promise_fulfilled = true; return (old_ret = fulfill(P.value)); });
 							break;
@@ -43,20 +43,26 @@
 			}
 					
 			publicAPI = new Promise();
+			
 			publicAPI.then = function(cb){
-				queue[queue.length] = function(val){ return cb.call(publicAPI,{value:val}); };
+				if (typeof cb == "function") queue[queue.length] = function(val){ return cb.call(publicAPI,{value:val}); };	// then() callback
+				else queue[queue.length] = function(val){ return cb; };	// then() value
 				if (promise_fulfilled) fulfill(old_ret);
 				return publicAPI;
 			};
 			
-			if (cb == null) {
+			if (cb == null) {	// empty promise
 				promise_fulfilled = true;
 			}
-			else {
+			else if (typeof cb == "function") {	// promise callback
 				cb.call(publicAPI,{fulfill:function(val){
 					promise_fulfilled = true;
 					fulfill.call(publicAPI,val);
 				},value:undef});
+			}
+			else {	// immediate promise value
+				promise_fulfilled = true;
+				return publicAPI.then(cb);
 			}
 			
 			return publicAPI;
