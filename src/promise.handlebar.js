@@ -29,7 +29,7 @@
 						ret_val = queue[0].call(publicAPI,ret_val);
 						
 						if (typeof ret_val == "undefined") { ret_val = old_ret; }
-						else if (ret_val && ret_val.constructor !== Promise) old_ret = ret_val;
+						else if (ret_val && !(ret_val instanceof Promise)) old_ret = ret_val;
 											
 						queue.shift();
 						
