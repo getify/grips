@@ -33,7 +33,7 @@
 											
 						queue.shift();
 						
-						if (ret_val && ret_val.constructor === Promise) {
+						if (ret_val && ret_val instanceof Promise) {
 							promise_fulfilled = false;
 							ret_val.then(function(P){ promise_fulfilled = true; return (old_ret = fulfill(P.value)); });
 							break;
