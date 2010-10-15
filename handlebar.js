@@ -1,5 +1,5 @@
 /*! Handlebar.js (Simple Templating Engine)
-	v0.0.1 (c) Kyle Simpson
+	v0.0.1.1 (c) Kyle Simpson
 	MIT License
 */
 
@@ -72,8 +72,8 @@
 		
 		function processManifest(contents) {
 			_manifest_loading = false;
-			manifest = JSON.parse(contents)["templates"];
-			
+			manifest = JSON.parse(JSON.minify(contents));
+						
 			for (var i=0, len=_queue.length; i<len; i++) {
 				_queue[i]();
 			}
@@ -440,13 +440,14 @@
 								_templates[file][extends_tmpl.id] = null;
 								if (sub_extends) content = sub_extends[3]+"\n\n"+content;
 							}
+							
 							return handleTemplate(content+"\n\n"+orig_content,id,data,file);
 						})
 					;
 				}
 				else {
 					processSubTemplates(content,file);
-					
+
 					for (var i in _templates[file]) {
 						compileSubTemplate(file,i);
 						
@@ -454,6 +455,7 @@
 							publicAPI.fnStore[file+i].func = new Function("$HB","fnStore",publicAPI.fnStore[file+i].source)(publicAPI,publicAPI.fnStore);
 						}
 					}
+					
 					return global.Handlebar.Promise();	// empty promise to keep the chain alive
 				}
 			}
@@ -512,6 +514,7 @@
 		
 		function processFileTemplate(src,data) {
 			var template = templateURLsplit(src);
+			
 			if (template.src) {
 				return publicAPI.Loader.get(template.src)
 					.then(function(P){
@@ -596,7 +599,6 @@
 		if (deep) {
 			global.Handlebar.Util = _hb.Util.noConflict(deep);
 			global.Handlebar.Loader = _hb.Loader.noConflict(deep);
-			global.Handlebar.DataClient = _hb.DataClient.noConflict(deep);
 			global.Handlebar.TemplateError = _hb.TemplateError.noConflict(deep);
 			global.Handlebar.MissingTemplateError = _hb.MissingTemplateError.noConflict(deep);
 		}

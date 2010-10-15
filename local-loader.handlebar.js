@@ -1,5 +1,5 @@
 /*! Local-Loader.Handlebar.js (Simple Templating Engine)
-	v0.0.1 (c) Kyle Simpson
+	v0.0.1.1 (c) Kyle Simpson
 	MIT License
 */
 

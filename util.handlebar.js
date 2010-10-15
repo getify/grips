@@ -1,5 +1,5 @@
 /*! Util.Handlebar.js (Static Utility Functions)
-	v0.0.1 (c) Kyle Simpson
+	v0.0.1.1 (c) Kyle Simpson
 	MIT License
 */
 
