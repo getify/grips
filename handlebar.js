@@ -1,5 +1,5 @@
 /*! Handlebar.js (Simple Templating Engine)
-	v0.0.1.1 (c) Kyle Simpson
+	v0.0.1.2 (c) Kyle Simpson
 	MIT License
 */
 
@@ -151,10 +151,11 @@
 		function compileSubTemplate(file,id) {
 			if (!_templates[file][id]) return;
 			
-			var name = file+id, out = [], tmp, tmp2, tmp3, tokens, i, len, 
+			var name = file+id, out = [], tmp, tmp2, tmp3, tokens, i, len, len2, extras,
 				captured_idx = 0, cnt=0, loop_level = 0,
 				rightContext,
 				tmpl_regex = /(\{\$([%=*]))|(\{\$\})|(%?\$?\})/g,
+				loop_extras_regex = /((\|\s*[^|$]+\s*)+)/,
 				tmpl = _templates[file][id].text, 
 				tvars = _templates[file][id].vars,
 				fn_source,
@@ -217,6 +218,7 @@
 								}
 								else if (tmp[2] == "*") {	// loop tag, set up loop function
 									tmp2 = tmp2[1];
+									tmp3 = _util.faster_trim(tmp2.split("|")[0]);
 									out[cnt++] = "(function(_){";	// start loop namespace function definition
 									out[cnt++] = "var tmp,";	// declare some private helper variables
 									out[cnt++] = "len,";
@@ -224,12 +226,12 @@
 									out[cnt++] = "idx,";
 									out[cnt++] = "items;";
 									out[cnt++] = "try{";	// check if iteration object reference is valid
-									out[cnt++] = "var iterobj=_."+tmp2+";";
+									out[cnt++] = "var iterobj=_."+tmp3+";";
 									out[cnt++] = "}";
 									out[cnt++] = "catch(terr){";	// if not, throw error
 									out[cnt++] = "terr=new $HB.TemplateError(\"Iteration variable reference invalid.\");";
 									out[cnt++] = "terr.TemplateName(\""+name+"\");";
-									out[cnt++] = "terr.TemplateTag(\"{$* "+tmp2+" }\");";
+									out[cnt++] = "terr.TemplateTag(\"{$* "+quote_str(tmp2)+" }\");";
 									out[cnt++] = "throw terr;";
 									out[cnt++] = "}";
 									out[cnt++] = "if(iterobj==null){";	// if specified iteration variable is undefined or null
@@ -237,7 +239,44 @@
 									out[cnt++] = "}";
 									
 									out[cnt++] = "function do_loop(item){";	// start "do_loop" definition
+									out[cnt++] = "_=$UTIL.cloneObj(_);";	// sandbox loop namespace by cloning it
 									out[cnt++] = "_.item=item;";
+									
+									// handle loop variable declarations, if any
+									extras = tmp2.match(loop_extras_regex);
+									if (extras) {
+										extras = extras[1];
+										extras = extras.replace(/^\s*\|\s*/,"");
+										extras = _util.faster_trim(extras);
+										if (extras != "") {
+											extras = extras.split(/\s*\|\s*/);
+										}
+										else extras = [];
+									}
+									else extras = [];
+
+									if (extras.length > 0) {
+										out[cnt++] = "var tmp;";
+										out[cnt++] = "try{";
+					
+										// add declarations
+										for (i=0, len2=extras.length; i<len2; i++) {
+											tmp3 = extras[i].replace(/\n|\r/," ");
+											
+											tokens = tokenizeExtraVars(tmp3);
+											
+											out[cnt++] = "tmp=\""+quote_str(tmp3)+"\";";	// save each variable declaration for error reporting if it fails
+											out[cnt++] = qualifyExtraVars(tokens) + ";";
+										}
+										out[cnt++] = "}";
+										out[cnt++] = "catch(terr){";
+										out[cnt++] = "terr=new $HB.TemplateError(\"Variable reference invalid.\");";
+										out[cnt++] = "terr.TemplateName(\""+name+"\");";
+										out[cnt++] = "terr.TemplateTag(tmp);";
+										out[cnt++] = "throw terr;";
+										out[cnt++] = "}";
+									}
+									
 									loop_level++;
 								}
 								else if (tmp[2] == "=") {	// replacement/include tag
