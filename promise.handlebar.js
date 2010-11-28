@@ -1,4 +1,4 @@
-/*! Promise.Handlebar.js (Data/State Client)
+/*! Promise.Handlebar.js (Sync/Async Promise interface)
 	v0.0.1.1 (c) Kyle Simpson
 	MIT License
 */
@@ -109,6 +109,7 @@
 			return publicAPI;
 		};
 		publicAPI.noConflict = rollback;
+		publicAPI.clone = clone;
 		
 		return publicAPI;
 	}
@@ -118,11 +119,16 @@
 		global.Handlebar.Promise = _Promise;
 		return _pr;
 	}
+	
+	function clone() {
+		return _Promise;
+	}
 
-	if (typeof require !== "undefined" && (require.constructor !== Function)) {	// is the special core sandboxed "require"
+	// if on server, use built-in `promise` module
+	if (typeof global.require !== "undefined" && global.require.constructor !== Function) {
 		global.Handlebar.Promise = require("promise");
 		global.Handlebar.Promise.noConflict = rollback;
-		//global.Handlebar.Promise.clone = function(){return require("promise",true); };	// not needed since Promise is not yet a stateful plugin
+		global.Handlebar.Promise.clone = clone;
 	}
 	else global.Handlebar.Promise = engine();
 	
