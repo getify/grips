@@ -1,5 +1,5 @@
 HandlebarJS Templating Engine
-v0.0.1/1 (c) 2010 Kyle Simpson
+v0.0.1.2 (c) 2010 Kyle Simpson
 MIT License
 
 
