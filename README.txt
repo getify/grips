@@ -72,6 +72,25 @@ Templating sytax:
 
 
 
+-Loop on data variable with loop iteration initialization-
+   --`item` iteration binding has: 
+      `key` (index), `value`, `first`, `last`, `odd`, and `even`
+
+{$* data.value | rowtype=item.odd?"#oddrow":"evenrow" | someprop=item.value.someProp?"#hassomeprop" }
+
+	...
+	{$= @rowtype $}
+	...
+	{$= @someprop $}
+	...
+	{$= item.value.otherProp $}
+	...
+
+{$}
+
+
+
+
 -"Extend" (inherit from) another template file-
 
 {$+ "template/file.url" $}
