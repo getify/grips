@@ -76,7 +76,7 @@ Templating sytax:
    --`item` iteration binding has: 
       `key` (index), `value`, `first`, `last`, `odd`, and `even`
 
-{$* data.value | rowtype=item.odd?"#oddrow":"evenrow" | someprop=item.value.someProp?"#hassomeprop" }
+{$* data.value | rowtype=item.odd?"#oddrow":"#evenrow" | someprop=item.value.someProp?"#hassomeprop" }
 
 	...
 	{$= @rowtype $}
