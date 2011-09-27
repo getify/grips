@@ -1,0 +1,3 @@
+[submodule "examples/JSON.minify"]
+	path = examples/JSON.minify
+	url = git@github.com:getify/JSON.minify.git
