@@ -1,6 +1,8 @@
 /*! Local-Loader.Handlebar.js (Simple Templating Engine)
-	v0.0.1.1 (c) Kyle Simpson
+	v0.0.1.2 (c) Kyle Simpson
 	MIT License
+	
+	* Example of how to load files locally when running HandlebarJS in the BikechainJS server-javascript environment
 */
 
 (function(global){
@@ -13,7 +15,7 @@
 		var publicAPI,
 			_util = global.Handlebar.Util,
 			_file_cache = {},
-			FS = require("fs")
+			FS = require("fs") // `require()` is defined in the BikechainJS server-javascript environment
 		;
 		
 		function requestFile(src,forceReload) {
