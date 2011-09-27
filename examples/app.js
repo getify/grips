@@ -1,5 +1,20 @@
+function getData(src, data) {
+	var _utl = global.Handlebar.Util;
+	
+	return global.Handlebar.Promise(function(P){
+		var xhr = _util.createXHR();
+		xhr.open("GET",src+"?data="+JSON.stringify(data));
+		xhr.onreadystatechange = function(){
+			if (xhr.readyState == 4) {
+				P.fulfill(JSON.parse(xhr.responseText));
+			}
+		};
+		xhr.send("");
+	});
+}
+
 function login() {
-	Handlebar.DataClient.get("app.php",{user_id:1})
+	getData("app.php",{user_id:1})
 	.then(function(P){
 		var data = P.value;
 		return Handlebar.processState(data.APP_STATE,data.APP_DATA)
@@ -13,7 +28,7 @@ function login() {
 }
 
 function logout() {
-	Handlebar.DataClient.get("app.php",{user_id:0})
+	getData("app.php",{user_id:0})
 	.then(function(P){
 		var data = P.value;
 		return Handlebar.processState(data.APP_STATE,data.APP_DATA)
@@ -41,7 +56,7 @@ function detachControlsBehavior() {
 }
 
 function buildPage() {
-	Handlebar.DataClient.get("app.php",{})
+	getData("app.php",{})
 	.then(function(P){
 		var data = P.value;
 		return Handlebar.processState(data.APP_STATE,data.APP_DATA)

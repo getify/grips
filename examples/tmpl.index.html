@@ -2,7 +2,7 @@
 
 
 
-{$: "#content" }
+{$: "#content" | userdetails=data.full_name?"#userdetails":"#nouser" }
 	<h1>HandlebarJS Template Engine</h1>
 
 	<p>This is how a HandlebarJS Template works.</p>
@@ -19,10 +19,16 @@
 		<!-- here comes the end of the raw tag -->  
 	%$}
 	</p>
-	
-	<hr />
 			
-	{$= @"#userdetails" $}
+	<hr />
+	
+	{$= @userdetails $}
+{$}
+
+
+
+{$: "#nouser" }
+	<p>{$= @controls $}</p>
 {$}
 
 
@@ -100,7 +106,8 @@ $LAB
 	.script("handlebar.js").wait()
 	.script("util.handlebar.js").wait()
 	.script("xhr-loader.handlebar.js",
-			"xhr-dataclient.handlebar.js"
+			"promise.handlebar.js",
+			"JSON.minify/minify.json.js"
 	)
 	.wait(function(){Handlebar.init();})
 	.script("http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js",
@@ -111,4 +118,8 @@ $LAB
 </script>
 
 {$}
+
+
+
+{$: "#styles" }<link rel="stylesheet" type="text/css" href="styles.css" />{$}
 
