@@ -28,14 +28,14 @@
 
 
 {$: "#nouser" }
-	<p>{$= @controls $}</p>
+	{$= @"#controls" $}
 {$}
 
 
 
-{$: "#userdetails" | mylinks=data.links.length?"#links":"#nolinks" | controls=data.user_id?"#logout":"tmpl.other.html#login" | info=data.info?"#info" }
+{$: "#userdetails" | mylinks=data.links.length?"#links":"#nolinks" | info=data.info?"#info" }
 	<div id="userdetails">
-		<p>{$= @controls $}</p>
+		{$= @"#controls" $}
 	
 		<h3>User Details</h3>
 
@@ -47,6 +47,12 @@
 		
 		{$= @mylinks $}
 	</div>
+{$}
+
+
+
+{$: "#controls" | which_controls=data.user_id?"#logout":"tmpl.other.html#login" }
+	<p>{$= @which_controls $}</p>
 {$}
 
 

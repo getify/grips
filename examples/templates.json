@@ -1,5 +1,5 @@
-{"templates":{
+{
 	"index":"tmpl.index.html#master",
 	"index_content":"tmpl.index.html#content",
 	"index_content_partial":"tmpl.index.html#userdetails"
-}}
+}
