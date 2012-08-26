@@ -9,7 +9,7 @@
 <h1>handlegrips Templating Engine: Tests</h1>
 
 <script id="template" type="text/template">
-{$: '#master' | a = (b) } blah {$}
+{$: '#master' } {$= data.$blah $} blah {$}
 </script>
 
 <script src="../lib/grips.js"></script>
