@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>handlegrips Templating Engine: Tests</title>
+</head>
+
+<body>
+<h1>handlegrips Templating Engine: Tests</h1>
+
+<script id="template" type="text/template">
+{$+ 'master' $}
+</script>
+
+<script src="../lib/grips.js"></script>
+<script src="../lib/tokenizer.js"></script>
+<script src="../lib/parser.js"></script>
+<script src="../lib/generator.js"></script>
+<script>
+
+var tmpl = document.getElementById("template");
+var text = tmpl.text.replace(/^\s*|\s*$/g,"");
+
+console.log(text);
+console.log("");
+
+grips.processTemplate(text);
+
+</script>
+</body>
+</html>
