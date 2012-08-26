@@ -10,11 +10,11 @@ grips will "compile" requested templates into executable JavaScript functions, w
 
 ## Examples:
 
-The examples/ directory has some sample template files, and a "manifest" called "templates.json" (which is the JSON dictionary that maps "states" to templates for the engine).
+The examples/ directory has some sample template files.
 
 ## Templating sytax:
 
-### Define a named template section
+### Define a named template section (aka, "partial")
 
 	{$: "#xxx" }
 	
@@ -22,7 +22,7 @@ The examples/ directory has some sample template files, and a "manifest" called 
 	
 	{$}
 
-### Define a named template section with data initialization
+### Define a named template section, with data initialization expression(s)
 
 	{$: "#xxx" | x = data.val1 | y = data.val2 ? "#yyy" : "#zzz" }
 	
@@ -50,7 +50,7 @@ The examples/ directory has some sample template files, and a "manifest" called 
 	
 	{$}
 
-### Loop on data variable with loop iteration initialization
+### Loop on data variable, with loop iteration initialization expression(s)
   `item` iteration binding has: 
     `key` (index), `value`, `first`, `last`, `odd`, and `even`
 
@@ -69,7 +69,7 @@ The examples/ directory has some sample template files, and a "manifest" called 
 
 ### "Extend" (inherit from) another template file
 
-	{$+ "template/file.url#template_id" $}
+	{$+ "template/file.url" $}
 
 ### Raw un-parsed section
 
