@@ -6,25 +6,15 @@ grips is a simple templating engine written in JavaScript. It's designed to work
 
 grips takes as its only input data in a simple JSON data-dictionary format, and returns output from the template(s) selected.
 
-Templates are selected by specifying a "state" (an abitrary string value representing the state of the application at that moment) rather than a URL.
+grips will "compile" requested templates into executable JavaScript functions, which take the JSON data dictionary as input and return the output. The compilation of templates can either be JIT (at request time) or pre-compiled in a build process.
 
-grips will "compile" requested templates into executable JavaScript functions, which take the JSON data dictionary as input and return the output. The compilation of templates can either be JIT (at request time) or driven by build processes, as desired.
+## Examples:
 
--------
+The examples/ directory has some sample template files, and a "manifest" called "templates.json" (which is the JSON dictionary that maps "states" to templates for the engine).
 
-Examples:
+## Templating sytax:
 
-The examples/ directory has three sample template files, a "manifest" called "templates.json" (which is the JSON dictionary that maps "states" to templates for the engine), "index.html" file showing how to intialize the template engine, and a "app.js" file showing how to use the engine to request remote data and parse templates for dynamic output.
-
-NOTE: the "index.html" makes use of LABjs (http://labjs.com) to load scripts. It is not included in this source tree, nor is it required for grips. LABjs can also be found on github: http://github.com/getify/LABjs
-
--------
-
-Templating sytax:
-
-
-
--Define a named template section-
+### Define a named template section
 
 	{$: "#xxx" }
 	
@@ -32,8 +22,7 @@ Templating sytax:
 	
 	{$}
 
-
--Define a named template section with data initialization-
+### Define a named template section with data initialization
 
 	{$: "#xxx" | x = data.val1 | y = data.val2 ? "#yyy" : "#zzz" }
 	
@@ -41,23 +30,19 @@ Templating sytax:
 	
 	{$}
 
-
--Replace tag with data variable-
+### Replace tag with data variable
 
 	{$= data.value $}
 
-
--Include template section-
+### Include template section
 
 	{$= @"#yyy" $}
 
-
--Include template section from data variable-
+### Include template section from data variable
 
 	{$= @value $}
 
-
--Loop on data variable (array or plain key/value object)-
+### Loop on data variable (array or plain key/value object)
 
 	{$* data.value }
 	
@@ -65,10 +50,9 @@ Templating sytax:
 	
 	{$}
 
-
--Loop on data variable with loop iteration initialization-
-   --`item` iteration binding has: 
-      `key` (index), `value`, `first`, `last`, `odd`, and `even`
+### Loop on data variable with loop iteration initialization
+  `item` iteration binding has: 
+    `key` (index), `value`, `first`, `last`, `odd`, and `even`
 
 	{$* data.value | rowtype = item.odd ? "#oddrow" : "#evenrow" | 
 	     someprop = item.value.someProp ? "#hassomeprop" }
@@ -83,13 +67,11 @@ Templating sytax:
 	
 	{$}
 
-
--"Extend" (inherit from) another template file-
+### "Extend" (inherit from) another template file
 
 	{$+ "template/file.url#template_id" $}
 
-
--Raw un-parsed section-
+### Raw un-parsed section
 
 	{$%
 	
@@ -97,8 +79,7 @@ Templating sytax:
 	
 	%$}
 
-
--Template comment block-
+### Template comment block
 
 	{$/
 	
