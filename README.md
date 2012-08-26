@@ -1,6 +1,4 @@
-grips Templating Engine
-v0.0 (c) 2012 Kyle Simpson
-MIT License
+# grips Templating Engine
 
 **NOTE: this project used to be called "HandlebarJS". To avoid confusion with the newer but more popular "Handlebars" templating engine from @wycats, I'm renaming this project to "grips".**
 
@@ -28,91 +26,82 @@ Templating sytax:
 
 -Define a named template section-
 
-{$: "#xxx" }
-
-	...
-
-{$}
+	{$: "#xxx" }
+	
+		...
+	
+	{$}
 
 
 -Define a named template section with data initialization-
 
-{$: "#xxx" | x = data.val1 | y = data.val2 ? "#yyy" : "#zzz" }
-
-	...
-
-{$}
-
+	{$: "#xxx" | x = data.val1 | y = data.val2 ? "#yyy" : "#zzz" }
+	
+		...
+	
+	{$}
 
 
 -Replace tag with data variable-
 
-{$= data.value $}
-
+	{$= data.value $}
 
 
 -Include template section-
 
-{$= @"#yyy" $}
-
+	{$= @"#yyy" $}
 
 
 -Include template section from data variable-
 
-{$= @value $}
-
+	{$= @value $}
 
 
 -Loop on data variable (array or plain key/value object)-
 
-{$* data.value }
-
-	...
-
-{$}
-
+	{$* data.value }
+	
+		...
+	
+	{$}
 
 
 -Loop on data variable with loop iteration initialization-
    --`item` iteration binding has: 
       `key` (index), `value`, `first`, `last`, `odd`, and `even`
 
-{$* data.value | rowtype = item.odd ? "#oddrow" : "#evenrow" | 
-       someprop = item.value.someProp ? "#hassomeprop" }
-
-	...
-	{$= @rowtype $}
-	...
-	{$= @someprop $}
-	...
-	{$= item.value.otherProp $}
-	...
-
-{$}
-
-
+	{$* data.value | rowtype = item.odd ? "#oddrow" : "#evenrow" | 
+	     someprop = item.value.someProp ? "#hassomeprop" }
+	
+		...
+		{$= @rowtype $}
+		...
+		{$= @someprop $}
+		...
+		{$= item.value.otherProp $}
+		...
+	
+	{$}
 
 
 -"Extend" (inherit from) another template file-
 
-{$+ "template/file.url#template_id" $}
-
+	{$+ "template/file.url#template_id" $}
 
 
 -Raw un-parsed section-
 
-{$%
-
-	...
-
-%$}
-
+	{$%
+	
+		...
+	
+	%$}
 
 
 -Template comment block-
 
-{$/
-
-	...
-
-/$}
+	{$/
+	
+		...
+	
+	/$}
