@@ -9,7 +9,7 @@
 <h1>grips Templating Engine: Tests</h1>
 
 <script id="template" type="text/template">
-{$: '#master' } {$* data | a = (b ? c) } abc {$} {$}
+{$+ "foo.bar" $}{$: '#master' } {$* data | a = (b ? c) } abc {$} {$}
 </script>
 
 <script src="../lib/base.js"></script>
