@@ -9,7 +9,29 @@
 <h1>grips Templating Engine: Tests</h1>
 
 <script id="template" type="text/template">
-{$: '#master' | a[b]['foo bar'] = $$.b ? c } abc {$}
+{$: '#foobar' |
+	a = $.b ? $.c[d] : e[$.f]["g"]
+}
+	abc {$= a $}
+{$}
+</script>
+
+<script id="template_2" type="text/template">
+{$: '#foobar' |
+	checked['a','b'] = $.foobar ? 'checked'
+}
+	<input type="radio" name="foobar" class="odd" value="a" {$= checked['a'] $}>
+	<input type="radio" name="foobar" class="even" value="b" {$= checked['b'] $}>
+{$}
+
+{$: '#foobar' }
+	{$* ['a','b'] |
+		checked['a','b'] = $$ ? 'checked' |
+		oddeven = $$.odd ? 'odd' : 'even'
+	}
+		<input type="radio" name="foobar" class="{$= oddeven $}" value="{$= $$ $}" {$= checked[$$] $}>
+	{$}
+{$}
 </script>
 
 <script src="../lib/base.js"></script>
