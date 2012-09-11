@@ -27,14 +27,16 @@
 
 <script id="template_3" type="text/template">
 {$: '#foobar' }
+	<h1>Settings</h1>
 	{$* $.settings |
 		name = $$.key |
 		setting = $$.val.setting
 	}
+		<h2>{$= name $}</h2>
 		{$* ['low','high'] |
 			checked['low','high'] = setting ? 'checked'
 		}
-			<input type="radio" name="{$= name $}" value="{$= $$.value $}" {$= checked[$$.value] $}>
+			<input type="radio" name="{$= name $}" value="{$= $$.value $}" {$= checked[$$.value] $}> {$= $$.value $}
 		{$}
 	{$}
 {$}
