@@ -30,7 +30,7 @@
 	<h1>Settings</h1>
 	{$* $.settings |
 		name = $$.key |
-		setting = $$.val.setting
+		setting = $$.val
 	}
 		<h2>{$= name $}</h2>
 		{$* ['low','high'] |
