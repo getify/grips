@@ -18,10 +18,10 @@
 
 <script id="template_2" type="text/template">
 {$: '#foobar' |
-	checked['a','b'] = $.foobar ? 'checked'
+	checked['low','high'] = $.foobar ? 'checked'
 }
-	<input type="radio" name="foobar" class="odd" value="a" {$= checked['a'] $}>
-	<input type="radio" name="foobar" class="even" value="b" {$= checked['b'] $}>
+	<input type="radio" name="foobar" class="odd" value="a" {$= checked['low'] $}>
+	<input type="radio" name="foobar" class="even" value="b" {$= checked['high'] $}>
 {$}
 </script>
 
@@ -31,8 +31,8 @@
 		name = $$.key |
 		setting = $$.val.setting
 	}
-		{$* ['a','b'] |
-			checked['a','b'] = setting ? 'checked'
+		{$* ['low','high'] |
+			checked['low','high'] = setting ? 'checked'
 		}
 			<input type="radio" name="{$= name $}" value="{$= $$.value $}" {$= checked[$$.value] $}>
 		{$}
