@@ -43,12 +43,8 @@
 </script>
 
 <script id="template_4" type="text/template">
-{$: "#foobar" }
-	{$* $ |
-		$.a = $a ? $$.a : $$a
-	}
-		foo
-	{$}
+{$: '#foobar' | foobar[0..3] = blah ? 'yes' : 'no' }
+	{$= foobar[1] $}
 {$}
 </script>
 
@@ -58,12 +54,12 @@
 <script src="../lib/generator.js"></script>
 <script>
 
-var text = document.getElementById("template_3").text;
+var text = document.getElementById("template_4").text;
 
 console.log(text);
 console.log("");
 
-grips.processTemplate(text);
+grips.compileTemplate(text);
 
 </script>
 </body>
