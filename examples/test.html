@@ -43,8 +43,10 @@
 </script>
 
 <script id="template_4" type="text/template">
-{$: '#foobar' | foobar[0..3] = blah ? 'yes' : 'no' }
-	{$= foobar[1] $}
+{$: '#foobar' | foobar[0..3] = $.blah ? 'yes' : 'no' }
+	{$* foobar }
+		{$= $$.key $}: {$= $$.value $}
+	{$}
 {$}
 </script>
 
@@ -56,10 +58,10 @@
 
 var text = document.getElementById("template_4").text;
 
-console.log(text);
-console.log("");
+grips.compileCollection(text,"4");
 
-grips.compileTemplate(text);
+console.log(grips.render("4#foobar",{blah:2}));
+
 
 </script>
 </body>
