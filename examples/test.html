@@ -45,9 +45,12 @@
 
 <script id="template_4" type="text/template">
 {$+ '3' $}
-{$: '#foobar' | foobar[0..3] = $.blah ? 'yes' : 'no' }
-	{$* foobar }
-		{$= $$.key $}: {$= $$.value $}
+{$: '#foobar' | foobar[-1..5] = $.blah ? 'yes' : 'no' }
+	{$* foobar |
+		first = $$.first ? '|' : ' ' |
+		last = $$.last ? '|' : ' ' 
+	}
+		{$= first $} "{$= $$.key $}" ({$= $$.index $}): {$= $$.value $} {$= last $}
 	{$}
 {$}
 {$: '#baz' }
@@ -61,6 +64,30 @@
 	Hello World
 	{$= @'#baz' $}
 	{$= @'#foobar' $}
+
+	Input data:
+	{$* $ |
+		first = $$.first ? '|' : ' ' |
+		last = $$.last ? '|' : ' ' 
+	}
+		{$= first $} {$= $$.key $} = {$= $$.value $} {$= last $} 
+	{$}
+
+	Counting:
+	{$* [3..8] |
+		first = $$.first ? '|' : ' ' |
+		last = $$.last ? '|' : ' ' 
+	}
+		{$= first $} ({$= $$.index $}) {$= $$.value $} {$= last $} 
+	{$}
+
+	Set:
+	{$* ['one','two','three','four'] |
+		first = $$.first ? '|' : ' ' |
+		last = $$.last ? '|' : ' ' 
+	}
+		{$= first $} ({$= $$.index $}) "{$= $$.value $}" {$= last $} 
+	{$}
 {$}
 </script>
 
@@ -68,17 +95,23 @@
 <script src="../lib/tokenizer.js"></script>
 <script src="../lib/parser.js"></script>
 <script src="../lib/generator.js"></script>
+<!-- <script src="../deploy/grips.js"></script> -->
+
+<script>
+
+</script>
+
 <script>
 var text;
 
 text = document.getElementById("template_3").text;
-grips.compileCollection(text,"3");
+console.log(grips.compileCollection(text,"3"));
 
 text = document.getElementById("template_4").text;
-grips.compileCollection(text,"4");
+console.log(grips.compileCollection(text,"4"));
 
 text = document.getElementById("template_5").text;
-grips.compileCollection(text,"5");
+console.log(grips.compileCollection(text,"5"));
 
 console.log(grips.render("5#foobar2",{blah:2}));
 
