@@ -2,6 +2,8 @@
 
 function print_help() {
 	console.log("build tool for grips templating engine");
+	console.log("(c) 2012 Kyle Simpson | http://getify.mit-license.org/");
+	console.log("");
 	console.log("usage: build [opt, ...]");
 	console.log("");
 	console.log("options:");
@@ -10,11 +12,16 @@ function print_help() {
 	console.log("--all        build all options (ignores --runtime and --nodebug)");
 	console.log("--runtime    builds only the stripped down runtime (no compiler)");
 	console.log("--nodebug    strip debug code (smaller files with less graceful error handling)");
+	console.log("--minify     all minify all built files with uglify.js (creates *.min.js files)");
 	console.log("");
 }
 
-function output_file(content,filename) {
-	fs.writeFileSync(filename,content,"utf8");
+function minify(str) {
+	var ast;
+	ast = jsp.parse(str); // parse code and get the initial AST
+	ast = pro.ast_mangle(ast); // get a new AST with mangled names
+	ast = pro.ast_squeeze(ast); // get an AST with compression optimizations
+	return pro.gen_code(ast); // compressed code here
 }
 
 var path = require("path"),
@@ -39,7 +46,13 @@ var path = require("path"),
 	STRIP_COMPILER = /\/\* START_COMPILER[\s\S]*?STOP_COMPILER \*\//g,
 	STRIP_DEBUG = /\/\* START_DEBUG[\s\S]*?STOP_DEBUG \*\//g,
 
-	HEADER_STAMP = "/* grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/ */\n"
+	HEADER_STAMP = "/* grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/ */\n",
+
+	content,
+
+	// for uglify, if desired
+	jsp,
+	pro
 ;
 
 process.argv.slice(2).forEach(function(arg){
@@ -52,7 +65,6 @@ process.argv.slice(2).forEach(function(arg){
 			OPT_BUILD_EVERYTHING = true;
 			OPT_BUILD_RUNTIME_ONLY = false;
 			OPT_STRIP_DEBUG = true;
-			OPT_MINIFY = true;
 			break;
 		case "--runtime":
 			if (!OPT_BUILD_EVERYTHING) {
@@ -61,6 +73,11 @@ process.argv.slice(2).forEach(function(arg){
 			break;
 		case "--nodebug":
 			OPT_STRIP_DEBUG = true;
+			break;
+		case "--minify":
+			OPT_MINIFY = true;
+			jsp = require("uglify-js").parser;
+			pro = require("uglify-js").uglify;
 			break;
 		case "--verbose":
 			OPT_VERBOSE = true;
@@ -75,7 +92,7 @@ process.argv.slice(2).forEach(function(arg){
 });
 
 ["base.js","tokenizer.js","parser.js","generator.js"].forEach(function(filename){
-	FILE_CONTENTS += fs.readFileSync(path.join(DIR_LIB,filename),"utf8");
+	FILE_CONTENTS += ";" + fs.readFileSync(path.join(DIR_LIB,filename),"utf8");
 });
 
 if (!fs.existsSync(DIR_BUILD)) {
@@ -84,24 +101,48 @@ if (!fs.existsSync(DIR_BUILD)) {
 
 if (!OPT_BUILD_RUNTIME_ONLY) {
 	if (OPT_STRIP_DEBUG) {
-		if (OPT_VERBOSE) console.log("Building " + FILE_FULL);
-		fs.writeFileSync(FILE_FULL,HEADER_STAMP + FILE_CONTENTS.replace(STRIP_DEBUG,"").replace(STRIP_BUILD_TAGS,""),"utf8");
+		if (OPT_VERBOSE) console.log("Building:  " + FILE_FULL);
+		content = FILE_CONTENTS.replace(STRIP_DEBUG,"").replace(STRIP_BUILD_TAGS,"");
+		fs.writeFileSync(FILE_FULL,HEADER_STAMP + content,"utf8");
+
+		if (OPT_MINIFY) {
+			if (OPT_VERBOSE) console.log("Minifying: " + FILE_FULL.replace(/\.js$/,".min.js"));
+			fs.writeFileSync(FILE_FULL.replace(/\.js$/,".min.js"),HEADER_STAMP + minify(content),"utf8");
+		}
 	}
 
 	if (!OPT_STRIP_DEBUG || OPT_BUILD_EVERYTHING) {
-		if (OPT_VERBOSE) console.log("Building " + FILE_FULL_DEBUG);
-		fs.writeFileSync(FILE_FULL_DEBUG,HEADER_STAMP + FILE_CONTENTS.replace(STRIP_BUILD_TAGS,""),"utf8");
+		if (OPT_VERBOSE) console.log("Building:  " + FILE_FULL_DEBUG);
+		content = FILE_CONTENTS.replace(STRIP_BUILD_TAGS,"");
+		fs.writeFileSync(FILE_FULL_DEBUG,HEADER_STAMP + content,"utf8");
+
+		if (OPT_MINIFY) {
+			if (OPT_VERBOSE) console.log("Minifying: " + FILE_FULL_DEBUG.replace(/\.js$/,".min.js"));
+			fs.writeFileSync(FILE_FULL_DEBUG.replace(/\.js$/,".min.js"),HEADER_STAMP + minify(content),"utf8");
+		}
 	}
 }
 
 if (OPT_STRIP_DEBUG) {
-	if (OPT_VERBOSE) console.log("Building " + FILE_RUNTIME);
-	fs.writeFileSync(FILE_RUNTIME,HEADER_STAMP + FILE_CONTENTS.replace(STRIP_COMPILER,"").replace(STRIP_DEBUG,""),"utf8");
+	if (OPT_VERBOSE) console.log("Building:  " + FILE_RUNTIME);
+	content = FILE_CONTENTS.replace(STRIP_COMPILER,"").replace(STRIP_DEBUG,"");
+	fs.writeFileSync(FILE_RUNTIME,HEADER_STAMP + content,"utf8");
+
+	if (OPT_MINIFY) {
+		if (OPT_VERBOSE) console.log("Minifying: " + FILE_RUNTIME.replace(/\.js$/,".min.js"));
+		fs.writeFileSync(FILE_RUNTIME.replace(/\.js$/,".min.js"),HEADER_STAMP + minify(content),"utf8");
+	}
 }
 
 if (!OPT_STRIP_DEBUG || OPT_BUILD_EVERYTHING) {
-	if (OPT_VERBOSE) console.log("Building " + FILE_RUNTIME_DEBUG);
-	fs.writeFileSync(FILE_RUNTIME_DEBUG,HEADER_STAMP + FILE_CONTENTS.replace(STRIP_COMPILER,"").replace(STRIP_BUILD_TAGS,""),"utf8");
+	if (OPT_VERBOSE) console.log("Building:  " + FILE_RUNTIME_DEBUG);
+	content = FILE_CONTENTS.replace(STRIP_COMPILER,"").replace(STRIP_BUILD_TAGS,"");
+	fs.writeFileSync(FILE_RUNTIME_DEBUG,HEADER_STAMP + content,"utf8");
+
+	if (OPT_MINIFY) {
+		if (OPT_VERBOSE) console.log("Minifying: " + FILE_RUNTIME_DEBUG.replace(/\.js$/,".min.js"));
+		fs.writeFileSync(FILE_RUNTIME_DEBUG.replace(/\.js$/,".min.js"),HEADER_STAMP + minify(content),"utf8");
+	}
 }
 
 if (OPT_VERBOSE) console.log("Build complete.");
