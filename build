@@ -21,7 +21,7 @@ function minify(str) {
 	ast = jsp.parse(str); // parse code and get the initial AST
 	ast = pro.ast_mangle(ast); // get a new AST with mangled names
 	ast = pro.ast_squeeze(ast); // get an AST with compression optimizations
-	return pro.gen_code(ast); // compressed code here
+	return ";" + pro.gen_code(ast) + ";"; // compressed code here
 }
 
 var path = require("path"),
@@ -47,6 +47,7 @@ var path = require("path"),
 	STRIP_DEBUG = /\/\* START_DEBUG[\s\S]*?STOP_DEBUG \*\//g,
 
 	HEADER_STAMP = "/* grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/ */\n",
+	HEADER_REGEX = /\/\* grips \(c\).*?\*\//gi,
 
 	content,
 
@@ -94,6 +95,9 @@ process.argv.slice(2).forEach(function(arg){
 ["base.js","tokenizer.js","parser.js","generator.js"].forEach(function(filename){
 	FILE_CONTENTS += ";" + fs.readFileSync(path.join(DIR_LIB,filename),"utf8");
 });
+
+HEADER_REGEX.lastIndex = 0; // reset regex to fix wonky regex caching bug
+FILE_CONTENTS = FILE_CONTENTS.replace(HEADER_REGEX,"");
 
 if (!fs.existsSync(DIR_BUILD)) {
 	fs.mkdirSync(DIR_BUILD);
