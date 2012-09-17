@@ -40,13 +40,27 @@
 		{$}
 	{$}
 {$}
+{$: '#baz' }BAZ!{$}
 </script>
 
 <script id="template_4" type="text/template">
+{$+ '3' $}
 {$: '#foobar' | foobar[0..3] = $.blah ? 'yes' : 'no' }
 	{$* foobar }
 		{$= $$.key $}: {$= $$.value $}
 	{$}
+{$}
+{$: '#baz' }
+	{$= @'3#baz' $}!!!!!!!
+{$}
+</script>
+
+<script id="template_5" type="text/template">
+{$+ '4' $}
+{$: '#foobar2' }
+	Hello World
+	{$= @'#baz' $}
+	{$= @'#foobar' $}
 {$}
 </script>
 
@@ -55,13 +69,18 @@
 <script src="../lib/parser.js"></script>
 <script src="../lib/generator.js"></script>
 <script>
+var text;
 
-var text = document.getElementById("template_4").text;
+text = document.getElementById("template_3").text;
+grips.compileCollection(text,"3");
 
+text = document.getElementById("template_4").text;
 grips.compileCollection(text,"4");
 
-console.log(grips.render("4#foobar",{blah:2}));
+text = document.getElementById("template_5").text;
+grips.compileCollection(text,"5");
 
+console.log(grips.render("5#foobar2",{blah:2}));
 
 </script>
 </body>
