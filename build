@@ -1,0 +1,107 @@
+#!/usr/bin/env node
+
+function print_help() {
+	console.log("build tool for grips templating engine");
+	console.log("usage: build [opt, ...]");
+	console.log("");
+	console.log("options:");
+	console.log("--help       show this help");
+	console.log("--verbose    display progress");
+	console.log("--all        build all options (ignores --runtime and --nodebug)");
+	console.log("--runtime    builds only the stripped down runtime (no compiler)");
+	console.log("--nodebug    strip debug code (smaller files with less graceful error handling)");
+	console.log("");
+}
+
+function output_file(content,filename) {
+	fs.writeFileSync(filename,content,"utf8");
+}
+
+var path = require("path"),
+	fs = require("fs"),
+
+	DIR_LIB = path.join(__dirname,"lib"),
+	DIR_BUILD = path.join(__dirname,"deploy"),
+
+	FILE_FULL_DEBUG = path.join(DIR_BUILD,"grips-full.debug.js"),
+	FILE_FULL = path.join(DIR_BUILD,"grips-full.js"),
+	FILE_RUNTIME_DEBUG = path.join(DIR_BUILD,"grips.debug.js"),
+	FILE_RUNTIME = path.join(DIR_BUILD,"grips.js"),
+
+	OPT_BUILD_EVERYTHING = false,
+	OPT_BUILD_RUNTIME_ONLY = false,
+	OPT_STRIP_DEBUG = false,
+	OPT_MINIFY = false,
+	OPT_VERBOSE = false,
+
+	FILE_CONTENTS = "",
+	STRIP_BUILD_TAGS = /\/\* ST(?:ART|OP)_(?:DEBUG|COMPILER) \*\//g,
+	STRIP_COMPILER = /\/\* START_COMPILER[\s\S]*?STOP_COMPILER \*\//g,
+	STRIP_DEBUG = /\/\* START_DEBUG[\s\S]*?STOP_DEBUG \*\//g,
+
+	HEADER_STAMP = "/* grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/ */\n"
+;
+
+process.argv.slice(2).forEach(function(arg){
+	switch (arg) {
+		case "--help":
+			print_help();
+			process.exit(1);
+			break;
+		case "--all":
+			OPT_BUILD_EVERYTHING = true;
+			OPT_BUILD_RUNTIME_ONLY = false;
+			OPT_STRIP_DEBUG = true;
+			OPT_MINIFY = true;
+			break;
+		case "--runtime":
+			if (!OPT_BUILD_EVERYTHING) {
+				OPT_BUILD_RUNTIME_ONLY = true;
+			}
+			break;
+		case "--nodebug":
+			OPT_STRIP_DEBUG = true;
+			break;
+		case "--verbose":
+			OPT_VERBOSE = true;
+			break;
+		default:
+			console.log("Unrecognized flag: " + arg);
+			console.log("");
+			print_help();
+			process.exit(1);
+			break;
+	}
+});
+
+["base.js","tokenizer.js","parser.js","generator.js"].forEach(function(filename){
+	FILE_CONTENTS += fs.readFileSync(path.join(DIR_LIB,filename),"utf8");
+});
+
+if (!fs.existsSync(DIR_BUILD)) {
+	fs.mkdirSync(DIR_BUILD);
+}
+
+if (!OPT_BUILD_RUNTIME_ONLY) {
+	if (OPT_STRIP_DEBUG) {
+		if (OPT_VERBOSE) console.log("Building " + FILE_FULL);
+		fs.writeFileSync(FILE_FULL,HEADER_STAMP + FILE_CONTENTS.replace(STRIP_DEBUG,"").replace(STRIP_BUILD_TAGS,""),"utf8");
+	}
+
+	if (!OPT_STRIP_DEBUG || OPT_BUILD_EVERYTHING) {
+		if (OPT_VERBOSE) console.log("Building " + FILE_FULL_DEBUG);
+		fs.writeFileSync(FILE_FULL_DEBUG,HEADER_STAMP + FILE_CONTENTS.replace(STRIP_BUILD_TAGS,""),"utf8");
+	}
+}
+
+if (OPT_STRIP_DEBUG) {
+	if (OPT_VERBOSE) console.log("Building " + FILE_RUNTIME);
+	fs.writeFileSync(FILE_RUNTIME,HEADER_STAMP + FILE_CONTENTS.replace(STRIP_COMPILER,"").replace(STRIP_DEBUG,""),"utf8");
+}
+
+if (!OPT_STRIP_DEBUG || OPT_BUILD_EVERYTHING) {
+	if (OPT_VERBOSE) console.log("Building " + FILE_RUNTIME_DEBUG);
+	fs.writeFileSync(FILE_RUNTIME_DEBUG,HEADER_STAMP + FILE_CONTENTS.replace(STRIP_COMPILER,"").replace(STRIP_BUILD_TAGS,""),"utf8");
+}
+
+if (OPT_VERBOSE) console.log("Build complete.");
