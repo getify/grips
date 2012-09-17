@@ -8,11 +8,11 @@ grips takes as its only input data in a simple JSON data-dictionary format, and 
 
 grips will "compile" requested templates into executable JavaScript functions, which take the JSON data dictionary as input and return the output. The compilation of templates can either be JIT (at request time) or pre-compiled in a build process.
 
-## Examples:
+## Examples
 
-The examples/ directory has some sample template files.
+The examples/ directory has several sample template files. Some are out of date still, so look at "test.html" for now.
 
-## Templating sytax:
+## Templating sytax
 
 ### Define a named template section (aka, "partial")
 
@@ -22,17 +22,17 @@ The examples/ directory has some sample template files.
 	
 	{$}
 
-### Define a named template section, with data initialization expression(s)
+### Define a named template section, with local variable assignment(s)
 
-	{$: "#xxx" | x = data.val1 | y = data.val2 ? "#yyy" : "#zzz" }
+	{$: "#xxx" | x = $.val_1 | y = $.val_2 ? "#yyy" : "#zzz" }
 	
 		...
 	
 	{$}
 
-### Replace tag with data variable
+### Include data variable
 
-	{$= data.value $}
+	{$= $.val_1 $}
 
 ### Include template section
 
@@ -44,38 +44,39 @@ The examples/ directory has some sample template files.
 
 ### Loop on data variable (array or plain key/value object)
 
-	{$* data.value }
+	{$* $.val_1 }
 	
 		...
 	
 	{$}
 
-### Loop on data variable, with loop iteration initialization expression(s)
-  `item` iteration binding has: 
-    `key` (index), `value`, `first`, `last`, `odd`, and `even`
+### Loop on data variable, with loop iteration local variable assignment(s)
+  `$$` iteration binding includes: 
+    `index` (numeric), `key` (string: property name or index),
+    `value`, `first`, `last`, `odd`, and `even`
 
-	{$* data.value | rowtype = item.odd ? "#oddrow" : "#evenrow" | 
-	     someprop = item.value.someProp ? "#hassomeprop" }
+	{$* $.val_1 | rowtype = $$.odd ? "#oddrow" : "#evenrow" | 
+	     someprop = $$.value.someProp ? "#hassomeprop" }
 	
 		...
 		{$= @rowtype $}
 		...
 		{$= @someprop $}
 		...
-		{$= item.value.otherProp $}
+		{$= $$.value.otherProp $}
 		...
 	
 	{$}
 
-### "Extend" (inherit from) another template file
+### "Extend" (inherit from) another template collection
 
-	{$+ "template/file.url" $}
+	{$+ "collection-id-or-filename" $}
 
 ### Raw un-parsed section
 
 	{$%
 	
-		...
+		{$= won't be parsed, just passed through raw $}
 	
 	%$}
 
@@ -83,6 +84,41 @@ The examples/ directory has some sample template files.
 
 	{$/
 	
-		...
+		will get removed in parsing
 	
 	/$}
+
+## Using the API
+
+(coming soon)
+
+## Building
+
+grips comes with a node JavaScript tool called "build", in the root directory, which when run will generate the files you need to use grips, in a directory called "deploy".
+
+There are several options for the build tool:
+
+```
+build tool for grips templating engine
+(c) 2012 Kyle Simpson | http://getify.mit-license.org/
+
+usage: build [opt, ...]
+
+options:
+--help       show this help
+--verbose    display progress
+--all        build all options (ignores --runtime and --nodebug)
+--runtime    builds only the stripped down runtime (no compiler)
+--nodebug    strip debug code (smaller files with less graceful error handling)
+--minify     all minify all built files with uglify.js (creates *.min.js files)
+```
+
+By default, the build tool is silent, meaning it outputs nothing to the console unless there are errors. If you'd like verbose output, pass the `--verbose` flag. Unless you pass the `--runtime` or `--all` flags, the build tool will generate both the "full" compiler and the base runtime. `--all` overrides/ignores `--runtime` (and `--nodebug`).
+
+Also by default, the build tool will generate only the debug versions of the files. For production use, pass the `--nodebug` flag, and the debug code will be stripped. Or, pass the `--all` flag and both debug and non-debug files will be built.
+
+To also produce the minified versions of all files being built (suitable for production deployment), pass the `--minify` flag. Note: to use minification, the node.js "uglify-js" package should be installed (via npm). (`npm install 'uglify-js'`)
+
+## License
+
+grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/
