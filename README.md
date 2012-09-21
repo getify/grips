@@ -166,15 +166,11 @@ To compile a collection of partials, call `compileCollection(templateStr, collec
 
 A collection ID is the first part of a canonical template ID (`foo` in `"foo#bar"`, whereas `#bar` is the partial ID). For example, the `{$+ ... $}` collection extend tag takes only the collection ID (without any `#bar` partial ID).
 
-Ex:
-
 ```
 grips.compileCollection("{$: '#bar' } Hello {$= $.name $}! {$}", "foo");
 ```
 
 For convenience, if you want to compile several collections at once, use `compile(sources, [build=true])`. `sources` is an object whose keys are collection names and values are collection template sources.
-
-Ex:
 
 ```
 grips.compile({
@@ -187,8 +183,6 @@ In an environment where one or more collections have been built (aka, interprete
 
 To render a partial, you refer canonically to its `templateID` by both the partial ID and the collection in which it lives. For example: `"foo#bar"`, where `foo` is the collection ID and `#bar` is the partial ID.
 
-Ex:
-
 ```
 var markup = grips.render("foo#bar", {name: "World"});
 ```
@@ -197,8 +191,6 @@ var markup = grips.render("foo#bar", {name: "World"});
 Since you can pre-compile templates during a build process and store them in files for later use in production, you can call `buildCollection()` (or `build()`) to interpret/execute a compiled template function's source retrieved from a file.
 
 For instance, if you had the compiled functions for the `foo` collection in source form (from a file), you can build them (so they're ready for rendering) by either `eval()`ing them yourself, or with `buildCollection(collectionID, compiledSource)`.
-
-Ex:
 
 ```
 eval(fooCompiledSource);
@@ -209,9 +201,6 @@ grips.buildCollection("foo", fooCompiledSource);
 ```
 
 And if you have all your collections in one big string, you can just call `build(compiledSourceBundle)`.
-
-Ex:
-
 
 ```
 eval(compiledSource);
