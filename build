@@ -12,7 +12,7 @@ function print_help() {
 	console.log("--all        build all options (ignores --runtime and --nodebug)");
 	console.log("--runtime    builds only the stripped down runtime (no compiler)");
 	console.log("--nodebug    strip debug code (smaller files with less graceful error handling)");
-	console.log("--minify     all minify all built files with uglify.js (creates *.min.js files)");
+	console.log("--minify     minify all built files with uglify.js (creates *.min.js files)");
 	console.log("");
 }
 
