@@ -2,14 +2,14 @@
 
 
 
-{$: "#content" | userdetails=data.full_name?"#userdetails":"#nouser" }
+{$: "#content" |
+	userdetails = $.full_name ? "#userdetails" : "#nouser"
+}
 	<h1>grips Template Engine</h1>
 
 	<p>This is how a grips Template works.</p>
 	
-	{$/
-		Here is a template comment block
-	/$}
+	{$/ Here is a template comment block /$}
 	
 	<p>
 	{$% 
@@ -19,27 +19,25 @@
 		<!-- here comes the end of the raw tag -->  
 	%$}
 	</p>
-			
+
 	<hr />
 	
+	<!-- let's include another template partial -->
 	{$= @userdetails $}
 {$}
 
 
 
-{$: "#nouser" }
-	{$= @"#controls" $}
-{$}
-
-
-
-{$: "#userdetails" | mylinks=data.links.length?"#links":"#nolinks" | info=data.info?"#info" }
+{$: "#userdetails" |
+	info = $.info ? "#info" |
+	mylinks = $.links.length ? "#links" : "#nolinks"
+}
 	<div id="userdetails">
 		{$= @"#controls" $}
 	
 		<h3>User Details</h3>
 
-		<p>Welcome back, {$= data.full_name $}!</p>
+		<p>Welcome back, {$= $.full_name $}!</p>
 		
 		{$= @info $}
 		
@@ -51,7 +49,9 @@
 
 
 
-{$: "#controls" | which_controls=data.user_id?"#logout":"tmpl.other.html#login" }
+{$: "#controls" |
+	which_controls = $.user_id ? "#logout" : "tmpl.other.html#login"
+}
 	<p>{$= @which_controls $}</p>
 {$}
 
@@ -60,7 +60,7 @@
 {$: "#info" }
 	<h3>Random Info</h3>
 	
-	<p>{$= data.info $}</p>
+	<p>{$= $.info $}</p>
 {$}
 
 
@@ -72,8 +72,10 @@
 {$: "#links" }
 	<ul>
 	{$/ loop over the "links" array /$}
-	{$* data.links }
-		<!-- li:{$= item.key $} -->
+	{$* $.links |
+		item = $$
+	}
+		<!-- li:{$= $$.key $} -->
 		{$= @"#listitem" $}
 	{$}
 	</ul>
@@ -81,19 +83,29 @@
 
 
 
-{$: "#listitem" | evenodd=item.even?"even":"odd" | first=item.first?"first" | last=item.last?"last" }
+{$: "#listitem" |
+	evenodd = item.even ? "even" : "odd" |
+	first = item.first ? "first" |
+	last = item.last ? "last"
+}
 	<li id="link_{$= item.key $}" class="{$= evenodd $} {$= first $} {$= last $}">
 		<a href="{$= item.value $}">{$= item.value $}</a>
 
-		{$/ loop over the "item" object's properties /$}
+		{$/ loop over the iteration item (`$$`) object's properties /$}
 		<div>item:</div>
 		<ul>
 		{$* item }
-			<li>{$= item.key $}: {$= item.value $}</li>
+			<li>{$= $$.key $}: {$= $$.value $}</li>
 		{$}
 		</ul>
 
 	</li>
+{$}
+
+
+
+{$: "#nouser" }
+	{$= @"#controls" $}
 {$}
 
 
@@ -106,26 +118,19 @@
 
 {$: "#footer" }
 
-<script type="text/javascript" src="LAB.min.js"></script>
-<script type="text/javascript">
-$LAB
-	.script("handlebar.js").wait()
-	.script("util.handlebar.js").wait()
-	.script("xhr-loader.handlebar.js",
-			"promise.handlebar.js",
-			"JSON.minify/minify.json.js"
-	)
-	.wait(function(){Handlebar.init();})
-	.script("http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js",
-			"app.js"
-	)
-	.wait(function(){attachControlsBehavior();})
-;
+<script src="grips.js"></script>
+<script src="template-bundle.js"></script>
+<script>
+document.getElementByID("content").innerHTML =
+	grips.render("tmpl.index.html#content",{/*...*/});
 </script>
 
 {$}
 
 
 
-{$: "#styles" }<link rel="stylesheet" type="text/css" href="styles.css" />{$}
+{$: "#styles" }
+	{$= @"tmpl.master.html#styles" $}  <!-- Look, template inheritance/polymorphism!! -->
+	<link rel="stylesheet" type="text/css" href="index.css" />
+{$}
 
