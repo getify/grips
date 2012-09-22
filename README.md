@@ -52,13 +52,17 @@ The examples/ directory has several sample template files. Take a look at "tmpl.
 
 	{$= $.val_1 $}  <!-- OR -->  {$= myval $}
 
-### Static include template section
+### Include template partial, by static literal
 
 	{$= @"#yyy" $}
 
-### Dynamic include template section from variable
+### Include template partial, by variable
 
 	{$= @$.val_1 $}  <!-- OR -->  {$= @myval $}
+
+### Manually specify data context for template partial include
+
+	{$= @"#yyy" | $.user $}
 
 ### Loop on data variable (array or plain key/value object)
   `$$` iteration binding includes: 

@@ -72,11 +72,9 @@
 {$: "#links" }
 	<ul>
 	{$/ loop over the "links" array /$}
-	{$* $.links |
-		item = $$
-	}
+	{$* $.links }
 		<!-- li:{$= $$.key $} -->
-		{$= @"#listitem" $}
+		{$= @"#listitem" | $$ $} <!-- set $$ as the data context -->
 	{$}
 	</ul>
 {$}
@@ -84,21 +82,20 @@
 
 
 {$: "#listitem" |
-	evenodd = item.even ? "even" : "odd" |
-	first = item.first ? "first" |
-	last = item.last ? "last"
+	evenodd = $.even ? "even" : "odd" |
+	first = $.first ? "first" |
+	last = $.last ? "last"
 }
-	<li id="link_{$= item.key $}" class="{$= evenodd $} {$= first $} {$= last $}">
-		<a href="{$= item.value $}">{$= item.value $}</a>
+	<li id="link_{$= $.key $}" class="{$= evenodd $} {$= first $} {$= last $}">
+		<a href="{$= $.value $}">{$= $.value $}</a>
 
-		{$/ loop over the iteration item (`$$`) object's properties /$}
-		<div>item:</div>
+		{$/ loop over the data context (`$`) object's properties /$}
+		<div>context:</div>
 		<ul>
-		{$* item }
+		{$* $ }
 			<li>{$= $$.key $}: {$= $$.value $}</li>
 		{$}
 		</ul>
-
 	</li>
 {$}
 
