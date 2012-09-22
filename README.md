@@ -103,7 +103,7 @@ The examples/ directory has several sample template files. Take a look at "tmpl.
     {$}
 
 ### Precomputing hash literals
-  Hash literals can be pre-computed against a defined set or range of values. In the below examples, the value of `$.myradio` will be compared to all values in the hash (0,1,2 or "low","medium","high"). The results of the comparison and conditional assignment are stored in a local variable hash. For instance, in the below example, part of what the syntax implies is: `checked[1] = ($.myradio === 1) ? "checked" : ""`.
+  Hash literals can be pre-computed against a defined set or range of values. In the below examples, the value of `$.myradio` will be compared to all values in the range/set (0,1,2 or "low","medium","high"). The results of the comparison and conditional assignment are stored in a local variable hash, keyed by the comparison values. For instance, in the below example, on of the three pre-computation comparisons/assignments the syntax implies is: `checked[1] = ($.myradio === 1) ? "checked" : ""` (same for values 0 and 2, as well).
 
 	{$: "#bar" |
 		checked[0..2] = $.myradio ? "checked"
