@@ -212,9 +212,9 @@ grips.build(compiledSource);
 
 ## Building grips
 
-grips comes with a node JavaScript tool called "build", in the root directory, which when run will generate the files you need to use grips, in a directory called "deploy".
+grips comes with a node.js tool called "build", in the root directory, which when run will generate the files you need to use grips, in a directory called "deploy".
 
-There are several options for the build tool:
+There are a few simple options for the build tool:
 
 ```
 usage: build [opt, ...]
