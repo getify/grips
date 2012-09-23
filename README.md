@@ -162,11 +162,11 @@ The two most typical tasks for the JavaScript API are `compileCollection()` and 
 You can render an individual partial, but you compile a collection of one or more partials.
 
 ### Compiling a collection
-To compile a collection of partials, call `compileCollection(templateStr, collectionID,[build=true])`. 
+To compile a collection of partials, call `compileCollection(templateStr, collectionID,[initialize=true])`. 
 
 `templateStr` is the string representation of your collection of template partials. `collectionID` should be the same as any other references to the collection by ID, such as other absolute template includes, or template extend directives, in other collections.
 
-`build`, which defaults to true, is an optional boolean flag. If `true`, it will build/interpret the compiled template function representation, so that it's ready to render. `compileCollection()` also returns you the string value of that compiled template function, so you can choose to store it in a file during a build process, etc.
+`initialize`, which defaults to true, is an optional boolean flag. If `true`, it will evaluate the compiled template function representation, so that it's ready to render. `compileCollection()` also returns you the string value of that compiled template function, so you can choose to store it in a file during a build process, etc.
 
 A collection ID is the first part of a canonical template ID (`foo` in `"foo#bar"`, whereas `#bar` is the partial ID). For example, the `{$+ ... $}` collection extend tag takes only the collection ID (without any `#bar` partial ID).
 
@@ -174,7 +174,7 @@ A collection ID is the first part of a canonical template ID (`foo` in `"foo#bar
 grips.compileCollection("{$: '#bar' } Hello {$= $.name $}! {$}", "foo");
 ```
 
-For convenience, if you want to compile several collections at once, use `compile(sources, [build=true])`. `sources` is an object whose keys are collection names and values are collection template sources.
+For convenience, if you want to compile several collections at once, use `compile(sources, [initialize=true])`. `sources` is an object whose keys are collection names and values are collection template sources.
 
 ```
 grips.compile({
@@ -192,26 +192,26 @@ var markup = grips.render("foo#bar", {name: "World"});
 ```
 
 ### Other methods
-Since you can pre-compile templates during a build process and store them in files for later use in production, you can call `buildCollection()` (or `build()`) to interpret/execute a compiled template function's source retrieved from a file.
+Since you can pre-compile templates during a build process and store them in files for later use in production, you can call `initializeCollection()` (or `initialize()`) to evaluate a compiled template function's source retrieved from a file.
 
-For instance, if you had the compiled functions for the `foo` collection in source form (from a file), you can build them (so they're ready for rendering) by either `eval()`ing them yourself, or with `buildCollection(collectionID, compiledSource)`.
+For instance, if you had the compiled functions for the `foo` collection in source form (from a file), you can evaluate them (so they're ready for rendering) by either `eval()`ing them yourself, or with `initializeCollection(collectionID, compiledSource)`.
 
 ```
 eval(fooCompiledSource);
 
 // or, better:
 
-grips.buildCollection("foo", fooCompiledSource);
+grips.initializeCollection("foo", fooCompiledSource);
 ```
 
-And if you have all your collections in one big string, you can just call `build(compiledSourceBundle)`.
+And if you have all your collections in one big string, you can just call `initialize(compiledSourceBundle)`.
 
 ```
 eval(compiledSource);
 
 // or, better:
 
-grips.build(compiledSource);
+grips.initialize(compiledSource);
 ```
 
 ## Building grips
