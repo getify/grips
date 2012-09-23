@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/* grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/ */
+
 function print_help() {
 	console.log("build tool for grips templating engine");
 	console.log("(c) 2012 Kyle Simpson | http://getify.mit-license.org/");
