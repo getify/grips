@@ -50,7 +50,7 @@
 
 
 {$: "#controls" |
-	which_controls = $.user_id ? "#logout" : "tmpl.other.html#login"
+	which_controls = $.full_name ? "#logout" : "tmpl.other.html#login"
 }
 	<p>{$= @which_controls $}</p>
 {$}
