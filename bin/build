@@ -44,16 +44,16 @@ function amd_ify(str) {}
 var path = require("path"),
 	fs = require("fs"),
 
-	DIR_LIB = path.join(__dirname,"lib"),
-	DIR_DEPLOY = path.join(__dirname,"deploy"),
-	DIR_BIN = path.join(__dirname,"bin"),
+	DIR_LIB = path.join(__dirname,"..","lib"),
+	DIR_DEPLOY = path.join(__dirname,"..","deploy"),
+	DIR_ROOT = path.join(__dirname,".."),
 
 	FILE_FULL_DEBUG = path.join(DIR_DEPLOY,"grips-full.debug.js"),
 	FILE_FULL = path.join(DIR_DEPLOY,"grips-full.js"),
 	FILE_RUNTIME_DEBUG = path.join(DIR_DEPLOY,"grips.debug.js"),
 	FILE_RUNTIME = path.join(DIR_DEPLOY,"grips.js"),
-	FILE_NODE_DEBUG = path.join(DIR_BIN,"node-grips-debug.js"),
-	FILE_NODE = path.join(DIR_BIN,"node-grips.js"),
+	FILE_NODE_DEBUG = path.join(DIR_ROOT,"node-grips-debug.js"),
+	FILE_NODE = path.join(DIR_ROOT,"node-grips.js"),
 
 	FILE_AMD_PREFIX = "amd-",
 
@@ -133,8 +133,8 @@ FILE_CONTENTS = FILE_CONTENTS.replace(HEADER_REGEX,"");
 if (!fs.existsSync(DIR_DEPLOY)) {
 	fs.mkdirSync(DIR_DEPLOY);
 }
-if (OPT_NODE && !fs.existsSync(DIR_BIN)) {
-	fs.mkdirSync(DIR_BIN);
+if (OPT_NODE && !fs.existsSync(DIR_ROOT)) {
+	fs.mkdirSync(DIR_ROOT);
 }
 
 if (!OPT_BUILD_RUNTIME_ONLY) {

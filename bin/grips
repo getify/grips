@@ -111,10 +111,10 @@ function main() {
 var path = require("path"),
 	fs = require("fs"),
 
-	DIR_BIN = path.join(__dirname,"bin"),
+	DIR_ROOT = path.join(__dirname,".."),
 
-	FILE_NODE_DEBUG = path.join(DIR_BIN,"node-grips-debug.js"),
-	FILE_NODE = path.join(DIR_BIN,"node-grips.js"),
+	FILE_NODE_DEBUG = path.join(DIR_ROOT,"node-grips-debug.js"),
+	FILE_NODE = path.join(DIR_ROOT,"node-grips.js"),
 
 	OPT_NO_DEBUG = false,
 	OPT_MINIFY = false,
