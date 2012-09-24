@@ -214,6 +214,42 @@ eval(compiledSource);
 grips.initialize(compiledSource);
 ```
 
+## Using the grips CLI
+
+grips comes with a node.js tool called "grips" (I know, creative, right!?), in the root directory, which is a CLI tool for compiling, initializing, and rendering templates.
+
+Here are the options for the CLI tool:
+
+```
+usage: grips opt [, ..opt]
+
+options:
+--help                                    show this help
+
+--nodebug                                 use the non-debug library
+--keep-paths                              for --compile, keep the full path in the collection ID, instead of just the filename
+--minify                                  minify compiled templates with uglify.js
+
+--compile=file                            compile a template file (using {file} as the collection ID)
+--initialize=file                         initializes an already compiled template collection from a file
+--render='{collection-ID}#{partial-ID}'   render the specified partial, using data from stdin
+```
+
+The `--compile` flag can be passed multiple times, once for each file you want to compile. By default, only the filename itself will be used as the collection ID, however if you pass `--keep-paths`, then the full path you specify for a file will be used as the collection ID. NOTE: a collection ID, filename, file path must not include a `#` character, as that is the separator between collection ID and partial ID.
+
+If a `--render` flag is not passed, the output from the compilation (`--compile`) will be printed to the stdout. Otherwise, the output will be the rendered output.
+
+If you want to initialize (to prepare for rendering) an already compiled collection (in one or more files), use `--initialize`.
+
+If you have compiled templates, or initialized already compiled templates, then you can render one or more partials using `--render`. You must specify both the collection ID and the partial ID. `--render` also requires that you provide the JSON data for your template rendering via stdin.
+
+```
+grips --compile=templates/foo.bar.html --compile=templates/baz.html > tmpl-bundle.js
+echo "{\"some\":\"data\"}" | grips --initialize=tmpl-bundle.js --render='baz.html#foobar'
+..
+echo "{\"some\":\"data\"}" | grips --compile=templates/foo.bar.html --compile=templates/baz.html --render= 'baz.html#foobar'
+```
+
 ## Building grips
 
 grips comes with a node.js tool called "build", in the root directory, which when run will generate the files you need to use grips, in a directory called "deploy".
