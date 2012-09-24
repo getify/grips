@@ -33,36 +33,12 @@ function main() {
 	var i, output = "", compiles = {}, tmp;
 
 	// load/build grips lib
-	if (OPT_STRIP_DEBUG) {
-		if (fs.existsSync(FILE_FULL)) {
-			content = fs.readFileSync(FILE_FULL,"utf8");
-		}
-		else if (fs.existsSync(FILE_FULL_MIN)) {
-			content = fs.readFileSync(FILE_FULL_MIN,"utf8");
-		}
-		else {
-			["base.js","tokenizer.js","parser.js","generator.js"].forEach(function(filename){
-				content += ";" + fs.readFileSync(path.join(DIR_LIB,filename),"utf8");
-			});
-			content = content.replace(STRIP_DEBUG,"");
-		}
+	if (OPT_NO_DEBUG) {
+		grips = require(FILE_NODE).grips;
 	}
 	else {
-		if (fs.existsSync(FILE_FULL_DEBUG)) {
-			content = fs.readFileSync(FILE_FULL_DEBUG,"utf8");
-		}
-		else if (fs.existsSync(FILE_FULL_MIN)) {
-			content = fs.readFileSync(FILE_FULL_DEBUG_MIN,"utf8");
-		}
-		else {
-			["base.js","tokenizer.js","parser.js","generator.js"].forEach(function(filename){
-				content += ";" + fs.readFileSync(path.join(DIR_LIB,filename),"utf8");
-			});
-		}
+		grips = require(FILE_NODE_DEBUG).grips;
 	}
-
-	// extract the grips lib reference
-	grips = (new Function(content + "; return this;")).call({}).grips;
 
 	// process --compile arguments
 	if (OPT_COMPILE.length > 0) {
@@ -135,22 +111,17 @@ function main() {
 var path = require("path"),
 	fs = require("fs"),
 
-	DIR_LIB = path.join(__dirname,"lib"),
-	DIR_DEPLOY = path.join(__dirname,"deploy"),
+	DIR_BIN = path.join(__dirname,"bin"),
 
-	FILE_FULL_DEBUG = path.join(DIR_DEPLOY,"grips-full.debug.js"),
-	FILE_FULL_DEBUG_MIN = FILE_FULL_DEBUG.replace(/\.js$/,".min.js"),
-	FILE_FULL = path.join(DIR_DEPLOY,"grips-full.js"),
-	FILE_FULL_MIN = FILE_FULL.replace(/\.js$/,".min.js"),
+	FILE_NODE_DEBUG = path.join(DIR_BIN,"node-grips-debug.js"),
+	FILE_NODE = path.join(DIR_BIN,"node-grips.js"),
 
-	OPT_STRIP_DEBUG = false,
+	OPT_NO_DEBUG = false,
 	OPT_MINIFY = false,
 	OPT_KEEP_PATHS = false,
 	OPT_COMPILE = [],
 	OPT_INITIALIZE = [],
 	OPT_RENDER = [],
-
-	STRIP_DEBUG = /\/\* START_DEBUG[\s\S]*?STOP_DEBUG \*\//g,
 
 	data = "",
 	content = "",
@@ -178,7 +149,7 @@ process.argv.slice(2).forEach(function(arg){
 			process.exit(1);
 			break;
 		case "--nodebug":
-			OPT_STRIP_DEBUG = true;
+			OPT_NO_DEBUG = true;
 			break;
 		case "--minify":
 			OPT_MINIFY = true;

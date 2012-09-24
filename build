@@ -13,6 +13,8 @@ function print_help() {
 	console.log("--verbose    display progress");
 	console.log("--all        build all options (ignores --runtime and --nodebug)");
 	console.log("--runtime    builds only the stripped down runtime (no compiler)");
+	console.log("--amd        also build AMD style files (amd-*.js)");
+	console.log("--node       build the node.js compatible package (in a /bin folder)");
 	console.log("--nodebug    strip debug code (smaller files with less graceful error handling)");
 	console.log("--minify     minify all built files with uglify.js (creates *.min.js files)");
 	console.log("");
@@ -26,19 +28,39 @@ function minify(str) {
 	return ";" + pro.gen_code(ast) + ";"; // compressed code here
 }
 
+function node_ify(str) {
+	var ret = "";
+
+	ret += "(function __grips_node__(){\n";
+	ret += str + "\n";
+	ret += "}).call(exports);";
+
+	return ret;
+}
+
+function amd_ify(str) {}
+
+
 var path = require("path"),
 	fs = require("fs"),
 
 	DIR_LIB = path.join(__dirname,"lib"),
-	DIR_BUILD = path.join(__dirname,"deploy"),
+	DIR_DEPLOY = path.join(__dirname,"deploy"),
+	DIR_BIN = path.join(__dirname,"bin"),
 
-	FILE_FULL_DEBUG = path.join(DIR_BUILD,"grips-full.debug.js"),
-	FILE_FULL = path.join(DIR_BUILD,"grips-full.js"),
-	FILE_RUNTIME_DEBUG = path.join(DIR_BUILD,"grips.debug.js"),
-	FILE_RUNTIME = path.join(DIR_BUILD,"grips.js"),
+	FILE_FULL_DEBUG = path.join(DIR_DEPLOY,"grips-full.debug.js"),
+	FILE_FULL = path.join(DIR_DEPLOY,"grips-full.js"),
+	FILE_RUNTIME_DEBUG = path.join(DIR_DEPLOY,"grips.debug.js"),
+	FILE_RUNTIME = path.join(DIR_DEPLOY,"grips.js"),
+	FILE_NODE_DEBUG = path.join(DIR_BIN,"node-grips-debug.js"),
+	FILE_NODE = path.join(DIR_BIN,"node-grips.js"),
+
+	FILE_AMD_PREFIX = "amd-",
 
 	OPT_BUILD_EVERYTHING = false,
 	OPT_BUILD_RUNTIME_ONLY = false,
+	OPT_AMD = false,
+	OPT_NODE = true,
 	OPT_STRIP_DEBUG = false,
 	OPT_MINIFY = false,
 	OPT_VERBOSE = false,
@@ -52,6 +74,7 @@ var path = require("path"),
 	HEADER_REGEX = /\/\* grips \(c\).*?\*\//gi,
 
 	content,
+	tmp,
 
 	// for uglify, if desired
 	jsp,
@@ -73,6 +96,12 @@ process.argv.slice(2).forEach(function(arg){
 			if (!OPT_BUILD_EVERYTHING) {
 				OPT_BUILD_RUNTIME_ONLY = true;
 			}
+			break;
+		case "--amd":
+			OPT_AMD = true;
+			break;
+		case "--node":
+			OPT_NODE = true;
 			break;
 		case "--nodebug":
 			OPT_STRIP_DEBUG = true;
@@ -101,8 +130,11 @@ process.argv.slice(2).forEach(function(arg){
 HEADER_REGEX.lastIndex = 0; // reset regex to fix wonky regex caching bug
 FILE_CONTENTS = FILE_CONTENTS.replace(HEADER_REGEX,"");
 
-if (!fs.existsSync(DIR_BUILD)) {
-	fs.mkdirSync(DIR_BUILD);
+if (!fs.existsSync(DIR_DEPLOY)) {
+	fs.mkdirSync(DIR_DEPLOY);
+}
+if (OPT_NODE && !fs.existsSync(DIR_BIN)) {
+	fs.mkdirSync(DIR_BIN);
 }
 
 if (!OPT_BUILD_RUNTIME_ONLY) {
@@ -127,6 +159,18 @@ if (!OPT_BUILD_RUNTIME_ONLY) {
 			fs.writeFileSync(FILE_FULL_DEBUG.replace(/\.js$/,".min.js"),HEADER_STAMP + minify(content),"utf8");
 		}
 	}
+}
+
+if (OPT_NODE || OPT_BUILD_EVERYTHING) {
+	if (OPT_STRIP_DEBUG) {
+		if (OPT_VERBOSE) console.log("Building:  " + FILE_NODE);
+		content = FILE_CONTENTS.replace(STRIP_DEBUG,"").replace(STRIP_BUILD_TAGS,"");
+		fs.writeFileSync(FILE_NODE,HEADER_STAMP + node_ify(content),"utf8");
+	}
+
+	if (OPT_VERBOSE) console.log("Building:  " + FILE_NODE_DEBUG);
+	content = FILE_CONTENTS.replace(STRIP_BUILD_TAGS,"");
+	fs.writeFileSync(FILE_NODE_DEBUG,HEADER_STAMP + node_ify(content),"utf8");
 }
 
 if (OPT_STRIP_DEBUG) {

@@ -155,6 +155,10 @@ The examples/ directory has several sample template files. Take a look at "tmpl.
 
 ## Using the JavaScript API
 
+The JavaScript API is accessible in a couple of different ways. The raw library can be loaded in a traditional fashion in a browser, and will produce a single global called "grips". It can be loaded as an AMD module, using the "amd-*.js" versions of the files (assuming they were built with the "build" tool). And finally, you can use the "node-grips" and "node-grips-debug" modules in node.js code, with standard `require()` inclusion (`var grips = require("node-grips").grips;`).
+
+Regardless of how you include the library and get access to the core `grips` API, the following methods and signatures are all available. The only caveat is that if you load the runtime version of the library (which has the compiler stripped), only the runtime parts (`initialize`, `render`, etc) of the API are available.
+
 The two most typical tasks for the JavaScript API are `compileCollection()` and `render()`.
 
 "grips" organizes template partials by grouping them together in collections. A single collection is an arbitrary grouping of one or more partials, but it usually will correspond to a single template file. The collection ID is arbitrary, but again, will usually be the filename of the template file.
@@ -264,6 +268,8 @@ options:
 --verbose    display progress
 --all        build all options (ignores --runtime and --nodebug)
 --runtime    builds only the stripped down runtime (no compiler)
+--amd        also build AMD style files (amd-*.js)
+--node       build the node.js compatible package (in a /bin folder)
 --nodebug    strip debug code (smaller files with less graceful error handling)
 --minify     minify all built files with uglify.js (creates *.min.js files)
 ```
@@ -273,6 +279,8 @@ By default, the build tool is silent, meaning it outputs nothing to the console 
 Also by default, the build tool will generate only the debug versions of the files (with extra/verbose error handling, etc). For production use, pass the `--nodebug` flag, and the debug code will be stripped. Or, pass the `--all` flag and both debug and non-debug files will be built.
 
 To also produce the minified versions of all files being built (suitable for production deployment), pass the `--minify` flag. Note: to use minification, the node.js "uglify-js" package should be installed (via npm). (`npm install 'uglify-js'`)
+
+Passing `--node` will build the node.js compatible modules "node-grips" and "node-grips-debug" (which are used by the CLI, btw), in a directory called "bin".
 
 ## License
 
