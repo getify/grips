@@ -153,6 +153,25 @@ The examples/ directory has several sample template files. Take a look at "tmpl.
 		comments get removed in parsing
 	/$}
 
+## Debug vs. Non-Debug
+
+grips can either be used in debug mode or non-debug mode, controlled by which version of the library file/module you include. The debug version of the library has friendly error handling, and also produces compiled templates with friendly error handling, whereas the non-debug library (and templates compiled by it) will simply throw a generic "Unknown error" for any errors encountered.
+
+It is recommended that during development you use the debug version of the library, as it will greatly assist in understanding grips template syntax and behavior. But once you deploy grips and/or compiled templates to production, use the non-debug version of the library, because both the library and the compiled templates will be significantly smaller with debug bits stripped.
+
+For browser usage (either basic or AMD-style), choose the appropriate file with or without the "-debug" in the filename. For node.js module usage, you select which version of the library you want to use directly on the included module.
+
+```
+var grips_nondebug = require("grips").grips;
+var grips_debug = require("grips").debug;
+```
+
+## Full Compiler vs. Runtime
+
+For browser usage (either basic of AMD-style), you can choose to include the full compiler, or just the runtime bits. The runtime is all that's required if you only plan to render pre-compiled templates. If you need to actually compile templates in the browser (usually pretty rare), include the full lib. Otherwise, you should include the **much smaller** runtime only.
+
+The most typical production usage pattern would be to have a build process (see the `grips` CLI tool section below) that precompiles your templates, and includes them all together in a single script file (ex: "template-bundle.js"). In that scenario, you'd most likely want to **prepend** the runtime library file to the **beginning** of that template bundle file, so you'd only need to load that one combined file in the browser.
+
 ## Using the JavaScript API
 
 The JavaScript API is accessible in a couple of different ways. The raw library can be loaded in a traditional fashion in a browser, and will produce a single global called "grips". It can be loaded as an AMD module, using the "amd-*.js" versions of the files (assuming they were built with the "build" tool). And finally, you can use the "node-grips" and "node-grips-debug" modules in node.js code, with standard `require()` inclusion (`var grips = require("grips").grips;`).
