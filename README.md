@@ -220,7 +220,7 @@ grips.initialize(compiledSource);
 
 ## Using the grips CLI
 
-grips comes with a node.js tool called "grips" (I know, creative, right!?), in the root directory, which is a CLI tool for compiling, initializing, and rendering templates.
+grips comes with a node.js tool called "grips" (I know, creative, right!?), in the "bin/" directory, which is a CLI tool for compiling, initializing, and rendering templates.
 
 Here are the options for the CLI tool:
 
@@ -248,15 +248,15 @@ If you want to initialize (to prepare for rendering) an already compiled collect
 If you have compiled templates, or initialized already compiled templates, then you can render one or more partials using `--render`. You must specify both the collection ID and the partial ID. `--render` also requires that you provide the JSON data for your template rendering via stdin.
 
 ```
-grips --compile=templates/foo.bar.html --compile=templates/baz.html > tmpl-bundle.js
-echo "{\"some\":\"data\"}" | grips --initialize=tmpl-bundle.js --render='baz.html#foobar'
+bin/grips --compile=templates/foo.bar.html --compile=templates/baz.html > tmpl-bundle.js
+echo "{\"some\":\"data\"}" | bin/grips --initialize=tmpl-bundle.js --render='baz.html#foobar'
 ..
-echo "{\"some\":\"data\"}" | grips --compile=templates/foo.bar.html --compile=templates/baz.html --render= 'baz.html#foobar'
+echo "{\"some\":\"data\"}" | bin/grips --compile=templates/foo.bar.html --compile=templates/baz.html --render= 'baz.html#foobar'
 ```
 
 ## Building grips
 
-grips comes with a node.js tool called "build", in the root directory, which when run will generate the files you need to use grips, in a directory called "deploy".
+grips comes with a node.js tool called "build", in the "bin/" directory, which when run will generate the files you need to use grips, in a directory called "deploy".
 
 There are a few simple options for the build tool:
 
