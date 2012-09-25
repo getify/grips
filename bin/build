@@ -108,8 +108,17 @@ process.argv.slice(2).forEach(function(arg){
 			break;
 		case "--minify":
 			OPT_MINIFY = true;
-			jsp = require("uglify-js").parser;
-			pro = require("uglify-js").uglify;
+			try {
+				jsp = require("uglify-js").parser;
+				pro = require("uglify-js").uglify;
+			}
+			catch (err) {
+				console.log("--minify failed because 'uglify-js' module is missing or invalid.");
+				console.log("");
+				print_help();
+				process.exit(1);
+				break;
+			}
 			break;
 		case "--verbose":
 			OPT_VERBOSE = true;
