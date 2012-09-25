@@ -2,7 +2,7 @@
   "name": "grips",
   "version": "0.2.0",
   "description": "grips templating engine",
-  "main": "./node-grips.js",
+  "main": "./node-base.js",
   "bin": {
     "grips-build": "./bin/build",
     "grips": "./bin/grips"

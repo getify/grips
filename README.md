@@ -155,7 +155,7 @@ The examples/ directory has several sample template files. Take a look at "tmpl.
 
 ## Using the JavaScript API
 
-The JavaScript API is accessible in a couple of different ways. The raw library can be loaded in a traditional fashion in a browser, and will produce a single global called "grips". It can be loaded as an AMD module, using the "amd-*.js" versions of the files (assuming they were built with the "build" tool). And finally, you can use the "node-grips" and "node-grips-debug" modules in node.js code, with standard `require()` inclusion (`var grips = require("node-grips").grips;`).
+The JavaScript API is accessible in a couple of different ways. The raw library can be loaded in a traditional fashion in a browser, and will produce a single global called "grips". It can be loaded as an AMD module, using the "amd-*.js" versions of the files (assuming they were built with the "build" tool). And finally, you can use the "node-grips" and "node-grips-debug" modules in node.js code, with standard `require()` inclusion (`var grips = require("grips").grips;`).
 
 Regardless of how you include the library and get access to the core `grips` API, the following methods and signatures are all available. The only caveat is that if you load the runtime version of the library (which has the compiler stripped), only the runtime parts (`initialize`, `render`, etc) of the API are available.
 

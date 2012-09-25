@@ -37,7 +37,7 @@ function main() {
 		grips = require(FILE_NODE).grips;
 	}
 	else {
-		grips = require(FILE_NODE_DEBUG).grips;
+		grips = require(FILE_NODE).debug;
 	}
 
 	// process --compile arguments
@@ -113,8 +113,7 @@ var path = require("path"),
 
 	DIR_ROOT = path.join(__dirname,".."),
 
-	FILE_NODE_DEBUG = path.join(DIR_ROOT,"node-grips-debug.js"),
-	FILE_NODE = path.join(DIR_ROOT,"node-grips.js"),
+	FILE_NODE = path.join(DIR_ROOT,"node-base.js"),
 
 	OPT_NO_DEBUG = false,
 	OPT_MINIFY = false,
