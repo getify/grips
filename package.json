@@ -1,6 +1,6 @@
 {
   "name": "grips",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "description": "grips templating engine",
   "main": "./node-base.js",
   "bin": {
@@ -26,7 +26,7 @@
   "keywords": [
     "javascript",
     "templating",
-    "templates",
+    "templates"
   ],
   "bugs": {
     "url": "https://github.com/getify/grips/issues",
