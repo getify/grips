@@ -172,6 +172,22 @@ For browser usage (either basic of AMD-style), you can choose to include the ful
 
 The most typical production usage pattern would be to have a build process (see the `grips` CLI tool section below) that precompiles your templates, and includes them all together in a single script file (ex: "template-bundle.js"). In that scenario, you'd most likely want to **prepend** the runtime library file to the **beginning** of that template bundle file, so you'd only need to load that one combined file in the browser.
 
+## Installing, Deploying
+
+If you plan to use grips only in a browser, simply download the appropriate file(s) from the "deploy" directory of this repository, and use them in your page using a standard `<script src="...">` type include, bundle the file(s) with your other code, or load them with a dynamic script loader or dependency manager.
+
+If you plan to use grips on the server (in node.js), install it with npm:
+
+```
+npm install grips
+```
+
+If you want to use the "grips" CLI tool and the "grips-build" build tool from your command line, and you want those binaries added to your normal system bin path, you can instead install grips globally, by adding a "-g" to your `npm install` command.
+
+Once installed with npm, you will have a "./node_modules/grips/deploy" directory, and there is where you will find the files you need to deploy for browser usage, as just described.
+
+To use the grips module in a node.js script, you simply call `require("grips")`, and on that module object, you choose either the debug version of the library with `require("grips").debug` or the non-debug version with `require("grips").grips`.
+
 ## Using the JavaScript API
 
 The JavaScript API is accessible in a couple of different ways. The raw library can be loaded in a traditional fashion in a browser, and will produce a single global called "grips". It can be loaded as an AMD module, using the "amd-*.js" versions of the files (assuming they were built with the "build" tool). And finally, you can use the "node-grips" and "node-grips-debug" modules in node.js code, with standard `require()` inclusion (`var grips = require("grips").grips;`).
