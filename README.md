@@ -190,7 +190,7 @@ To use the grips module in a node.js script, you simply call `require("grips")`,
 
 ## Using the JavaScript API
 
-The JavaScript API is accessible in a couple of different ways. The raw library can be loaded in a traditional fashion in a browser, and will produce a single global called "grips". It can be loaded as an AMD module, using the "amd-*.js" versions of the files (assuming they were built with the "build" tool). And finally, you can use the "node-grips" and "node-grips-debug" modules in node.js code, with standard `require()` inclusion (`var grips = require("grips").grips;`).
+The JavaScript API is accessible in a couple of different ways. The raw library can be loaded in a traditional fashion in a browser, and will produce a single global symbol called "grips". It can be loaded as an AMD module, using the "amd-*.js" versions of the files (assuming they were built with the "grips-build" tool). And finally, you can use the "grips" module in node.js code (see above).
 
 Regardless of how you include the library and get access to the core `grips` API, the following methods and signatures are all available. The only caveat is that if you load the runtime version of the library (which has the compiler stripped), only the runtime parts (`initialize`, `render`, etc) of the API are available.
 
@@ -291,12 +291,12 @@ echo "{\"some\":\"data\"}" | bin/grips --compile=templates/foo.bar.html --compil
 
 ## Building grips
 
-grips comes with a node.js tool called "build", in the "bin/" directory, which when run will generate the files you need to use grips, in a directory called "deploy".
+grips comes with a node.js tool called "grips-build", in the "bin/" directory, which when run will generate the files you need to use grips, in a directory called "deploy".
 
-There are a few simple options for the build tool:
+There are a few simple options for the grips-build tool:
 
 ```
-usage: build [opt, ...]
+usage: grips-build [opt, ...]
 
 options:
 --help       show this help
@@ -309,9 +309,9 @@ options:
 --minify     minify all built files with uglify.js (creates *.min.js files)
 ```
 
-By default, the build tool is silent, meaning it outputs nothing to the console unless there are errors. If you'd like verbose output, pass the `--verbose` flag. Unless you pass the `--runtime`, the build tool will generate both the "full" compiler and the base runtime. `--all` overrides/ignores `--runtime` (and `--nodebug`).
+By default, the grips-build tool is silent, meaning it outputs nothing to the console unless there are errors. If you'd like verbose output, pass the `--verbose` flag. Unless you pass the `--runtime`, the grips-build tool will generate both the "full" compiler and the base runtime. `--all` overrides/ignores `--runtime` (and `--nodebug`).
 
-Also by default, the build tool will generate only the debug versions of the files (with extra/verbose error handling, etc). For production use, pass the `--nodebug` flag, and the debug code will be stripped. Or, pass the `--all` flag and both debug and non-debug files will be built.
+Also by default, the grips-build tool will generate only the debug versions of the files (with extra/verbose error handling, etc). For production use, pass the `--nodebug` flag, and the debug code will be stripped. Or, pass the `--all` flag and both debug and non-debug files will be built.
 
 To also produce the minified versions of all files being built (suitable for production deployment), pass the `--minify` flag. Note: to use minification, the node.js "uglify-js" package should be installed (via npm). (`npm install 'uglify-js'`)
 
