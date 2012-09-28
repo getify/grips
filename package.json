@@ -1,6 +1,6 @@
 {
   "name": "grips",
-  "version": "0.1.0-c",
+  "version": "0.1.0-d",
   "description": "grips templating engine",
   "main": "./node-base.js",
   "bin": {
@@ -15,8 +15,8 @@
     "uglify-js": "~1.3.3"
   },
   "scripts": {
-    "install": "./bin/grips-build --all --minify",
-    "update": "./bin/grips-build --all --minify",
+    "install": "./bin/grips-build --all",
+    "update": "./bin/grips-build --all",
     "preuninstall": "rm deploy/* node-grips.js node-grips-debug.js"
   },
   "repository": {

@@ -161,7 +161,7 @@ It is recommended that during development you use the debug version of the libra
 
 For browser usage (either basic or AMD-style), choose the appropriate file with or without the "-debug" in the filename. For node.js module usage, you select which version of the library you want to use directly on the included module.
 
-```
+```js
 var grips_nondebug = require("grips").grips;
 var grips_debug = require("grips").debug;
 ```
@@ -209,13 +209,13 @@ To compile a collection of partials, call `compileCollection(templateStr, collec
 
 A collection ID is the first part of a canonical template ID (`foo` in `"foo#bar"`, whereas `#bar` is the partial ID). For example, the `{$+ ... $}` collection extend tag takes only the collection ID (without any `#bar` partial ID).
 
-```
+```js
 grips.compileCollection("{$: '#bar' } Hello {$= $.name $}! {$}", "foo");
 ```
 
 For convenience, if you want to compile several collections at once, use `compile(sources, [initialize=true])`. `sources` is an object whose keys are collection names and values are collection template sources.
 
-```
+```js
 grips.compile({
 	foo: "{$: '#bar' } Hello {$= $.name $}! {$}"
 });
@@ -226,7 +226,7 @@ In an environment where one or more collections have been built (aka, interprete
 
 To render a partial, you refer canonically to its `templateID` by both the partial ID and the collection in which it lives. For example: `"foo#bar"`, where `foo` is the collection ID and `#bar` is the partial ID.
 
-```
+```js
 var markup = grips.render("foo#bar", {name: "World"});
 ```
 
@@ -235,7 +235,7 @@ Since you can pre-compile templates during a build process and store them in fil
 
 For instance, if you had the compiled functions for the `foo` collection in source form (from a file), you can evaluate them (so they're ready for rendering) by either `eval()`ing them yourself, or with `initializeCollection(collectionID, compiledSource)`.
 
-```
+```js
 eval(fooCompiledSource);
 
 // or, better:
@@ -245,7 +245,7 @@ grips.initializeCollection("foo", fooCompiledSource);
 
 And if you have all your collections in one big string, you can just call `initialize(compiledSourceBundle)`.
 
-```
+```js
 eval(compiledSource);
 
 // or, better:
@@ -301,21 +301,32 @@ usage: grips-build [opt, ...]
 options:
 --help       show this help
 --verbose    display progress
---all        build all options (ignores --runtime and --nodebug)
---runtime    builds only the stripped down runtime (no compiler)
---amd        also build AMD style files (amd-*.js)
---node       build the node.js compatible package (in a /bin folder)
---nodebug    strip debug code (smaller files with less graceful error handling)
---minify     minify all built files with uglify.js (creates *.min.js files)
+
+--full       builds only the full compiler+runtime package
+--runtime    builds only the stripped down (no compiler) runtime separately
+--debug      builds all files only with debug code included (graceful error handling, etc)
+--nodebug    builds all files only with debug code stripped (smaller files, but with less graceful error handling)
+
+--amd        also builds AMD style files (amd-*.js files)
+--node       also builds node.js compatible module files
+--minify     also minifies all built files with uglify.js (*.min.js files)
+
+--all        build all possible files/options
+
+Defaults:
+If you pass neither --full nor --runtime, --full will be assumed.
+If you pass neither --debug nor --nodebug, --debug will be assumed.
 ```
 
-By default, the grips-build tool is silent, meaning it outputs nothing to the console unless there are errors. If you'd like verbose output, pass the `--verbose` flag. Unless you pass the `--runtime`, the grips-build tool will generate both the "full" compiler and the base runtime. `--all` overrides/ignores `--runtime` (and `--nodebug`).
+By default, the grips-build tool is silent, meaning it outputs nothing to the console unless there are errors. If you'd like verbose output, pass the `--verbose` flag.
 
-Also by default, the grips-build tool will generate only the debug versions of the files (with extra/verbose error handling, etc). For production use, pass the `--nodebug` flag, and the debug code will be stripped. Or, pass the `--all` flag and both debug and non-debug files will be built.
+`--full` builds the full compiler+runtime together. `--runtime` builds only the stripped down (no compiler) runtime separately. Both flags can be passed to build both options. If you pass neither `--full` nor `--runtime`, `--full` will be assumed.
 
-To also produce the minified versions of all files being built (suitable for production deployment), pass the `--minify` flag. Note: to use minification, the node.js "uglify-js" package should be installed (via npm). (`npm install 'uglify-js'`)
+`--debug` includes debug code (graceful error handling, etc) in both the library and the compiled templates it will produce. `--nodebug` strips all debug code from the library (and thus from any compiled templates it will produce). Both flags can be passed to build both options. If you pass neither `--debug` nor `--nodebug`, `--debug` will be assumed. **For production usage, it is strongly recommended to use the `--nodebug` built files.**
 
-Passing `--node` will build the node.js compatible modules "node-grips" and "node-grips-debug" (which are used by the CLI, btw), in a directory called "bin".
+`--amd` also builds the AMD style version of any built files. `--node` also builds the node.js modules. `--minify` also minifies all built files (using "uglify.js").
+
+Finally, `--all` will build all files and option combinations.
 
 ## License
 
