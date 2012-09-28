@@ -3368,7 +3368,8 @@ if (!Object.prototype.toJSON) {
 })(this.grips);
 
 
+var g = this.grips;
 if (typeof define === "function" && define.amd) {
-define(this.grips);
+define(g);
 }
 }).call({});

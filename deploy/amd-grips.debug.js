@@ -369,7 +369,8 @@ if (!Object.prototype.toJSON) {
 
 
 
+var g = this.grips;
 if (typeof define === "function" && define.amd) {
-define(this.grips);
+define(g);
 }
 }).call({});
