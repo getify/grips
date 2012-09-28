@@ -52,8 +52,9 @@ function amd_ify(str) {
 
 	ret += "(function __grips_amd__(){\n";
 	ret += str + "\n";
+	ret += "var g = this.grips;\n";
 	ret += "if (typeof define === \"function\" && define.amd) {\n";
-	ret += "define(this.grips);\n";
+	ret += "define(g);\n";
 	ret += "}\n";
 	ret += "}).call({});";
 
