@@ -56,6 +56,8 @@ The examples/ directory has several sample template files. Take a look at "tmpl.
 
 	{$= @"#yyy" $}
 
+  Template partials can be specified either by only the `#partialID`, or by a full `collectionID#partialID` reference. If no `collectionID` is specified, the current containing collection will be assumed.
+
 ### Include template partial, by variable
 
 	{$= @$.val_1 $}  <!-- OR -->  {$= @myval $}
@@ -107,7 +109,7 @@ The examples/ directory has several sample template files. Take a look at "tmpl.
     {$}
 
 ### Precomputing hash literals
-  Hash literals can be pre-computed against a defined set or range of values. In the below examples, the value of `$.myradio` will be compared to all values in the range/set (0,1,2 or "low","medium","high"). The results of the comparison and conditional assignment are stored in a local variable hash, keyed by the comparison values. For instance, in the below example, on of the three pre-computation comparisons/assignments the syntax implies is: `checked[1] = ($.myradio === 1) ? "checked" : ""` (same for values 0 and 2, as well).
+  Hash literals can be pre-computed against a defined set or range of values. In the below examples, the value of `$.myradio` will be compared to all values in the range/set (0,1,2 or "low","medium","high"). The results of the comparison and conditional assignment are stored in a local variable hash, keyed by the comparison values. For instance, in the below example, one of the three pre-computation comparisons/assignments the syntax implies is: `checked[1] = ($.myradio === 1) ? "checked" : ""` (same for values 0 and 2).
 
 	{$: "#bar" |
 		checked[0..2] = $.myradio ? "checked"
@@ -127,7 +129,7 @@ The examples/ directory has several sample template files. Take a look at "tmpl.
 		{$}
 	{$}
 
-  Here's pre-computed against a set-literal:
+  Pre-computed against a set-literal:
 
 	{$: "#bar" |
 		checked["low","medium","high"] = $.myradio ? "checked"
@@ -139,7 +141,27 @@ The examples/ directory has several sample template files. Take a look at "tmpl.
 
 ### "Extend" (inherit from) another template collection
 
-	{$+ "collection-id-or-filename" $}
+	{$+ "collection-ID" $}
+
+  Template collections are an arbitrary grouping of one or more template partials. Usually a template collection corresponds to a file. A template collection can "extend" another template collection, in a similar way you'd be used to having one class extend another class.
+
+  A template collection that extends another collection means that it "inherits" the template partials from the collection it extends. You can reference those template partials in template-includes, even if they don't exist in the current template collection. You can also override a template partial that was inherited, simply by defining it in the current collection.
+
+  If you reference a partial for inclusion, the engine will start at the appropriate collection level and look for the partial there, and if not found, will walk up the extension chain, if any, looking for a matching partial.
+
+  For example, collection "foo":
+
+	{$: "#baz" } baz {$}
+	{$: "#bam" } bam {$}
+
+  And collection "bar":
+
+	{$+ "foo" $}
+	{$: "#baz" }
+	   Foobar {$= @"foo#baz" $} {$= @"#bam" $}
+	{$}
+
+  In this example, `bar` extends `foo`, and `#baz` and `#bam` are inherited from `foo` into `bar`. `#baz` is redefined in `bar`, but the original inherited version can be referenced by giving the full `foo#baz` template reference. Finally, since `#bam` was inherited, it can be referenced even without the full template reference.
 
 ### Raw un-parsed section
 
@@ -196,24 +218,26 @@ Regardless of how you include the library and get access to the core `grips` API
 
 The two most typical tasks for the JavaScript API are `compileCollection()` and `render()`.
 
-"grips" organizes template partials by grouping them together in collections. A single collection is an arbitrary grouping of one or more partials, but it usually will correspond to a single template file. The collection ID is arbitrary, but again, will usually be the filename of the template file.
+"grips" organizes template partials by grouping them together in collections. A single collection is an arbitrary grouping of one or more partials, but it usually will correspond to a single template file. The collection-ID is arbitrary, but again, will usually be the filename of the template file.
 
-You can render an individual partial, but you compile a collection of one or more partials.
+You will render an individual partial, but you will compile a collection of one or more partials.
 
 ### Compiling a collection
-To compile a collection of partials, call `compileCollection(templateStr, collectionID,[initialize=true])`. 
+To compile a collection of partials, call `compileCollection(templateStr, collectionID, [initialize=true])`. 
 
 `templateStr` is the string representation of your collection of template partials. `collectionID` should be the same as any other references to the collection by ID, such as other absolute template includes, or template extend directives, in other collections.
 
-`initialize`, which defaults to true, is an optional boolean flag. If `true`, it will evaluate the compiled template function representation, so that it's ready to render. `compileCollection()` also returns you the string value of that compiled template function, so you can choose to store it in a file during a build process, etc.
+`initialize`, which defaults to true, is an optional boolean flag. If `true`, it will evaluate the compiled template function representation, so that it's ready to render. You'd pass `false` for this parameter if you were only doing pre-compilation of templates, for instance in a build process, and didn't need them to be intialized for rendering at that time.
 
-A collection ID is the first part of a canonical template ID (`foo` in `"foo#bar"`, whereas `#bar` is the partial ID). For example, the `{$+ ... $}` collection extend tag takes only the collection ID (without any `#bar` partial ID).
+`compileCollection()` returns you the string value of that compiled template function, so you can choose to store it in a file during a build process, etc.
+
+A collection-ID is the first part of a canonical template-ID (`foo` in `"foo#bar"`, whereas `#bar` is the partial-ID). For example, the `{$+ ... $}` collection extend tag takes only the collection-ID (without any `#bar` partial-ID).
 
 ```js
 grips.compileCollection("{$: '#bar' } Hello {$= $.name $}! {$}", "foo");
 ```
 
-For convenience, if you want to compile several collections at once, use `compile(sources, [initialize=true])`. `sources` is an object whose keys are collection names and values are collection template sources.
+For convenience, if you want to compile several collections at once, use `compile(sources, [initialize=true])`. The `sources` parameter is an object whose keys are used as the collection names and whose values are the collection template sources.
 
 ```js
 grips.compile({
@@ -222,18 +246,18 @@ grips.compile({
 ```
 
 ### Rendering a partial
-In an environment where one or more collections have been built (aka, interpreted/executed), they can be rendered by calling `render(templateID, data)`.
+If one or more collections have been compiled and initialized, they can then be rendered by calling `render(templateID, data)`.
 
-To render a partial, you refer canonically to its `templateID` by both the partial ID and the collection in which it lives. For example: `"foo#bar"`, where `foo` is the collection ID and `#bar` is the partial ID.
+To render a partial using the JavaScript API, you must refer canonically to its full `templateID` by both the partial-ID and the collection in which it lives. For example, with `"foo#bar"`, `foo` is the collection-ID and `#bar` is the partial-ID.
 
 ```js
 var markup = grips.render("foo#bar", {name: "World"});
 ```
 
 ### Other methods
-Since you can pre-compile templates during a build process and store them in files for later use in production, you can call `initializeCollection()` (or `initialize()`) to evaluate a compiled template function's source retrieved from a file.
+Since you can pre-compile templates during a build process and store them in files for later use in production, you can call `initializeCollection()` (or `initialize()`) to evaluate the source of a compiled template collection's functions.
 
-For instance, if you had the compiled functions for the `foo` collection in source form (from a file), you can evaluate them (so they're ready for rendering) by either `eval()`ing them yourself, or with `initializeCollection(collectionID, compiledSource)`.
+For instance, if you had the compiled functions for the `foo` collection in source form (from a file), you can initialize them (so they're ready for rendering) by either `eval()`ing them yourself, or with `initializeCollection(collectionID, compiledSource)`.
 
 ```js
 eval(fooCompiledSource);
@@ -243,7 +267,7 @@ eval(fooCompiledSource);
 grips.initializeCollection("foo", fooCompiledSource);
 ```
 
-And if you have all your collections in one big string, you can just call `initialize(compiledSourceBundle)`.
+And if you have two or more collections in one big string (like one file), you can just call `initialize(compiledSourceBundle)`.
 
 ```js
 eval(compiledSource);
