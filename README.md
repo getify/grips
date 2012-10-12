@@ -129,7 +129,7 @@ The examples/ directory has several sample template files. Take a look at "tmpl.
 		{$}
 	{$}
 
-  Pre-computed against a set-literal:
+  Pre-computation with a set-literal:
 
 	{$: "#bar" |
 		checked["low","medium","high"] = $.myradio ? "checked"
