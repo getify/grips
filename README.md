@@ -14,166 +14,286 @@ The examples/ directory has several sample template files. Take a look at "tmpl.
 
 ## Templating sytax
 
-### Define a named template section (aka, "partial")
+Template tags (as defined below) have a short/terse form and a long/friendlier form. You can mix and match the forms as you see fit. Examples may use the short form (for conciseness), but there's no reason to infer a preference either way. Some people prefer less templating cruft in their templates, others prefer more readable and less cryptic templates. To each his/her own. Just a matter of taste.
 
-	{$: "#xxx" }
-		...
-		...
-	{$}
+**NOTE:** For simplicity sake, when the engine prints a debug error message where it references a template tag, it always uses the short form for the tag, regardless of what it encountered in the original template.
+
+### Define a named template section (aka, "partial")
+Long-form:
+
+```
+{$define "#xxx" }
+	...
+	...
+{$}
+```
+
+Short-form:
+
+```
+{$: "#xxx" }
+	...
+	...
+{$}
+```
 
 ### Define a named template section (partial), with local variable assignment(s)
-  `$` is the data object (context) passed into the partial.
+`$` is the data object (context) passed into the partial.
 
-	{$: "#xxx" |
-		x = $.val_1 |
-		y = $.val_2 ? "#yyy" : "#zzz"
-	}
-		...
-		...
-	{$}
+```
+{$: "#xxx" |
+	x = $.val_1 |
+	y = $.val_2
+}
+	...
+	...
+{$}
+```
 
-### Conditional Assignments
+#### Conditional Assignments
 
-	{$: "#bar" |
-		baz = $.baz ? "yes" : ""
-	}
-		baz: {$= baz $}
-	{$}
+```
+{$: "#bar" |
+	baz = $.baz ? "yes" : ""
+}
+	baz: {$= baz $}
+{$}
+```
 
-  Also, the `else` condition of a conditional can be omitted and defaults to `""`.
+The `else` condition of a conditional can be omitted and defaults to `""`.
 
-	{$: "#bar" |
-		baz = $.baz ? "yes"
-	}
-		baz: {$= baz $}
-	{$}
+```
+{$: "#bar" |
+	baz = $.baz ? "yes"
+}
+	baz: {$= baz $}
+{$}
+```
 
-### Include data variable
+### Insert/print data property or variable
+Long-form:
 
-	{$= $.val_1 $}  <!-- OR -->  {$= myval $}
+```
+{$insert $.val_1 $}     {$insert myval $}
+{$print $.val_1 $}      {$print myval $}
+```
+
+Short-form:
+
+```
+{$= $.val_1 $}     {$= myval $}	
+```
 
 ### Include template partial, by static literal
+Long-form:
 
-	{$= @"#yyy" $}
+```
+{$partial "#yyy" $}     {$insert @"#yyy" $}
+```
 
-  Template partials can be specified either by only the `#partial-ID`, or by a full `partial-ID#partial-ID` reference. If no `partial-ID` is specified, the current containing collection will be assumed.
+Short-form:
+
+```
+{$= @"#yyy" $}
+```
+
+Template partials can be referenced either by only the (relative) `#partial-ID`, or by a full canonical `collection-ID#partial-ID` reference. If no `collection-ID` is specified, the current containing collection will be assumed.
+
+**NOTE:** The short-form (and `{$insert ... $}`) requires the `@` symbol to distinguish a partial include from a data insertion. The long-form `{$partial ... $}` makes it more explicit in this case.
 
 ### Include template partial, by variable
+Long-form:
 
-	{$= @$.val_1 $}  <!-- OR -->  {$= @myval $}
+```
+{$partial $.val_1 $}     {$partial myval $}
+```
+
+Short-form:
+
+```
+{$= @$.val_1 $}     {$= @myval $}
+```
 
 ### Manually specify data context for template partial include
 
-	{$= @"#yyy" | $.user $}
+```
+{$= @"#yyy" | $.user $}
+```
 
 ### Loop on data variable (array or plain key/value object)
-  `$$` iteration binding includes: 
-    `index` (numeric), `key` (string: property name or index),
-    `value`, `first`, `last`, `odd`, and `even`
+`_` is the current iteration binding, and it includes:
 
-	{$* $.val_1 }
-		...
-		{$= $$.value $}  <!-- include the loop iteration value -->
-		...
-	{$}
+* `index` (numeric: zero-based positional index)
+* `key` (string: for object iteration, the property name; for array iteration, the `index`)
+* `value` (actual item value)
+* `first`
+* `last`
+* `odd`
+* `even`
+
+Long-form:
+
+```
+{$loop $.val_1 }
+	...
+	key: {$insert _.key $}    value: {$insert _.value $}
+	...
+{$}
+```
+
+Short-form:
+
+```
+{$* $.val_1 }
+	...
+	key: {$= _.key $}    value: {$= _.value $}
+	...
+{$}
+```
 
 ### Loop on data variable, with loop iteration local variable assignment(s)
 
-	{$* $.val_1 |
-		rowtype = $$.odd ? "#oddrow" : "#evenrow" | 
-	    someprop = $$.value.someProp ? "#hassomeprop"
-	}
-		...
-		{$= @rowtype $}  <!-- include local variable -->
-		...
-		{$= @someprop $}
-		...
-		{$= $$.value.otherProp $}  <!-- include loop iteration value variable -->
-		...
-	{$}
+```
+{$* $.val_1 |
+	rowtype = _.odd ? "#oddrow" : "#evenrow" | 
+    someprop = _.value.someProp ? "#hassomeprop"
+}
+	...
+	{$= @rowtype $}
+	...
+	{$= @someprop $}
+	...
+{$}
+```
 
 ### Range Literals
 
-    {$* [2..7] } <!-- let's count from 2 to 7 -->
-    	counting: {$= $$.value $}
-    {$}
+```
+{$* [2..7] } <!-- let's count from 2 to 7 -->
+	counting: {$= _.value $}
+{$}
+```
 
-    {$* [4..-3] } <!-- count down from 4 to -3 -->
-    	counting: {$= $$.value $}
-    {$}
+```
+{$* [4..-3] } <!-- count down from 4 to -3 -->
+	counting: {$= _.value $}
+{$}
+```
 
 ### Set Literals
 
-    {$* ["Jan", "Feb", "Mar"] } <!-- show the months in Q1 -->
-    	month: {$= $$.value $}
-    {$}
+```
+{$* ["Jan", "Feb", "Mar"] } <!-- show the months in Q1 -->
+	month: {$= _.value $}
+{$}
+```
 
 ### Precomputing hash literals
-  Hash literals can be pre-computed against a defined set or range of values. In the below examples, the value of `$.myradio` will be compared to all values in the range/set (0,1,2 or "low","medium","high"). The results of the comparison and conditional assignment are stored in a local variable hash, keyed by the comparison values. For instance, in the below example, one of the three pre-computation comparisons/assignments the syntax implies is: `checked[1] = ($.myradio === 1) ? "checked" : ""` (same for values 0 and 2).
+Hash literals can be pre-computed against a defined set or range of values. In the below examples, the value of `$.myradio` will be compared to all values in the range/set (0,1,2 or "low","medium","high"). The results of the comparison and conditional assignment are stored in a local variable hash, keyed by the comparison values. For instance, in the below example, one of the three pre-computation comparisons/assignments the syntax implies is: `checked[1] = ($.myradio === 1) ? "checked" : ""` (same for values 0 and 2).
 
-	{$: "#bar" |
-		checked[0..2] = $.myradio ? "checked"
-	}
-		<input type="radio" name="myradio" value="0" {$= checked[0] $}>
-		<input type="radio" name="myradio" value="1" {$= checked[1] $}>
-		<input type="radio" name="myradio" value="2" {$= checked[2] $}>
+```
+{$: "#bar" |
+	checked[0..2] = $.myradio ? "checked"
+}
+	<input type="radio" name="myradio" value="0" {$= checked[0] $}>
+	<input type="radio" name="myradio" value="1" {$= checked[1] $}>
+	<input type="radio" name="myradio" value="2" {$= checked[2] $}>
+{$}
+```
+
+Using a loop the above can be even more terse:
+
+```
+{$: "#bar" |
+	checked[0..2] = $.myradio ? "checked"
+}
+	{$* [0..2] }
+		<input type="radio" name="myradio" value="{$= _.value $}" {$= checked[_.value] $}>
 	{$}
+{$}
+```
 
-  Using a loop the above can be even more terse:
+Pre-computation with a set-literal:
 
-	{$: "#bar" |
-		checked[0..2] = $.myradio ? "checked"
-	}
-		{$* [0..2] }
-			<input type="radio" name="myradio" value="{$= $$.value $}" {$= checked[$$.value] $}>
-		{$}
-	{$}
-
-  Pre-computation with a set-literal:
-
-	{$: "#bar" |
-		checked["low","medium","high"] = $.myradio ? "checked"
-	}
-		<input type="radio" name="myradio" value="low" {$= checked["low"] $}>
-		<input type="radio" name="myradio" value="medium" {$= checked["medium"] $}>
-		<input type="radio" name="myradio" value="high" {$= checked["high"] $}>
-	{$}
+```
+{$: "#bar" |
+	checked["low","medium","high"] = $.myradio ? "checked"
+}
+	<input type="radio" name="myradio" value="low" {$= checked["low"] $}>
+	<input type="radio" name="myradio" value="medium" {$= checked["medium"] $}>
+	<input type="radio" name="myradio" value="high" {$= checked["high"] $}>
+{$}
+```
 
 ### "Extend" (inherit from) another template collection
+Long-form:
 
-	{$+ "collection-ID" $}
+```
+{$extend "collection-ID" $}
+```
 
-  Template collections are an arbitrary grouping of one or more template partials. Usually a template collection corresponds to a file. A template collection can "extend" another template collection, in a similar way you'd be used to having one class extend another class.
+Short-form:
 
-  A template collection that extends another collection means that it "inherits" the template partials from the collection it extends. You can reference those template partials in template-includes, even if they don't exist in the current template collection. You can also override a template partial that was inherited, simply by defining it in the current collection.
+```
+{$+ "collection-ID" $}
+```
 
-  If you reference a partial for inclusion, the engine will start at the appropriate collection level and look for the partial there, and if not found, will walk up the extension chain, if any, looking for a matching partial.
+Template collections are an arbitrary grouping of one or more template partials. Usually a template collection corresponds to a file. A template collection can "extend" another template collection, in a similar way you'd be used to having one class extend another class.
 
-  For example, collection "foo":
+A template collection that extends another collection means that it "inherits" the template partials from the collection it extends. You can reference those template partials in template-includes, even if they don't exist in the current template collection. You can also override a template partial that was inherited, simply by defining it in the current collection.
 
-	{$: "#baz" } baz {$}
-	{$: "#bam" } bam {$}
+If you reference a partial for inclusion, the engine will start at the appropriate collection level and look for the partial there, and if not found, will walk up the extension chain, if any, looking for a matching partial.
 
-  And collection "bar":
+For example, collection "foo":
 
-	{$+ "foo" $}
-	{$: "#baz" }
-	   Foobar {$= @"foo#baz" $} {$= @"#bam" $}
-	{$}
+```
+{$: "#baz" } baz {$}
+{$: "#bam" } bam {$}
+```
 
-  In this example, `bar` extends `foo`, and `#baz` and `#bam` are inherited from `foo` into `bar`. `#baz` is redefined in `bar`, but the original inherited version can be referenced by giving the full `foo#baz` template reference. Finally, since `#bam` was inherited, it can be referenced even without the full template reference.
+And collection "bar":
 
-### Raw un-parsed section
+```
+{$+ "foo" $}
 
-	{$%
-		this stuff {$= won't be parsed $}, just passed through raw
-	%$}
+{$: "#baz" }
+	Foobar {$= @"foo#baz" $} {$= @"#bam" $}
+{$}
+```
+
+In this example, `bar` extends `foo`, and `#baz` and `#bam` are inherited from `foo` into `bar`. `#baz` is redefined in `bar`, but the original inherited version can be referenced by giving the full `foo#baz` template reference. Finally, since `#bam` was inherited, it can be referenced even without the full template reference.
+
+### Raw unparsed section
+Long-form:
+
+```
+{$raw
+	this stuff {$= won't be parsed $}, just passed through raw
+%$}
+```
+
+Short-form:
+
+```
+{$%
+	this stuff {$= won't be parsed $}, just passed through raw
+%$}
+```
 
 ### Template comment block
+Long-form:
 
-	{$/
-		comments get removed in parsing
-	/$}
+```
+{$comment comments get removed 
+	in parsing /$}
+```
+
+Short-form:
+
+```
+{$/ comments get removed 
+	in parsing /$}
+```
 
 ## Debug vs. Non-Debug
 
@@ -184,8 +304,8 @@ It is recommended that during development you use the debug version of the libra
 For browser usage (either basic or AMD-style), choose the appropriate file with or without the "-debug" in the filename. For node.js module usage, you select which version of the library you want to use directly on the included module.
 
 ```js
-var grips_nondebug = require("grips").grips;
-var grips_debug = require("grips").debug;
+var grips_nondebug = require("grips").grips,
+    grips_debug = require("grips").debug;
 ```
 
 ## Full Compiler vs. Runtime
@@ -231,7 +351,7 @@ To compile a collection of partials, call `compileCollection(templateStr, collec
 
 `compileCollection()` returns you the string value of that compiled template function, so you can choose to store it in a file during a build process, etc.
 
-A collection-ID is the first part of a canonical template-ID (`foo` in `"foo#bar"`, whereas `#bar` is the partial-ID). For example, the `{$+ ... $}` collection extend tag takes only the collection-ID (without any `#bar` partial-ID).
+A collection-ID is the first part of a canonical template-ID (`foo` in `"foo#bar"`, whereas `#bar` is the partial-ID). The `{$+ ... $}` collection extend tag takes **only** the collection-ID (like `foo`), without any partial-ID.
 
 ```js
 grips.compileCollection("{$: '#bar' } Hello {$= $.name $}! {$}", "foo");
@@ -248,10 +368,12 @@ grips.compile({
 ### Rendering a partial
 If one or more collections have been compiled and initialized, they can then be rendered by calling `render(templateID, data)`.
 
-To render a partial using the JavaScript API, you must refer canonically to its full `templateID` by both the partial-ID and the collection in which it lives. For example, with `"foo#bar"`, `foo` is the collection-ID and `#bar` is the partial-ID.
+To render a partial using the JavaScript API, you must refer canonically to its full `templateID` by both the partial-ID and the collection-ID of the collection in which it lives. For example, for `"foo#bar"`, `foo` is the collection-ID and `#bar` is the partial-ID.
 
 ```js
-var markup = grips.render("foo#bar", {name: "World"});
+var markup = grips.render("foo#bar", {
+	name: "World"
+});
 ```
 
 ### Other methods
@@ -262,7 +384,7 @@ For instance, if you had the compiled functions for the `foo` collection in sour
 ```js
 eval(fooCompiledSource);
 
-// or, better:
+// or
 
 grips.initializeCollection("foo", fooCompiledSource);
 ```
@@ -272,7 +394,7 @@ And if you have two or more collections in one big string (like one file), you c
 ```js
 eval(compiledSource);
 
-// or, better:
+// or
 
 grips.initialize(compiledSource);
 ```
@@ -298,7 +420,7 @@ options:
 --render='{collection-ID}#{partial-ID}'   render the specified partial, using data from stdin
 ```
 
-The `--compile` flag can be passed multiple times, once for each file you want to compile. By default, only the filename itself will be used as the collection-ID, however if you pass `--keep-paths`, then the full path you specify for a file will be used as the collection-ID. NOTE: a collection-ID, filename, file path must not include a `#` character, as that is the separator between collection-ID and partial-ID.
+The `--compile` flag can be passed multiple times, once for each file you want to compile. By default, only the filename itself will be used as the collection-ID, however if you pass `--keep-paths`, then the full path you specify for a file will be used as the collection-ID. NOTE: a collection-ID (filename, file path) must not include a `#` character, as that is the separator between collection-ID and partial-ID.
 
 If a `--render` flag is not passed, the output from the compilation (`--compile`) will be printed to the stdout. Otherwise, the output will be the rendered output.
 
