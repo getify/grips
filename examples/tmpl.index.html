@@ -1,6 +1,6 @@
-{$+ "tmpl.master.html" $}
+{$extend "tmpl.master.html" $}
 
-
+{$/ NOTE: this template (and tmpl.master.html that it inherits from) intentionally mixes long-form and short-form tags purely for illustration purposes. you should probably pick one style or the other for your templates. :) /$}
 
 {$: "#content" |
 	userdetails = $.full_name ? "#userdetails" : "#nouser"
@@ -8,8 +8,6 @@
 	<h1>grips Template Engine</h1>
 
 	<p>This is how a grips Template works.</p>
-	
-	{$/ Here is a template comment block /$}
 	
 	<p>
 	{$% 
@@ -72,20 +70,20 @@
 {$: "#links" }
 	<ul>
 	{$/ loop over the "links" array /$}
-	{$* $.links }
-		<!-- li:{$= $$.key $} -->
-		{$= @"#listitem" | $$ $} <!-- set $$ as the data context -->
+	{$loop $.links }
+		<!-- li:{$= _.key $} -->
+		{$= @"#listitem" | _ $} <!-- set _ as the data context -->
 	{$}
 	</ul>
 
 	Some numbers (* is my favorite):
-	{$* [-1..6] | fave[-1..6] = $.favenum ? "*" }{$= fave[$$.value] $}{$= $$.value $} {$}
+	{$loop [-1..6] | fave[-1..6] = $.favenum ? "*" }{$= fave[_.value] $}{$= _.value $} {$}
 
 	Will I be going to the party:
 	{$* ["yes","no","maybe"] |
 		chosen["yes","no","maybe"] = $.mychoice ? "X" : " "
 	}
-		{$= chosen[$$.value] $} {$= $$.value $}
+		{$= chosen[_.value] $} {$= _.value $}
 	{$}
 {$}
 
@@ -103,7 +101,7 @@
 		<div>context:</div>
 		<ul>
 		{$* $ }
-			<li>{$= $$.key $}: {$= $$.value $}</li>
+			<li>{$= _.key $}: {$= _.value $}</li>
 		{$}
 		</ul>
 	</li>

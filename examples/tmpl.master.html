@@ -1,21 +1,27 @@
-{$: "#master" }<!DOCTYPE html>
+{$comment this is a master template not intended to be used directly,
+	but extended and then used. /$}
+
+{$define "#master" }<!DOCTYPE html>
 	<html>
 	<head>
 	<title>grips Templating Engine</title>
 	
-	{$= @"#styles" $}
+	{$partial "#styles" $}
 	</head>
 	
 	<body>
-	
+
 	<div id="content">
-	{$= @"#content" $}
+	{$partial "#content" $}
 	</div>
 	
-	{$= @"#footer" $}
+	{$partial "#footer" $}
+
+	{$raw this is {$ raw $} stuff! %$}
+
 	</body>
 	</html>
 {$}
 
 
-{$: "#styles" }<link rel="stylesheet" type="text/css" href="master.css" />{$}
+{$define "#styles" }<link rel="stylesheet" type="text/css" href="master.css" />{$}

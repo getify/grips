@@ -29,14 +29,14 @@
 {$: '#settings' }
 	<h1>Settings</h1>
 	{$* $.settings |
-		name = $$.key |
-		setting = $$.value
+		name = _.key |
+		setting = _.value
 	}
 		<h2>{$= name $}</h2>
 		{$* ['low','high'] |
 			checked['low','high'] = setting ? 'checked'
 		}
-			<input type="radio" name="{$= name $}" value="{$= $$.value $}" {$= checked[$$.value] $}> {$= $$.value $}
+			<input type="radio" name="{$= name $}" value="{$= _.value $}" {$= checked[_.value] $}> {$= _.value $}
 		{$}
 	{$}
 {$}
@@ -47,10 +47,10 @@
 {$+ '3' $}
 {$: '#foobar' | foobar[-1..5] = $.blah ? 'yes' : 'no' }
 	{$* foobar |
-		first = $$.first ? '|' : ' ' |
-		last = $$.last ? '|' : ' ' 
+		first = _.first ? '|' : ' ' |
+		last = _.last ? '|' : ' ' 
 	}
-		{$= first $} "{$= $$.key $}" ({$= $$.index $}): {$= $$.value $} {$= last $}
+		{$= first $} "{$= _.key $}" ({$= _.index $}): {$= _.value $} {$= last $}
 	{$}
 {$}
 {$: '#baz' }
@@ -67,26 +67,26 @@
 
 	Input data:
 	{$* $ |
-		first = $$.first ? '|' : ' ' |
-		last = $$.last ? '|' : ' ' 
+		first = _.first ? '|' : ' ' |
+		last = _.last ? '|' : ' ' 
 	}
-		{$= first $} {$= $$.key $} = {$= $$.value $} {$= last $} 
+		{$= first $} {$= _.key $} = {$= _.value $} {$= last $} 
 	{$}
 
 	Counting:
 	{$* [3..8] |
-		first = $$.first ? '|' : ' ' |
-		last = $$.last ? '|' : ' ' 
+		first = _.first ? '|' : ' ' |
+		last = _.last ? '|' : ' ' 
 	}
-		{$= first $} ({$= $$.index $}) {$= $$.value $} {$= last $} 
+		{$= first $} ({$= _.index $}) {$= _.value $} {$= last $} 
 	{$}
 
 	Set:
 	{$* ['one','two','three','four'] |
-		first = $$.first ? '|' : ' ' |
-		last = $$.last ? '|' : ' ' 
+		first = _.first ? '|' : ' ' |
+		last = _.last ? '|' : ' ' 
 	}
-		{$= first $} ({$= $$.index $}) "{$= $$.value $}" {$= last $} 
+		{$= first $} ({$= _.index $}) "{$= _.value $}" {$= last $} 
 	{$}
 {$}
 </script>
