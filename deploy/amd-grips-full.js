@@ -188,7 +188,7 @@ if (!Object.keys) {
 		}
 
 
-		function render(id,$,_) {
+		function render(id,$,$$) {
 			// default empty render?
 			if (!id) return "";
 
@@ -257,7 +257,7 @@ if (!Object.keys) {
 				// consult the eligible stack from the bottom up
 				for (i=0; i<eligible_stack.length; i++) {
 					if (id in collections[eligible_stack[i]].partials) {
-						ret = collections[eligible_stack[i]].partials[id]($,_);
+						ret = collections[eligible_stack[i]].partials[id]($,$$);
 						break;
 					}
 				}
@@ -413,14 +413,14 @@ if (!Object.keys) {
 						tokens.push(token);
 						// look ahead to the tag-type signifier, if any
 						if ((next_match_idx < chunk.length - 1) &&
-							(match = chunk.substr(next_match_idx,1).match(/[:+=*\/%]/))
+							(match = chunk.substr(next_match_idx).match(/^(?:[:+=*\/%]|(?:define|extend|insert|print|partial|loop|comment|raw)\b)/))
 						) {
 							tokens.push(new Token({
 								type: TOKEN_TAG_SIGNIFIER,
 								val: match[0],
 								pos: next_match_idx
 							}));
-							next_match_idx++;
+							next_match_idx += match[0].length;
 						}
 						else {
 							return unknown_error;
@@ -905,12 +905,13 @@ if (!Object.keys) {
 
 			if (token.type === _Grips.tokenizer.SIGNIFIER) {
 				if (current_parent && current_parent.type == null) {
-					if (token.val === ":") current_parent.type = NODE_TAG_DEFINE;
-					else if (token.val === "+") current_parent.type = NODE_TAG_EXTEND;
-					else if (token.val === "=") current_parent.type = NODE_TAG_INCL_VAR; // NOTE: can later be re-defined to NODE_TAG_INCL_TMPL if `@` is found subsequently
-					else if (token.val === "*") current_parent.type = NODE_TAG_LOOP;
-					else if (token.val === "%") current_parent.type = NODE_TAG_RAW;
-					else if (token.val === "/") current_parent.type = NODE_TAG_COMMENT;
+					if (token.val.match(/^(?:\:|define)$/)) current_parent.type = NODE_TAG_DEFINE;
+					else if (token.val.match(/^(?:\+|extend)$/)) current_parent.type = NODE_TAG_EXTEND;
+					else if (token.val.match(/^(?:\=|insert|print)$/)) current_parent.type = NODE_TAG_INCL_VAR; // NOTE: can later be re-defined to NODE_TAG_INCL_TMPL if `@` is found subsequently
+					else if (token.val.match(/^partial$/)) current_parent.type = NODE_TAG_INCL_TMPL;
+					else if (token.val.match(/^(?:\*|loop)$/)) current_parent.type = NODE_TAG_LOOP;
+					else if (token.val.match(/^(?:\%|raw)$/)) current_parent.type = NODE_TAG_RAW;
+					else if (token.val.match(/^(?:\/|comment)$/)) current_parent.type = NODE_TAG_COMMENT;
 
 					// special handling for various tag types
 					if (current_parent.type === NODE_TAG_EXTEND ||
@@ -918,6 +919,9 @@ if (!Object.keys) {
 					) {
 						current_parent.close_header = _Grips.tokenizer.SIMPLE_CLOSE;
 						delete current_parent.children; // these tag types don't have `children`
+					}
+					else if (current_parent.type === NODE_TAG_INCL_TMPL) {
+						current_parent.close_header = _Grips.tokenizer.SIMPLE_CLOSE;
 					}
 					else if (current_parent.type === NODE_TAG_DEFINE ||
 						current_parent.type === NODE_TAG_LOOP
@@ -1846,7 +1850,7 @@ if (!Object.keys) {
 						}
 						tmp = inMainRef(node);
 						if (expr.def.length === 1) {
-							if (node.val === "$$" &&
+							if (node.val === "_" &&
 								!(
 									tmp ||
 									(node.parent.parent.context_expr === node.parent)
@@ -1855,7 +1859,7 @@ if (!Object.keys) {
 								return unknown_error;
 							}
 						}
-						if (node.val === "$$" &&
+						if (node.val === "_" &&
 							!(
 								(
 									tmp &&
@@ -2627,7 +2631,7 @@ if (!Object.keys) {
 					if (def.type === _Grips.parser.TEXT) {
 						if (!(
 								def.val.match(/^\d+$/) ||
-								def.val.match(/^(?:\$\$?)(?=(?:[^a-z0-9_$]|$))/i) ||
+								def.val.match(/^[_\$](?=(?:[^a-z0-9_$]|$))/i) ||
 								(
 									prev_def &&
 									prev_def.type === _Grips.parser.OPERATOR &&
@@ -2635,7 +2639,7 @@ if (!Object.keys) {
 								)
 							)
 						) {
-							code += "_.";
+							code += "$$.";
 						}
 						code += def.val;
 					}
@@ -2718,10 +2722,10 @@ if (!Object.keys) {
 	function tagDefine(node) {
 		var i, code = "", def;
 
-		code += "partial(function"  + "($,_){ ";
+		code += "partial(function"  + "($,$$){ ";
 		code += "$ = clone($) || {}; ";
-		code += "_ = clone(_) || {}; ";
-		code += "var i, ret = \"\", ret2, $$; ";
+		code += "$$ = clone($$) || {}; ";
+		code += "var i, ret = \"\", ret2, _; ";
 
 		for (i=1; i<node.def.length; i++) {
 			def = node.def[i];
@@ -2741,13 +2745,13 @@ if (!Object.keys) {
 	function tagLoop(node) {
 		var i, code = "", def, tmp;
 
-		code += "ret2 = (function"  + "($,_,$$){ ";
-		code += "function __iter__($,_,value,key,index){ ";
-		code += "var i, ret = \"\", ret2, $$; ";
+		code += "ret2 = (function"  + "($,$$,_){ ";
+		code += "function __iter__($,$$,value,key,index){ ";
+		code += "var i, ret = \"\", ret2, _; ";
 		code += "if (value == null) return ret; ";
 		code += "$ = clone($); ";
-		code += "_ = clone(_); ";
-		code += "$$ = { ";
+		code += "$$ = clone($$); ";
+		code += "_ = { ";
 		code += "value: value, ";
 		code += "key: key, ";
 		code += "index: index, ";
@@ -2771,14 +2775,14 @@ if (!Object.keys) {
 		if (node.main_expr.def[0].type === _Grips.parser.SET_LITERAL) {
 			code += set_literal(node.main_expr.def[0]);
 			code += "len = _set.length; ";
-			code += "ret2 = __iter__($,_,_set[i],\"\"+i,i); ";
+			code += "ret2 = __iter__($,$$,_set[i],\"\"+i,i); ";
 			code += templateErrorGuard("ret","ret2");
 			code += "} ";
 		}
 		else if (node.main_expr.def[0].type === _Grips.parser.RANGE_LITERAL) {
 			code += "len = " + (Math.abs(node.main_expr.def[0].def[0].val - node.main_expr.def[0].def[1].val) + 1) + "; ";
 			code += range_literal(node.main_expr.def[0]);
-			code += "ret2 = __iter__($,_,i,\"\"+i,j++); ";
+			code += "ret2 = __iter__($,$$,i,\"\"+i,j++); ";
 			code += templateErrorGuard("ret","ret2");
 			code += "} ";
 		}
@@ -2790,7 +2794,7 @@ if (!Object.keys) {
 			code += "if (Object.prototype.toString.call(it) === \"[object Array]\") { ";
 			code += "len = it.length; ";
 			code += "for (i=0; i<len; i++) { ";
-			code += "ret2 = __iter__($,_,it[i],\"\"+i,i); ";
+			code += "ret2 = __iter__($,$$,it[i],\"\"+i,i); ";
 			code += templateErrorGuard("ret","ret2");
 			code += "} ";
 			code += "} else if (typeof it === \"object\") { ";
@@ -2799,12 +2803,12 @@ if (!Object.keys) {
 			code += "if (it instanceof RLH) { "; // are we iterating over a previously declared RangeLiteralHash?
 			code += "tmp.sort(__sort_fn__); "; // work around Chrome-V8's buggy iteration order for "numeric" keys: http://code.google.com/p/v8/issues/detail?id=164
 			code += "for (i=0; i<len; i++) { ";
-			code += "ret2 = __iter__($,_,it[tmp[i]],tmp[i],i); ";
+			code += "ret2 = __iter__($,$$,it[tmp[i]],tmp[i],i); ";
 			code += templateErrorGuard("ret","ret2");
 			code += "} ";
 			code += "} else { ";
 			code += "for (i in it) { if (it.hasOwnProperty(i)) { ";
-			code += "ret2 = __iter__($,_,it[i],i,j++); ";
+			code += "ret2 = __iter__($,$$,it[i],i,j++); ";
 			code += templateErrorGuard("ret","ret2");
 			code += "}} ";
 			code += "} ";
@@ -2817,7 +2821,7 @@ if (!Object.keys) {
 
 
 		code += "return ret; ";
-		code += "})(clone($),clone(_),clone($$)); ";
+		code += "})(clone($),clone($$),clone(_)); ";
 		code += templateErrorGuard("ret","ret2");
 
 		return code;
@@ -2828,17 +2832,12 @@ if (!Object.keys) {
 
 		tmp = expr(node.context_expr);
 
-		if (tmp === "$") {
-			code += "ret2 = $; ";
-		}
-		else {
-			
-			code += "ret2 = " + tmp + "; ";
+		
+		code += "ret2 = " + tmp + "; ";
 
-		}
 
 		
-		code += "ret2 = G.render(" + expr(node.main_expr) + ",ret2,_); ";
+		code += "ret2 = G.render(" + expr(node.main_expr) + ",ret2,$$); ";
 
 		code += templateErrorGuard("ret","ret2");
 

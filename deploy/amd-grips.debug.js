@@ -242,7 +242,7 @@ if (!Object.prototype.toJSON) {
 
 
 
-		function render(id,$,_) {
+		function render(id,$,$$) {
 			// default empty render?
 			if (!id) return "";
 
@@ -311,7 +311,7 @@ if (!Object.prototype.toJSON) {
 				// consult the eligible stack from the bottom up
 				for (i=0; i<eligible_stack.length; i++) {
 					if (id in collections[eligible_stack[i]].partials) {
-						ret = collections[eligible_stack[i]].partials[id]($,_);
+						ret = collections[eligible_stack[i]].partials[id]($,$$);
 						break;
 					}
 				}
