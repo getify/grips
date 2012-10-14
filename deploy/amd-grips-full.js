@@ -53,7 +53,7 @@ if (!Object.keys) {
 					ret = [];
 					for (i = 0; i < obj.length; i++) {
 						if (typeof obj[i] === "object") {
-							ret2 = deepClone2(obj[i]);
+							ret2 = cloneObj(obj[i]);
 						}
 						else {
 							ret2 = obj[i];
@@ -89,7 +89,7 @@ if (!Object.keys) {
 
 
 
-		function definePartial(fn,id,obj) {
+		function definePartial(fn,id) {
 			var collection_id = id.match(/^(.+)#/);
 			if (collection_id) {
 				collection_id = collection_id[1];
@@ -102,7 +102,7 @@ if (!Object.keys) {
 			initCollectionRecord(collection_id);
 
 			collections[collection_id].partials[id.replace(/^.*#/,"#")] = function __handle_partial__(){
-				var _err, ret;
+				var  ret;
 
 				try {
 					ret = fn.apply(_Grips,arguments);
@@ -150,7 +150,7 @@ if (!Object.keys) {
 		}
 
 		function compileCollection(source,collectionID,initialize) {
-			var _err;
+
 
 			// default `initialize` to `true`
 			initialize = (initialize !== false);
@@ -379,8 +379,7 @@ if (!Object.keys) {
 			if (unmatched) {
 				token = new Token({
 					type: null,
-					val: unmatched,
-					pos: prev_match_idx
+					val: unmatched
 				});
 				if (unmatched.match(/^\s+$/)) {
 					token.type = TOKEN_TAG_WHITESPACE;
@@ -399,16 +398,14 @@ if (!Object.keys) {
 					if (match[0] === "{$}") {
 						tokens.push(new Token({
 							type: TOKEN_TAG_BLOCK_FOOTER,
-							val: match[0],
-							pos: next_match_idx - match[0].length
+							val: match[0]
 						}));
 					}
 					// start of tag?
 					else if (match[0] === "{$") {
 						token = new Token({
 							type: TOKEN_TAG_OPEN,
-							val: match[0],
-							pos: next_match_idx - match[0].length
+							val: match[0]
 						});
 						tokens.push(token);
 						// look ahead to the tag-type signifier, if any
@@ -417,8 +414,7 @@ if (!Object.keys) {
 						) {
 							tokens.push(new Token({
 								type: TOKEN_TAG_SIGNIFIER,
-								val: match[0],
-								pos: next_match_idx
+								val: match[0]
 							}));
 							next_match_idx += match[0].length;
 						}
@@ -435,8 +431,7 @@ if (!Object.keys) {
 				else {
 					tokens.push(new Token({
 						type: TOKEN_TAG_GENERAL,
-						val: match[0],
-						pos: next_match_idx - match[0].length
+						val: match[0]
 					}));
 					// general tokens can't change the state of the parser, so skip the parse step for now
 					return;
@@ -461,8 +456,7 @@ if (!Object.keys) {
 				else {
 					tokens.push(new Token({
 						type: TOKEN_TAG_GENERAL,
-						val: unmatched,
-						pos: prev_match_idx
+						val: unmatched
 					}));
 				}
 			}
@@ -470,22 +464,19 @@ if (!Object.keys) {
 				if (match[0] === "$}") {
 					tokens.push(new Token({
 						type: TOKEN_TAG_SIMPLE_CLOSE,
-						val: match[0],
-						pos: next_match_idx - match[0].length
+						val: match[0]
 					}));
 				}
 				else if (match[0] === "}") {
 					tokens.push(new Token({
 						type: TOKEN_TAG_BLOCK_HEAD_CLOSE,
-						val: match[0],
-						pos: next_match_idx - match[0].length
+						val: match[0]
 					}));
 				}
 				else if (match[0].match(/^\s+$/)) {
 					tokens.push(new Token({
 						type: TOKEN_TAG_WHITESPACE,
-						val: match[0],
-						pos: next_match_idx - match[0].length
+						val: match[0]
 					}));
 					// whitespace can't change the state of the parser, so skip the parse step for now
 					return;
@@ -493,8 +484,7 @@ if (!Object.keys) {
 				else if (match[0].match(/^["']$/)) {
 					token = new Token({
 						type: 0,
-						val: match[0],
-						pos: next_match_idx - match[0].length
+						val: match[0]
 					});
 					if (match[0] === "\"") token.type = TOKEN_TAG_DOUBLE_QUOTE;
 					else token.type = TOKEN_TAG_SINGLE_QUOTE;
@@ -507,29 +497,25 @@ if (!Object.keys) {
 				else if (match[0].match(/^(?:\.\.)|[:=?\(\)\[\],\-.!]$/)) {
 					tokens.push(new Token({
 						type: TOKEN_TAG_OPERATOR,
-						val: match[0],
-						pos: next_match_idx - match[0].length
+						val: match[0]
 					}));
 				}
 				else if (match[0] === "|") {
 					tokens.push(new Token({
 						type: TOKEN_TAG_PIPE,
-						val: match[0],
-						pos: next_match_idx - match[0].length
+						val: match[0]
 					}));
 				}
 				else if (match[0] === "@") {
 					tokens.push(new Token({
 						type: TOKEN_TAG_AT,
-						val: match[0],
-						pos: next_match_idx - match[0].length
+						val: match[0]
 					}));
 				}
 				else {
 					tokens.push(new Token({
 						type: TOKEN_TAG_GENERAL,
-						val: match[0],
-						pos: next_match_idx - match[0].length
+						val: match[0]
 					}));
 					// general tokens can't change the state of the parser, so skip the parse step for now
 					return;
@@ -546,11 +532,10 @@ if (!Object.keys) {
 			var tokensSlice, leftContext;
 
 			// make sure we have a general content token for the current raw tag
-			if (tokens[tokens.length-1].type != TOKEN_TAG_GENERAL) {
+			if (tokens[tokens.length-1].type !== TOKEN_TAG_GENERAL) {
 				tokens.push(new Token({
 					type: TOKEN_TAG_GENERAL,
-					val: "",
-					pos: prev_match_idx
+					val: ""
 				}));
 			}
 
@@ -565,8 +550,7 @@ if (!Object.keys) {
 				if (!leftContext || leftContext.match(not_escaped_pattern)) {
 					tokens.push(new Token({
 						type: TOKEN_TAG_RAW_CLOSE,
-						val: match[0],
-						pos: next_match_idx - match[0].length
+						val: match[0]
 					}));
 
 					// run the parser step, only on the unprocessed tokens
@@ -595,8 +579,7 @@ if (!Object.keys) {
 				if (!leftContext || leftContext.match(not_escaped_pattern)) {
 					tokens.push(new Token({
 						type: TOKEN_TAG_COMMENT_CLOSE,
-						val: match[0],
-						pos: next_match_idx - match[0].length
+						val: match[0]
 					}));
 
 					// run the parser step, only on the unprocessed tokens
@@ -611,11 +594,10 @@ if (!Object.keys) {
 			var tokensSlice, leftContext;
 
 			// make sure we have a general content token for the current literal
-			if (tokens[tokens.length-1].type != TOKEN_TAG_GENERAL) {
+			if (tokens[tokens.length-1].type !== TOKEN_TAG_GENERAL) {
 				tokens.push(new Token({
 					type: TOKEN_TAG_GENERAL,
-					val: "",
-					pos: prev_match_idx
+					val: ""
 				}));
 			}
 
@@ -630,8 +612,7 @@ if (!Object.keys) {
 				if (!leftContext || leftContext.match(not_escaped_pattern)) {
 					tokens.push(new Token({
 						type: (match[0] === "\"" ? TOKEN_TAG_DOUBLE_QUOTE : TOKEN_TAG_SINGLE_QUOTE),
-						val: match[0],
-						pos: next_match_idx - match[0].length
+						val: match[0]
 					}));
 
 					// run the parser step, only on the unprocessed tokens
@@ -656,6 +637,7 @@ if (!Object.keys) {
 
 		var regex, next_match_idx = 0, prev_match_idx = 0, token_idx = tokens.length,
 			match, parser_state, unmatched, parser_res, token, res,
+			
 			match_handlers = [
 				handleOutsideMatch,
 				handleInsideMatch,
@@ -672,7 +654,10 @@ if (!Object.keys) {
 			collectionID = "chunk_" + collectionID;
 		}
 
+
+
 		while ((!parser_res || parser_res === true) && next_match_idx < chunk.length) {
+			unmatched = "";
 			parser_res = null;
 			parser_state = _Grips.parser.state;
 			if (parser_state === _Grips.parser.INVALID) break;
@@ -700,6 +685,8 @@ if (!Object.keys) {
 					if (!unmatched) break;
 				}
 
+
+
 				// invoke the match handler for current parser state
 				res = match_handlers[parser_state]();
 				if (res && res !== true) break;
@@ -726,8 +713,7 @@ if (!Object.keys) {
 
 	var tokens = [],
 		chunk_ids = {},
-
-		current_token = 0,
+		
 
 		TOKEN_TAG_OPEN = 0,
 		TOKEN_TAG_SIMPLE_CLOSE = 1,
@@ -775,7 +761,8 @@ if (!Object.keys) {
 
 		process: process,
 
-		
+
+
 		Token: Token
 	};
 
@@ -823,7 +810,8 @@ if (!Object.keys) {
 					parent: null,
 					type: NODE_TEXT,
 					token: token,
-					val: token.val
+					val: token.val,
+					complete: true
 				});
 				if (current_parent) {
 					node.parent = current_parent;
@@ -839,7 +827,8 @@ if (!Object.keys) {
 					parent: current_parent,
 					type: NODE_TEXT,
 					token: token,
-					val: token.val
+					val: token.val,
+					complete: true
 				});
 				current_parent.children.push(node);
 			}
@@ -942,11 +931,20 @@ if (!Object.keys) {
 					}
 
 					// is top-level tag that's invalid?
-					if (!current_parent.parent &&
-						!(
-							current_parent.type === NODE_TAG_EXTEND ||
-							current_parent.type === NODE_TAG_DEFINE ||
-							current_parent.type === NODE_TAG_COMMENT
+					if ((
+							!current_parent.parent &&
+							!(
+								current_parent.type === NODE_TAG_EXTEND ||
+								current_parent.type === NODE_TAG_DEFINE ||
+								current_parent.type === NODE_TAG_COMMENT
+							)
+						) ||
+						(
+							current_parent.parent &&
+							(
+								current_parent.type === NODE_TAG_EXTEND ||
+								current_parent.type === NODE_TAG_DEFINE
+							)
 						)
 					) {
 						instance_api.state = NODE_STATE_INVALID;
@@ -1254,8 +1252,7 @@ if (!Object.keys) {
 								type: NODE_TEXT,
 								token: new _Grips.tokenizer.Token({
 									type: _Grips.tokenizer.GENERAL,
-									val: "-" + token.val,
-									pos: token.pos - 1
+									val: "-" + token.val
 								}),
 								val: "-" + token.val
 							});
@@ -1550,20 +1547,21 @@ if (!Object.keys) {
 			literal.push(nodes[0]);
 
 			for (i=1; i<nodes.length; i++) {
-				if (nodes[i].type === NODE_WHITESPACE) {
+				node = nodes[i];
+				if (node.type === NODE_WHITESPACE) {
 					continue;
 				}
 
-				literal.push(nodes[i]);
+				literal.push(node);
 
-				if (nodes[i].type === NODE_OPERATOR) {
-					if (nodes[i].val === "]") {
+				if (node.type === NODE_OPERATOR) {
+					if (node.val === "]") {
 						break;
 					}
-					else if (!nodes[i].val.match(/(?:\.\.)|[\-,]/)) {
+					else if (!node.val.match(/(?:\.\.)|[\-,]/)) {
 						return false;
 					}
-					else if (nodes[i].val.match(/(?:\.\.)|,/)) {
+					else if (node.val.match(/(?:\.\.)|,/)) {
 						special_operator_found = true;
 					}
 				}
@@ -1710,7 +1708,7 @@ if (!Object.keys) {
 		function validateTagID(id) {
 			var tmp;
 			if ((tmp = id.val.match(/#/g)) && tmp.length > 1) {
-				return new ParserError("Unexpected extra #id",id);
+				return unknown_error;
 			}
 			else if (id.parent.type === NODE_TAG_DEFINE) {
 				if (!id.val) {
@@ -1934,7 +1932,7 @@ if (!Object.keys) {
 		}
 
 		function validateSetExpr(expr) {
-			var i, tmp, prev_node, node;
+			var i, prev_node, node;
 			if (expr.def && expr.def.length >= 5) {
 				for (i=1; i<expr.def.length-1; i++) {
 					prev_node = node;
@@ -2210,7 +2208,7 @@ if (!Object.keys) {
 		}
 
 
-		var ret, ret2, ret3, err, err2, i;
+		var ret, ret2, ret3, err, i;
 
 		if (node.type === NODE_TAG_EXTEND) {
 			if (!(node.id && (ret = parse(node.id)))) {
@@ -2432,6 +2430,9 @@ if (!Object.keys) {
 			return node;
 		}
 		else if (node.type === NODE_TEXT) {
+			if (!node.parent && node.token.type !== _Grips.tokenizer.WHITESPACE) {
+				throw unknown_error;
+			}
 			if (node.val !== "") {
 				return node;
 			}
@@ -2556,24 +2557,20 @@ if (!Object.keys) {
 
 
 
-	function identifierify(str) {
-		str = str.replace(/[^a-z0-9_$]/ig,"_");
-		return str;
-	}
-
 	function startCollection(node) {
 		var code = "";
-		code += "(function"  + "(G){ ";
-		code += "function __sort_fn__(a,b){ return a-b; } ";
-		code += "var partial = G.definePartial, clone = G.cloneObj, extend = G.extend, ";
-		
-		code += "RLH = G.RangeLiteralHash, ";
-		code += "cID = \"" + node.start + "\"; ";
+		code += "(function"  + "(G){";
+		code += "function __sort_fn__(a,b){ return a-b; }";
+		code += "var partial = G.definePartial, clone = G.cloneObj, extend = G.extend,";
+
+		code += "unerr = new Error(\"Unknown error\"),";
+		code += "RLH = G.RangeLiteralHash,";
+		code += "cID = \"" + node.start + "\";";
 		return code;
 	}
 
-	function closeCollection(node) {
-		return "})(this.grips); ";
+	function closeCollection() {
+		return "})(this.grips);";
 	}
 
 	function conditional(node) {
@@ -2589,10 +2586,10 @@ if (!Object.keys) {
 
 		code += "for (i=" + node.def[0].val + "; i";
 		if (node.def[0].val <= node.def[1].val) {
-			code += "<=" + node.def[1].val + "; i++) { ";
+			code += "<=" + node.def[1].val + "; i++) {";
 		}
 		else {
-			code += ">=" + node.def[1].val + "; i--) { ";
+			code += ">=" + node.def[1].val + "; i--) {";
 		}
 
 		return code;
@@ -2606,8 +2603,8 @@ if (!Object.keys) {
 			def = node.def[i];
 			tmp += (tmp !== "" ? "," : "") + string_literal(def);
 		}
-		code += "var _set = [" + tmp + "]; ";
-		code += "for (i=0; i<" + node.def.length + "; i++) { ";
+		code += "var _set = [" + tmp + "];";
+		code += "for (i=0; i<" + node.def.length + "; i++) {";
 
 		return code;
 	}
@@ -2665,14 +2662,14 @@ if (!Object.keys) {
 		def = node.def[0];
 		tmp = expr(def.def[0]);
 
-		code += tmp + " = new RLH(); ";
+		code += tmp + " = new RLH();";
 		code += range_literal(def.def[1]);
 
 		def = node.def[1].def[0];
 
 		code += tmp + "[\"\" + i] = (" + expr(def.def[0]) + " === i) ? ";
-		code += expr(def.def[1]) + " : " + expr(def.def[2]) + "; ";
-		code += "} ";
+		code += expr(def.def[1]) + " : " + expr(def.def[2]) + ";";
+		code += "}";
 
 		return code;
 	}
@@ -2683,14 +2680,14 @@ if (!Object.keys) {
 		def = node.def[0];
 		tmp = expr(def.def[0]);
 
-		code += tmp + " = {}; ";
+		code += tmp + " = {};";
 		code += set_literal(def.def[1]);
 
 		def = node.def[1].def[0];
 
 		code += tmp + "[_set[i]] = (" + expr(def.def[0]) + " === _set[i]) ? ";
-		code += expr(def.def[1]) + " : " + expr(def.def[2]) + "; ";
-		code += "} ";
+		code += expr(def.def[1]) + " : " + expr(def.def[2]) + ";";
+		code += "}";
 
 		return code;
 	}
@@ -2707,121 +2704,121 @@ if (!Object.keys) {
 		}
 		else {
 			code += expr(def);
-			code += " = ";
+			code += " =";
 			code += expr(node.def[1]);
-			code += "; ";
+			code += ";";
 		}
 
 		return code;
 	}
 
 	function tagExtend(node) {
-		return "extend(cID,\"" + node.id.val + "\"); ";
+		return "extend(cID,\"" + node.id.val + "\");";
 	}
 
 	function tagDefine(node) {
 		var i, code = "", def;
 
-		code += "partial(function"  + "($,$$){ ";
-		code += "$ = clone($) || {}; ";
-		code += "$$ = clone($$) || {}; ";
-		code += "var i, ret = \"\", ret2, _; ";
+		code += "partial(function"  + "($,$$){";
+		code += "$ = clone($) || {};";
+		code += "$$ = clone($$) || {};";
+		code += "var i, ret = \"\", ret2, _;";
 
 		for (i=1; i<node.def.length; i++) {
 			def = node.def[i];
-			
+
 			code += assignment(def);
 
 		}
 
 		code += children(node);
-		code += "return ret; ";
+		code += "return ret;";
 		code += "},\"" + node.id.val + "\"";
-		
-		code += "); ";
+
+		code += ");";
 		return code;
 	}
 
 	function tagLoop(node) {
-		var i, code = "", def, tmp;
+		var i, code = "", def;
 
-		code += "ret2 = (function"  + "($,$$,_){ ";
-		code += "function __iter__($,$$,value,key,index){ ";
-		code += "var i, ret = \"\", ret2, _; ";
-		code += "if (value == null) return ret; ";
-		code += "$ = clone($); ";
-		code += "$$ = clone($$); ";
-		code += "_ = { ";
-		code += "value: value, ";
-		code += "key: key, ";
-		code += "index: index, ";
-		code += "even: (index % 2) === 0, ";
-		code += "odd: (index % 2) === 1, ";
-		code += "first: (index === 0), ";
-		code += "last: (index === len - 1) ";
-		code += "}; ";
+		code += "ret2 = (function"  + "($,$$,_){";
+		code += "function __iter__($,$$,value,key,index){";
+		code += "var i, ret = \"\", ret2, _;";
+		code += "if (value == null) return ret;";
+		code += "$ = clone($);";
+		code += "$$ = clone($$);";
+		code += "_ = {";
+		code += "value: value,";
+		code += "key: key,";
+		code += "index: index,";
+		code += "even: (index % 2) === 0,";
+		code += "odd: (index % 2) === 1,";
+		code += "first: (index === 0),";
+		code += "last: (index === len - 1)";
+		code += "};";
 		for (i=1; i<node.def.length; i++) {
 			def = node.def[i];
-			
+
 			code += assignment(def);
 
 		}
 		code += children(node);
-		code += "return ret; ";
-		code += "} ";
-		code += "var i, j = 0, len, ret = \"\", it, tmp; ";
-		
+		code += "return ret;";
+		code += "}";
+		code += "var i, j = 0, len, ret = \"\", it, tmp;";
+
 
 		if (node.main_expr.def[0].type === _Grips.parser.SET_LITERAL) {
 			code += set_literal(node.main_expr.def[0]);
-			code += "len = _set.length; ";
-			code += "ret2 = __iter__($,$$,_set[i],\"\"+i,i); ";
+			code += "len = _set.length;";
+			code += "ret2 = __iter__($,$$,_set[i],\"\"+i,i);";
 			code += templateErrorGuard("ret","ret2");
-			code += "} ";
+			code += "}";
 		}
 		else if (node.main_expr.def[0].type === _Grips.parser.RANGE_LITERAL) {
-			code += "len = " + (Math.abs(node.main_expr.def[0].def[0].val - node.main_expr.def[0].def[1].val) + 1) + "; ";
+			code += "len = " + (Math.abs(node.main_expr.def[0].def[0].val - node.main_expr.def[0].def[1].val) + 1) + ";";
 			code += range_literal(node.main_expr.def[0]);
-			code += "ret2 = __iter__($,$$,i,\"\"+i,j++); ";
+			code += "ret2 = __iter__($,$$,i,\"\"+i,j++);";
 			code += templateErrorGuard("ret","ret2");
-			code += "} ";
+			code += "}";
 		}
 		else {
-			code += "it = " + expr(node.main_expr) + "; ";
-			code += "if (it == null) { ";
-			code += "return \"\"; ";
-			code += "} ";
-			code += "if (Object.prototype.toString.call(it) === \"[object Array]\") { ";
-			code += "len = it.length; ";
-			code += "for (i=0; i<len; i++) { ";
-			code += "ret2 = __iter__($,$$,it[i],\"\"+i,i); ";
+			code += "it = " + expr(node.main_expr) + ";";
+			code += "if (it == null) {";
+			code += "return \"\";";
+			code += "}";
+			code += "if (Object.prototype.toString.call(it) === \"[object Array]\") {";
+			code += "len = it.length;";
+			code += "for (i=0; i<len; i++) {";
+			code += "ret2 = __iter__($,$$,it[i],\"\"+i,i);";
 			code += templateErrorGuard("ret","ret2");
-			code += "} ";
-			code += "} else if (typeof it === \"object\") { ";
-			code += "tmp = Object.keys(it); ";
-			code += "len = tmp.length; ";
-			code += "if (it instanceof RLH) { "; // are we iterating over a previously declared RangeLiteralHash?
-			code += "tmp.sort(__sort_fn__); "; // work around Chrome-V8's buggy iteration order for "numeric" keys: http://code.google.com/p/v8/issues/detail?id=164
-			code += "for (i=0; i<len; i++) { ";
-			code += "ret2 = __iter__($,$$,it[tmp[i]],tmp[i],i); ";
+			code += "}";
+			code += "} else if (typeof it === \"object\") {";
+			code += "tmp = Object.keys(it);";
+			code += "len = tmp.length;";
+			code += "if (it instanceof RLH) {"; // are we iterating over a previously declared RangeLiteralHash?
+			code += "tmp.sort(__sort_fn__);"; // work around Chrome-V8's buggy iteration order for "numeric" keys: http://code.google.com/p/v8/issues/detail?id=164
+			code += "for (i=0; i<len; i++) {";
+			code += "ret2 = __iter__($,$$,it[tmp[i]],tmp[i],i);";
 			code += templateErrorGuard("ret","ret2");
-			code += "} ";
-			code += "} else { ";
-			code += "for (i in it) { if (it.hasOwnProperty(i)) { ";
-			code += "ret2 = __iter__($,$$,it[i],i,j++); ";
+			code += "}";
+			code += "} else {";
+			code += "for (i in it) { if (it.hasOwnProperty(i)) {";
+			code += "ret2 = __iter__($,$$,it[i],i,j++);";
 			code += templateErrorGuard("ret","ret2");
-			code += "}} ";
-			code += "} ";
-			code += "} else { ";
-			code += "return ";
-			
-			code += "new Error(\"Unknown error\"); ";
-			code += "} ";
+			code += "}}";
+			code += "}";
+			code += "} else {";
+			code += "return";
+
+			code += "unerr;";
+			code += "}";
 		}
 
 
-		code += "return ret; ";
-		code += "})(clone($),clone($$),clone(_)); ";
+		code += "return ret;";
+		code += "})(clone($),clone($$),clone(_));";
 		code += templateErrorGuard("ret","ret2");
 
 		return code;
@@ -2832,12 +2829,12 @@ if (!Object.keys) {
 
 		tmp = expr(node.context_expr);
 
-		
-		code += "ret2 = " + tmp + "; ";
+
+		code += "ret2 = " + tmp + ";";
 
 
-		
-		code += "ret2 = G.render(" + expr(node.main_expr) + ",ret2,$$); ";
+
+		code += "ret2 = G.render(" + expr(node.main_expr) + ",ret2,$$);";
 
 		code += templateErrorGuard("ret","ret2");
 
@@ -2847,8 +2844,8 @@ if (!Object.keys) {
 	function tagIncludeVar(node) {
 		var code = "";
 
-		
-		code += "ret += " + expr(node.main_expr) + "; ";
+
+		code += "ret += " + expr(node.main_expr) + ";";
 
 
 		return code;
@@ -2860,7 +2857,7 @@ if (!Object.keys) {
 		for (i=0; i<node.children.length; i++) {
 			child = node.children[i];
 			if (child.type === _Grips.parser.TEXT) {
-				code += "ret += \"" + escapeNewlines(escapeEscapes(escapeDoubleQuotes(child.val))) + "\"; ";
+				code += "ret += \"" + escapeNewlines(escapeEscapes(escapeDoubleQuotes(child.val))) + "\";";
 			}
 			else if (child.type === _Grips.parser.TAG_LOOP) {
 				code += tagLoop(child);
@@ -2880,8 +2877,8 @@ if (!Object.keys) {
 		var code = "";
 
 
-		code += collector + " += " + test + "; ";
-		
+		code += collector + " += " + test + ";";
+
 
 		return code;
 	}
@@ -2924,6 +2921,9 @@ if (!Object.keys) {
 				tmp = tagDefine(node);
 				collection += tmp;
 				code += tmp;
+			}
+			else {
+				throw unknown_error;
 			}
 		}
 

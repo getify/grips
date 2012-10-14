@@ -119,6 +119,7 @@ if (!Object.prototype.toJSON) {
 				if (this.ref) {
 					ret += "; " + JSON.stringify(this.ref);
 				}
+				ret = ret.replace(/[\n\r]+/g," ").replace(/\s+/g," ");
 				if (this.stack) {
 					ret += "\n" + this.stack;
 				}
@@ -159,7 +160,7 @@ if (!Object.prototype.toJSON) {
 					ret = [];
 					for (i = 0; i < obj.length; i++) {
 						if (typeof obj[i] === "object") {
-							ret2 = deepClone2(obj[i]);
+							ret2 = cloneObj(obj[i]);
 						}
 						else {
 							ret2 = obj[i];

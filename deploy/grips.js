@@ -52,7 +52,7 @@ if (!Object.keys) {
 					ret = [];
 					for (i = 0; i < obj.length; i++) {
 						if (typeof obj[i] === "object") {
-							ret2 = deepClone2(obj[i]);
+							ret2 = cloneObj(obj[i]);
 						}
 						else {
 							ret2 = obj[i];
@@ -88,7 +88,7 @@ if (!Object.keys) {
 
 
 
-		function definePartial(fn,id,obj) {
+		function definePartial(fn,id) {
 			var collection_id = id.match(/^(.+)#/);
 			if (collection_id) {
 				collection_id = collection_id[1];
@@ -101,7 +101,7 @@ if (!Object.keys) {
 			initCollectionRecord(collection_id);
 
 			collections[collection_id].partials[id.replace(/^.*#/,"#")] = function __handle_partial__(){
-				var _err, ret;
+				var  ret;
 
 				try {
 					ret = fn.apply(_Grips,arguments);

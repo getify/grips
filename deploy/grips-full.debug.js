@@ -119,6 +119,7 @@ if (!Object.prototype.toJSON) {
 				if (this.ref) {
 					ret += "; " + JSON.stringify(this.ref);
 				}
+				ret = ret.replace(/[\n\r]+/g," ").replace(/\s+/g," ");
 				if (this.stack) {
 					ret += "\n" + this.stack;
 				}
@@ -159,7 +160,7 @@ if (!Object.prototype.toJSON) {
 					ret = [];
 					for (i = 0; i < obj.length; i++) {
 						if (typeof obj[i] === "object") {
-							ret2 = deepClone2(obj[i]);
+							ret2 = cloneObj(obj[i]);
 						}
 						else {
 							ret2 = obj[i];
@@ -268,7 +269,9 @@ if (!Object.prototype.toJSON) {
 		}
 
 		function compileCollection(source,collectionID,initialize) {
+
 			var _err;
+
 
 			// default `initialize` to `true`
 			initialize = (initialize !== false);
@@ -454,8 +457,24 @@ if (!Object.prototype.toJSON) {
 	}
 
 	Token.prototype.toString = function __Token_toString__() {
-		return "`" + this.val + "`; position: " + this.pos + "; token-type: " + this.type;
+		return "`" + this.val + "`; line: " + this.pos.line + " position: " + this.pos.col + "; token-type: " + this.type;
 	};
+
+	// translate raw char position into line/column mapping
+	function lineCol(rawPos,collectionID) {
+		rawPos = Math.max(0,rawPos);
+		var i, ret = { raw:rawPos, line:1, col:rawPos };
+
+		for (i=1; i<start_of_line_map[collectionID].length; i++) {
+			ret.line = i + 1; // line numbers are 1-based
+			ret.col = rawPos - start_of_line_map[collectionID][i];
+			if (start_of_line_map[collectionID][i] > rawPos) {
+				break;
+			}
+		}
+
+		return ret;
+	}
 
 	/* TokenizerError */
 	var TokenizerError = (function TokenizerError() {
@@ -471,7 +490,7 @@ if (!Object.prototype.toJSON) {
 		CustomError.prototype.constructor = CustomError;
 
 		CustomError.prototype.toString = function __TokenizerError_toString__() {
-			return "TokenizerError: " + this.message + "; " + this.token.toString();
+			return "TokenizerError: " + this.message + "; " + this.token.toString().replace(/[\n\r]+/g," ").replace(/\s+/g," ");
 		};
 		return CustomError;
 	})();
@@ -532,7 +551,7 @@ if (!Object.prototype.toJSON) {
 				token = new Token({
 					type: null,
 					val: unmatched,
-					pos: prev_match_idx
+					pos: lineCol(prev_match_idx,collectionID)
 				});
 				if (unmatched.match(/^\s+$/)) {
 					token.type = TOKEN_TAG_WHITESPACE;
@@ -552,7 +571,7 @@ if (!Object.prototype.toJSON) {
 						tokens.push(new Token({
 							type: TOKEN_TAG_BLOCK_FOOTER,
 							val: match[0],
-							pos: next_match_idx - match[0].length
+							pos: lineCol(next_match_idx - match[0].length,collectionID)
 						}));
 					}
 					// start of tag?
@@ -560,7 +579,7 @@ if (!Object.prototype.toJSON) {
 						token = new Token({
 							type: TOKEN_TAG_OPEN,
 							val: match[0],
-							pos: next_match_idx - match[0].length
+							pos: lineCol(next_match_idx - match[0].length,collectionID)
 						});
 						tokens.push(token);
 						// look ahead to the tag-type signifier, if any
@@ -570,7 +589,7 @@ if (!Object.prototype.toJSON) {
 							tokens.push(new Token({
 								type: TOKEN_TAG_SIGNIFIER,
 								val: match[0],
-								pos: next_match_idx
+								pos: lineCol(next_match_idx,collectionID)
 							}));
 							next_match_idx += match[0].length;
 						}
@@ -578,7 +597,7 @@ if (!Object.prototype.toJSON) {
 							return new _Grips.parser.ParserError("Expected Tag type-signifier",new Token({
 								type: TOKEN_TAG_GENERAL,
 								val: chunk.substr(next_match_idx,1),
-								pos: next_match_idx
+								pos: lineCol(next_match_idx,collectionID)
 							})) ||unknown_error;
 						}
 					}
@@ -587,7 +606,7 @@ if (!Object.prototype.toJSON) {
 						return new TokenizerError("Unrecognized token",new Token({
 							type: TOKEN_TAG_UNKNOWN,
 							val: match[0],
-							pos: next_match_idx - match[0].length
+							pos: lineCol(next_match_idx - match[0].length,collectionID)
 						})) ||unknown_error;
 					}
 				}
@@ -596,7 +615,7 @@ if (!Object.prototype.toJSON) {
 					tokens.push(new Token({
 						type: TOKEN_TAG_GENERAL,
 						val: match[0],
-						pos: next_match_idx - match[0].length
+						pos: lineCol(next_match_idx - match[0].length,collectionID)
 					}));
 					// general tokens can't change the state of the parser, so skip the parse step for now
 					return;
@@ -619,14 +638,14 @@ if (!Object.prototype.toJSON) {
 					return new TokenizerError("Unrecognized token",new Token({
 						type: TOKEN_TAG_GENERAL,
 						val: tmp[0],
-						pos: prev_match_idx + tmp.index
+						pos: lineCol(prev_match_idx + tmp.index,collectionID)
 					})) ||unknown_error;
 				}
 				else {
 					tokens.push(new Token({
 						type: TOKEN_TAG_GENERAL,
 						val: unmatched,
-						pos: prev_match_idx
+						pos: lineCol(prev_match_idx,collectionID)
 					}));
 				}
 			}
@@ -635,21 +654,21 @@ if (!Object.prototype.toJSON) {
 					tokens.push(new Token({
 						type: TOKEN_TAG_SIMPLE_CLOSE,
 						val: match[0],
-						pos: next_match_idx - match[0].length
+						pos: lineCol(next_match_idx - match[0].length,collectionID)
 					}));
 				}
 				else if (match[0] === "}") {
 					tokens.push(new Token({
 						type: TOKEN_TAG_BLOCK_HEAD_CLOSE,
 						val: match[0],
-						pos: next_match_idx - match[0].length
+						pos: lineCol(next_match_idx - match[0].length,collectionID)
 					}));
 				}
 				else if (match[0].match(/^\s+$/)) {
 					tokens.push(new Token({
 						type: TOKEN_TAG_WHITESPACE,
 						val: match[0],
-						pos: next_match_idx - match[0].length
+						pos: lineCol(next_match_idx - match[0].length,collectionID)
 					}));
 					// whitespace can't change the state of the parser, so skip the parse step for now
 					return;
@@ -658,7 +677,7 @@ if (!Object.prototype.toJSON) {
 					token = new Token({
 						type: 0,
 						val: match[0],
-						pos: next_match_idx - match[0].length
+						pos: lineCol(next_match_idx - match[0].length,collectionID)
 					});
 					if (match[0] === "\"") token.type = TOKEN_TAG_DOUBLE_QUOTE;
 					else token.type = TOKEN_TAG_SINGLE_QUOTE;
@@ -672,28 +691,28 @@ if (!Object.prototype.toJSON) {
 					tokens.push(new Token({
 						type: TOKEN_TAG_OPERATOR,
 						val: match[0],
-						pos: next_match_idx - match[0].length
+						pos: lineCol(next_match_idx - match[0].length,collectionID)
 					}));
 				}
 				else if (match[0] === "|") {
 					tokens.push(new Token({
 						type: TOKEN_TAG_PIPE,
 						val: match[0],
-						pos: next_match_idx - match[0].length
+						pos: lineCol(next_match_idx - match[0].length,collectionID)
 					}));
 				}
 				else if (match[0] === "@") {
 					tokens.push(new Token({
 						type: TOKEN_TAG_AT,
 						val: match[0],
-						pos: next_match_idx - match[0].length
+						pos: lineCol(next_match_idx - match[0].length,collectionID)
 					}));
 				}
 				else {
 					tokens.push(new Token({
 						type: TOKEN_TAG_GENERAL,
 						val: match[0],
-						pos: next_match_idx - match[0].length
+						pos: lineCol(next_match_idx - match[0].length,collectionID)
 					}));
 					// general tokens can't change the state of the parser, so skip the parse step for now
 					return;
@@ -710,11 +729,11 @@ if (!Object.prototype.toJSON) {
 			var tokensSlice, leftContext;
 
 			// make sure we have a general content token for the current raw tag
-			if (tokens[tokens.length-1].type != TOKEN_TAG_GENERAL) {
+			if (tokens[tokens.length-1].type !== TOKEN_TAG_GENERAL) {
 				tokens.push(new Token({
 					type: TOKEN_TAG_GENERAL,
 					val: "",
-					pos: prev_match_idx
+					pos: lineCol(prev_match_idx,collectionID)
 				}));
 			}
 
@@ -730,7 +749,7 @@ if (!Object.prototype.toJSON) {
 					tokens.push(new Token({
 						type: TOKEN_TAG_RAW_CLOSE,
 						val: match[0],
-						pos: next_match_idx - match[0].length
+						pos: lineCol(next_match_idx - match[0].length,collectionID)
 					}));
 
 					// run the parser step, only on the unprocessed tokens
@@ -760,7 +779,7 @@ if (!Object.prototype.toJSON) {
 					tokens.push(new Token({
 						type: TOKEN_TAG_COMMENT_CLOSE,
 						val: match[0],
-						pos: next_match_idx - match[0].length
+						pos: lineCol(next_match_idx - match[0].length,collectionID)
 					}));
 
 					// run the parser step, only on the unprocessed tokens
@@ -775,11 +794,11 @@ if (!Object.prototype.toJSON) {
 			var tokensSlice, leftContext;
 
 			// make sure we have a general content token for the current literal
-			if (tokens[tokens.length-1].type != TOKEN_TAG_GENERAL) {
+			if (tokens[tokens.length-1].type !== TOKEN_TAG_GENERAL) {
 				tokens.push(new Token({
 					type: TOKEN_TAG_GENERAL,
 					val: "",
-					pos: prev_match_idx
+					pos: lineCol(prev_match_idx,collectionID)
 				}));
 			}
 
@@ -795,7 +814,7 @@ if (!Object.prototype.toJSON) {
 					tokens.push(new Token({
 						type: (match[0] === "\"" ? TOKEN_TAG_DOUBLE_QUOTE : TOKEN_TAG_SINGLE_QUOTE),
 						val: match[0],
-						pos: next_match_idx - match[0].length
+						pos: lineCol(next_match_idx - match[0].length,collectionID)
 					}));
 
 					// run the parser step, only on the unprocessed tokens
@@ -820,6 +839,7 @@ if (!Object.prototype.toJSON) {
 
 		var regex, next_match_idx = 0, prev_match_idx = 0, token_idx = tokens.length,
 			match, parser_state, unmatched, parser_res, token, res,
+			tmp, new_line_regex = /\r?\n/g,
 			match_handlers = [
 				handleOutsideMatch,
 				handleInsideMatch,
@@ -836,7 +856,15 @@ if (!Object.prototype.toJSON) {
 			collectionID = "chunk_" + collectionID;
 		}
 
+
+		// initialize the line position tracker
+		if (!(collectionID in start_of_line_map)) {
+			start_of_line_map[collectionID] = [0];
+		}
+
+
 		while ((!parser_res || parser_res === true) && next_match_idx < chunk.length) {
+			unmatched = "";
 			parser_res = null;
 			parser_state = _Grips.parser.state;
 			if (parser_state === _Grips.parser.INVALID) break;
@@ -863,6 +891,21 @@ if (!Object.prototype.toJSON) {
 					unmatched = chunk.substr(prev_match_idx);
 					if (!unmatched) break;
 				}
+
+
+				// keep track of where lines are, for debugging purposes
+				if (unmatched) {
+					new_line_regex.lastIndex = 0; // reset global regex to avoid caching bugs
+					while ((tmp = new_line_regex.exec(unmatched))) {
+						start_of_line_map[collectionID].push(prev_match_idx + tmp.index + tmp[0].length);
+					}
+				}
+
+				new_line_regex.lastIndex = 0;
+				while ((tmp = new_line_regex.exec(match))) {
+					start_of_line_map[collectionID].push(prev_match_idx + unmatched.length + tmp.index + tmp[0].length);
+				}
+
 
 				// invoke the match handler for current parser state
 				res = match_handlers[parser_state]();
@@ -901,8 +944,7 @@ if (!Object.prototype.toJSON) {
 
 	var tokens = [],
 		chunk_ids = {},
-
-		current_token = 0,
+		start_of_line_map = {},
 
 		TOKEN_TAG_OPEN = 0,
 		TOKEN_TAG_SIMPLE_CLOSE = 1,
@@ -950,7 +992,11 @@ if (!Object.prototype.toJSON) {
 
 		process: process,
 
+
+		lineCol: lineCol,
 		TokenizerError: TokenizerError,
+
+
 		Token: Token
 	};
 
@@ -1102,7 +1148,7 @@ if (!Object.prototype.toJSON) {
 				}
 				else if (this.ref instanceof Node) {
 					if (this.ref.token) {
-						pos = this.ref.token.pos;
+						pos = this.ref.token.pos.col;
 					
 						// adjust the position back 1 to account for delimiter around string literal
 						if (this.ref.type === NODE_STRING_LITERAL ||
@@ -1111,11 +1157,11 @@ if (!Object.prototype.toJSON) {
 							pos--;
 						}
 
-						pos = "position: " + pos + "; ";
+						pos = "line: " + this.ref.token.pos.line + " position: " + Math.max(0,pos) + "; ";
 					}
 					else pos = "";
 
-					val = this.ref.toString();
+					val = this.ref.toString().replace(/[\n\r]+/g," ").replace(/\s+/g," ");
 					if (val !== "") {
 						if (!(
 								this.ref.type === NODE_STRING_LITERAL ||
@@ -1168,7 +1214,8 @@ if (!Object.prototype.toJSON) {
 					parent: null,
 					type: NODE_TEXT,
 					token: token,
-					val: token.val
+					val: token.val,
+					complete: true
 				});
 				if (current_parent) {
 					node.parent = current_parent;
@@ -1184,7 +1231,8 @@ if (!Object.prototype.toJSON) {
 					parent: current_parent,
 					type: NODE_TEXT,
 					token: token,
-					val: token.val
+					val: token.val,
+					complete: true
 				});
 				current_parent.children.push(node);
 			}
@@ -1287,11 +1335,20 @@ if (!Object.prototype.toJSON) {
 					}
 
 					// is top-level tag that's invalid?
-					if (!current_parent.parent &&
-						!(
-							current_parent.type === NODE_TAG_EXTEND ||
-							current_parent.type === NODE_TAG_DEFINE ||
-							current_parent.type === NODE_TAG_COMMENT
+					if ((
+							!current_parent.parent &&
+							!(
+								current_parent.type === NODE_TAG_EXTEND ||
+								current_parent.type === NODE_TAG_DEFINE ||
+								current_parent.type === NODE_TAG_COMMENT
+							)
+						) ||
+						(
+							current_parent.parent &&
+							(
+								current_parent.type === NODE_TAG_EXTEND ||
+								current_parent.type === NODE_TAG_DEFINE
+							)
 						)
 					) {
 						instance_api.state = NODE_STATE_INVALID;
@@ -1600,7 +1657,7 @@ if (!Object.prototype.toJSON) {
 								token: new _Grips.tokenizer.Token({
 									type: _Grips.tokenizer.GENERAL,
 									val: "-" + token.val,
-									pos: token.pos - 1
+									pos: _Grips.tokenizer.lineCol(token.pos.raw - 1,collectionID)
 								}),
 								val: "-" + token.val
 							});
@@ -1895,20 +1952,21 @@ if (!Object.prototype.toJSON) {
 			literal.push(nodes[0]);
 
 			for (i=1; i<nodes.length; i++) {
-				if (nodes[i].type === NODE_WHITESPACE) {
+				node = nodes[i];
+				if (node.type === NODE_WHITESPACE) {
 					continue;
 				}
 
-				literal.push(nodes[i]);
+				literal.push(node);
 
-				if (nodes[i].type === NODE_OPERATOR) {
-					if (nodes[i].val === "]") {
+				if (node.type === NODE_OPERATOR) {
+					if (node.val === "]") {
 						break;
 					}
-					else if (!nodes[i].val.match(/(?:\.\.)|[\-,]/)) {
+					else if (!node.val.match(/(?:\.\.)|[\-,]/)) {
 						return false;
 					}
-					else if (nodes[i].val.match(/(?:\.\.)|,/)) {
+					else if (node.val.match(/(?:\.\.)|,/)) {
 						special_operator_found = true;
 					}
 				}
@@ -2055,7 +2113,7 @@ if (!Object.prototype.toJSON) {
 		function validateTagID(id) {
 			var tmp;
 			if ((tmp = id.val.match(/#/g)) && tmp.length > 1) {
-				return new ParserError("Unexpected extra #id",id);
+				return new ParserError("Unexpected extra #id",id) ||unknown_error;
 			}
 			else if (id.parent.type === NODE_TAG_DEFINE) {
 				if (!id.val) {
@@ -2067,7 +2125,7 @@ if (!Object.prototype.toJSON) {
 						new _Grips.tokenizer.Token({
 							type: _Grips.tokenizer.GENERAL,
 							val: tmp[2],
-							pos: id.token.pos + tmp.index + tmp[1].length
+							pos: _Grips.tokenizer.lineCol(id.token.pos.raw + tmp.index + tmp[1].length,collectionID)
 						})
 					) ||unknown_error;
 				}
@@ -2086,7 +2144,7 @@ if (!Object.prototype.toJSON) {
 						new _Grips.tokenizer.Token({
 							type: _Grips.tokenizer.GENERAL,
 							val: "#",
-							pos: id.token.pos + tmp.index
+							pos: _Grips.tokenizer.lineCol(id.token.pos.raw + tmp.index,collectionID)
 						})
 					) ||unknown_error;
 				}
@@ -2101,7 +2159,7 @@ if (!Object.prototype.toJSON) {
 						new _Grips.tokenizer.Token({
 							type: _Grips.tokenizer.GENERAL,
 							val: tmp[2],
-							pos: id.token.pos + tmp.index + tmp[1].length
+							pos: _Grips.tokenizer.lineCol(id.token.pos.raw + tmp.index + tmp[1].length,collectionID)
 						})
 					) ||unknown_error;
 				}
@@ -2303,7 +2361,7 @@ if (!Object.prototype.toJSON) {
 		}
 
 		function validateSetExpr(expr) {
-			var i, tmp, prev_node, node;
+			var i, prev_node, node;
 			if (expr.def && expr.def.length >= 5) {
 				for (i=1; i<expr.def.length-1; i++) {
 					prev_node = node;
@@ -2582,7 +2640,7 @@ if (!Object.prototype.toJSON) {
 		}
 
 
-		var ret, ret2, ret3, err, err2, i;
+		var ret, ret2, ret3, err, i;
 
 		if (node.type === NODE_TAG_EXTEND) {
 			if (!(node.id && (ret = parse(node.id)))) {
@@ -2804,6 +2862,9 @@ if (!Object.prototype.toJSON) {
 			return node;
 		}
 		else if (node.type === NODE_TEXT) {
+			if (!node.parent && node.token.type !== _Grips.tokenizer.WHITESPACE) {
+				throw new ParserError("Unexpected text outside of tag2",node) ||unknown_error;
+			}
 			if (node.val !== "") {
 				return node;
 			}
@@ -2942,31 +3003,37 @@ if (!Object.prototype.toJSON) {
 			ret.val = node.token.val;
 		}
 		if (node.token) {
-			ret.pos = node.token.pos;
+			ret.pos = {
+				line: node.token.pos.line,
+				col: node.token.pos.col
+			};
 		}
 
 		return JSON.stringify(ret);
 	}
-
 
 	function identifierify(str) {
 		str = str.replace(/[^a-z0-9_$]/ig,"_");
 		return str;
 	}
 
+
 	function startCollection(node) {
 		var code = "";
-		code += "(function" + " __" + identifierify(node.start) + "__" + "(G){ ";
-		code += "function __sort_fn__(a,b){ return a-b; } ";
-		code += "var partial = G.definePartial, clone = G.cloneObj, extend = G.extend, ";
-		code += "error = G.error, ";
-		code += "RLH = G.RangeLiteralHash, ";
-		code += "cID = \"" + node.start + "\"; ";
+		code += "(function" + " __" + identifierify(node.start) + "__" + "(G){";
+		code += "function __sort_fn__(a,b){ return a-b; }";
+		code += "var partial = G.definePartial, clone = G.cloneObj, extend = G.extend,";
+
+		code += "error = G.error,";
+
+		code += "unerr = new Error(\"Unknown error\"),";
+		code += "RLH = G.RangeLiteralHash,";
+		code += "cID = \"" + node.start + "\";";
 		return code;
 	}
 
-	function closeCollection(node) {
-		return "})(this.grips); ";
+	function closeCollection() {
+		return "})(this.grips);";
 	}
 
 	function conditional(node) {
@@ -2982,10 +3049,10 @@ if (!Object.prototype.toJSON) {
 
 		code += "for (i=" + node.def[0].val + "; i";
 		if (node.def[0].val <= node.def[1].val) {
-			code += "<=" + node.def[1].val + "; i++) { ";
+			code += "<=" + node.def[1].val + "; i++) {";
 		}
 		else {
-			code += ">=" + node.def[1].val + "; i--) { ";
+			code += ">=" + node.def[1].val + "; i--) {";
 		}
 
 		return code;
@@ -2999,8 +3066,8 @@ if (!Object.prototype.toJSON) {
 			def = node.def[i];
 			tmp += (tmp !== "" ? "," : "") + string_literal(def);
 		}
-		code += "var _set = [" + tmp + "]; ";
-		code += "for (i=0; i<" + node.def.length + "; i++) { ";
+		code += "var _set = [" + tmp + "];";
+		code += "for (i=0; i<" + node.def.length + "; i++) {";
 
 		return code;
 	}
@@ -3058,14 +3125,14 @@ if (!Object.prototype.toJSON) {
 		def = node.def[0];
 		tmp = expr(def.def[0]);
 
-		code += tmp + " = new RLH(); ";
+		code += tmp + " = new RLH();";
 		code += range_literal(def.def[1]);
 
 		def = node.def[1].def[0];
 
 		code += tmp + "[\"\" + i] = (" + expr(def.def[0]) + " === i) ? ";
-		code += expr(def.def[1]) + " : " + expr(def.def[2]) + "; ";
-		code += "} ";
+		code += expr(def.def[1]) + " : " + expr(def.def[2]) + ";";
+		code += "}";
 
 		return code;
 	}
@@ -3076,14 +3143,14 @@ if (!Object.prototype.toJSON) {
 		def = node.def[0];
 		tmp = expr(def.def[0]);
 
-		code += tmp + " = {}; ";
+		code += tmp + " = {};";
 		code += set_literal(def.def[1]);
 
 		def = node.def[1].def[0];
 
 		code += tmp + "[_set[i]] = (" + expr(def.def[0]) + " === _set[i]) ? ";
-		code += expr(def.def[1]) + " : " + expr(def.def[2]) + "; ";
-		code += "} ";
+		code += expr(def.def[1]) + " : " + expr(def.def[2]) + ";";
+		code += "}";
 
 		return code;
 	}
@@ -3100,133 +3167,143 @@ if (!Object.prototype.toJSON) {
 		}
 		else {
 			code += expr(def);
-			code += " = ";
+			code += " =";
 			code += expr(node.def[1]);
-			code += "; ";
+			code += ";";
 		}
 
 		return code;
 	}
 
 	function tagExtend(node) {
-		return "extend(cID,\"" + node.id.val + "\"); ";
+		return "extend(cID,\"" + node.id.val + "\");";
 	}
 
 	function tagDefine(node) {
 		var i, code = "", def;
 
-		code += "partial(function" + " __" + identifierify(node.id.val.replace(/^.*#/,"")) + "__" + "($,$$){ ";
-		code += "$ = clone($) || {}; ";
-		code += "$$ = clone($$) || {}; ";
-		code += "var i, ret = \"\", ret2, _; ";
+		code += "partial(function" + " __" + identifierify(node.id.val.replace(/^.*#/,"")) + "__" + "($,$$){";
+		code += "$ = clone($) || {};";
+		code += "$$ = clone($$) || {};";
+		code += "var i, ret = \"\", ret2, _;";
 
 		for (i=1; i<node.def.length; i++) {
 			def = node.def[i];
-			code += "try { ";
+
+			code += "try {";
+
 			code += assignment(def);
 
-			code += "} catch (err" + i + ") { ";
-			code += "return error(cID," + simpleNodeJSON(def) + ",\"Assignment failed\",err" + i + "); ";
-			code += "} ";
+			code += "} catch (err" + i + ") {";
+			code += "return error(cID," + simpleNodeJSON(def) + ",\"Assignment failed\",err" + i + ");";
+			code += "}";
 
 		}
 
 		code += children(node);
-		code += "return ret; ";
+		code += "return ret;";
 		code += "},\"" + node.id.val + "\"";
+
 		code += "," + simpleNodeJSON(node);
-		code += "); ";
+
+		code += ");";
 		return code;
 	}
 
 	function tagLoop(node) {
-		var i, code = "", def, tmp;
+		var i, code = "", def;
 
-		code += "ret2 = (function" + " __loop__ " + "($,$$,_){ ";
-		code += "function __iter__($,$$,value,key,index){ ";
-		code += "var i, ret = \"\", ret2, _; ";
-		code += "if (value == null) return ret; ";
-		code += "$ = clone($); ";
-		code += "$$ = clone($$); ";
-		code += "_ = { ";
-		code += "value: value, ";
-		code += "key: key, ";
-		code += "index: index, ";
-		code += "even: (index % 2) === 0, ";
-		code += "odd: (index % 2) === 1, ";
-		code += "first: (index === 0), ";
-		code += "last: (index === len - 1) ";
-		code += "}; ";
+		code += "ret2 = (function" + " __loop__ " + "($,$$,_){";
+		code += "function __iter__($,$$,value,key,index){";
+		code += "var i, ret = \"\", ret2, _;";
+		code += "if (value == null) return ret;";
+		code += "$ = clone($);";
+		code += "$$ = clone($$);";
+		code += "_ = {";
+		code += "value: value,";
+		code += "key: key,";
+		code += "index: index,";
+		code += "even: (index % 2) === 0,";
+		code += "odd: (index % 2) === 1,";
+		code += "first: (index === 0),";
+		code += "last: (index === len - 1)";
+		code += "};";
 		for (i=1; i<node.def.length; i++) {
 			def = node.def[i];
-			code += "try { ";
+
+			code += "try {";
+
 			code += assignment(def);
 
-			code += "} catch (err" + i + ") { ";
-			code += "return error(cID," + simpleNodeJSON(def) + ",\"Assignment failed in loop iteration: \" + JSON.stringify(_,[\"key\",\"index\"]),err" + i + "); ";
-			code += "} ";
+			code += "} catch (err" + i + ") {";
+			code += "return error(cID," + simpleNodeJSON(def) + ",\"Assignment failed in loop iteration: \" + JSON.stringify(_,[\"key\",\"index\"]),err" + i + ");";
+			code += "}";
 
 		}
 		code += children(node);
-		code += "return ret; ";
-		code += "} ";
-		code += "var i, j = 0, len, ret = \"\", it, tmp; ";
-		code += "try { ";
+		code += "return ret;";
+		code += "}";
+		code += "var i, j = 0, len, ret = \"\", it, tmp;";
+
+		code += "try {";
+
 
 		if (node.main_expr.def[0].type === _Grips.parser.SET_LITERAL) {
 			code += set_literal(node.main_expr.def[0]);
-			code += "len = _set.length; ";
-			code += "ret2 = __iter__($,$$,_set[i],\"\"+i,i); ";
+			code += "len = _set.length;";
+			code += "ret2 = __iter__($,$$,_set[i],\"\"+i,i);";
 			code += templateErrorGuard("ret","ret2");
-			code += "} ";
+			code += "}";
 		}
 		else if (node.main_expr.def[0].type === _Grips.parser.RANGE_LITERAL) {
-			code += "len = " + (Math.abs(node.main_expr.def[0].def[0].val - node.main_expr.def[0].def[1].val) + 1) + "; ";
+			code += "len = " + (Math.abs(node.main_expr.def[0].def[0].val - node.main_expr.def[0].def[1].val) + 1) + ";";
 			code += range_literal(node.main_expr.def[0]);
-			code += "ret2 = __iter__($,$$,i,\"\"+i,j++); ";
+			code += "ret2 = __iter__($,$$,i,\"\"+i,j++);";
 			code += templateErrorGuard("ret","ret2");
-			code += "} ";
+			code += "}";
 		}
 		else {
-			code += "it = " + expr(node.main_expr) + "; ";
-			code += "if (it == null) { ";
-			code += "return \"\"; ";
-			code += "} ";
-			code += "if (Object.prototype.toString.call(it) === \"[object Array]\") { ";
-			code += "len = it.length; ";
-			code += "for (i=0; i<len; i++) { ";
-			code += "ret2 = __iter__($,$$,it[i],\"\"+i,i); ";
+			code += "it = " + expr(node.main_expr) + ";";
+			code += "if (it == null) {";
+			code += "return \"\";";
+			code += "}";
+			code += "if (Object.prototype.toString.call(it) === \"[object Array]\") {";
+			code += "len = it.length;";
+			code += "for (i=0; i<len; i++) {";
+			code += "ret2 = __iter__($,$$,it[i],\"\"+i,i);";
 			code += templateErrorGuard("ret","ret2");
-			code += "} ";
-			code += "} else if (typeof it === \"object\") { ";
-			code += "tmp = Object.keys(it); ";
-			code += "len = tmp.length; ";
-			code += "if (it instanceof RLH) { "; // are we iterating over a previously declared RangeLiteralHash?
-			code += "tmp.sort(__sort_fn__); "; // work around Chrome-V8's buggy iteration order for "numeric" keys: http://code.google.com/p/v8/issues/detail?id=164
-			code += "for (i=0; i<len; i++) { ";
-			code += "ret2 = __iter__($,$$,it[tmp[i]],tmp[i],i); ";
+			code += "}";
+			code += "} else if (typeof it === \"object\") {";
+			code += "tmp = Object.keys(it);";
+			code += "len = tmp.length;";
+			code += "if (it instanceof RLH) {"; // are we iterating over a previously declared RangeLiteralHash?
+			code += "tmp.sort(__sort_fn__);"; // work around Chrome-V8's buggy iteration order for "numeric" keys: http://code.google.com/p/v8/issues/detail?id=164
+			code += "for (i=0; i<len; i++) {";
+			code += "ret2 = __iter__($,$$,it[tmp[i]],tmp[i],i);";
 			code += templateErrorGuard("ret","ret2");
-			code += "} ";
-			code += "} else { ";
-			code += "for (i in it) { if (it.hasOwnProperty(i)) { ";
-			code += "ret2 = __iter__($,$$,it[i],i,j++); ";
+			code += "}";
+			code += "} else {";
+			code += "for (i in it) { if (it.hasOwnProperty(i)) {";
+			code += "ret2 = __iter__($,$$,it[i],i,j++);";
 			code += templateErrorGuard("ret","ret2");
-			code += "}} ";
-			code += "} ";
-			code += "} else { ";
-			code += "return ";
+			code += "}}";
+			code += "}";
+			code += "} else {";
+			code += "return";
+
 			code += "error(cID," + simpleNodeJSON(node.main_expr) + ",\"Invalid loop-iterator reference\") || ";
-			code += "new Error(\"Unknown error\"); ";
-			code += "} ";
+
+			code += "unerr;";
+			code += "}";
 		}
 
 
-		code += "} catch (err) { ";
-		code += "return error(cID," + simpleNodeJSON(node.main_expr) + ",\"Failed loop iteration\",err); ";
-		code += "} ";
+		code += "} catch (err) {";
+		code += "return error(cID," + simpleNodeJSON(node.main_expr) + ",\"Failed loop iteration\",err);";
+		code += "}";
 
-		code += "return ret; ";
-		code += "})(clone($),clone($$),clone(_)); ";
+		code += "return ret;";
+		code += "})(clone($),clone($$),clone(_));";
 		code += templateErrorGuard("ret","ret2");
 
 		return code;
@@ -3237,26 +3314,30 @@ if (!Object.prototype.toJSON) {
 
 		tmp = expr(node.context_expr);
 
-		code += "try { ";
-		code += "ret2 = " + tmp + "; ";
 
-		code += "} catch (err) { ";
-		code += "return error(cID," + simpleNodeJSON(node.context_expr) + ",\"Include template context reference failed\",err); ";
-		code += "} ";
+		code += "try {";
+
+		code += "ret2 = " + tmp + ";";
+
+		code += "} catch (err) {";
+		code += "return error(cID," + simpleNodeJSON(node.context_expr) + ",\"Include template context reference failed\",err);";
+		code += "}";
 
 
-		code += "try { ";
-		code += "ret2 = G.render(" + expr(node.main_expr) + ",ret2,$$); ";
+
+		code += "try {";
+
+		code += "ret2 = G.render(" + expr(node.main_expr) + ",ret2,$$);";
 
 		tmp = simpleNodeJSON(node.main_expr);
-		code += "} catch (err) { ";
-		code += "if (err instanceof G.TemplateError) { ";
-		code += "err.ref = " + tmp + "; ";
-		code += "return err; ";
-		code += "} else { ";
-		code += "return error(cID," + tmp + ",\"Include template reference failed\",err); ";
-		code += "} ";
-		code += "} ";
+		code += "} catch (err) {";
+		code += "if (err instanceof G.TemplateError) {";
+		code += "err.ref = " + tmp + ";";
+		code += "return err;";
+		code += "} else {";
+		code += "return error(cID," + tmp + ",\"Include template reference failed\",err);";
+		code += "}";
+		code += "}";
 
 		code += templateErrorGuard("ret","ret2");
 
@@ -3266,12 +3347,14 @@ if (!Object.prototype.toJSON) {
 	function tagIncludeVar(node) {
 		var code = "";
 
-		code += "try { ";
-		code += "ret += " + expr(node.main_expr) + "; ";
 
-		code += "} catch (err) { ";
-		code += "return error(cID," + simpleNodeJSON(node.main_expr) + ",\"Include reference failed\",err); ";
-		code += "} ";
+		code += "try {";
+
+		code += "ret += " + expr(node.main_expr) + ";";
+
+		code += "} catch (err) {";
+		code += "return error(cID," + simpleNodeJSON(node.main_expr) + ",\"Include reference failed\",err);";
+		code += "}";
 
 
 		return code;
@@ -3283,7 +3366,7 @@ if (!Object.prototype.toJSON) {
 		for (i=0; i<node.children.length; i++) {
 			child = node.children[i];
 			if (child.type === _Grips.parser.TEXT) {
-				code += "ret += \"" + escapeNewlines(escapeEscapes(escapeDoubleQuotes(child.val))) + "\"; ";
+				code += "ret += \"" + escapeNewlines(escapeEscapes(escapeDoubleQuotes(child.val))) + "\";";
 			}
 			else if (child.type === _Grips.parser.TAG_LOOP) {
 				code += tagLoop(child);
@@ -3303,12 +3386,14 @@ if (!Object.prototype.toJSON) {
 		var code = "";
 
 
-		code += "if (" + test + " instanceof G.TemplateError) { ";
-		code += "return " + test + "; ";
-		code += "} else { ";
+		code += "if (" + test + " instanceof G.TemplateError) {";
+		code += "return " + test + ";";
+		code += "} else {";
 
-		code += collector + " += " + test + "; ";
-		code += "} ";
+		code += collector + " += " + test + ";";
+
+		code += "}";
+
 
 		return code;
 	}
@@ -3351,6 +3436,9 @@ if (!Object.prototype.toJSON) {
 				tmp = tagDefine(node);
 				collection += tmp;
 				code += tmp;
+			}
+			else {
+				throw new _Grips.parser.ParserError("Unexpected text outside of tag",node) ||unknown_error;
 			}
 		}
 
