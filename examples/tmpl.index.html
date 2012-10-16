@@ -35,13 +35,15 @@
 	
 		<h3>User Details</h3>
 
-		<p>Welcome back, {$= $.full_name $}!</p>
+		<p>Welcome back, {$=~h $.full_name $}!</p>
 		
 		{$= @info $}
 		
 		<h3>Your Links</h3>
 		
 		{$= @mylinks $}
+
+		Here's how to display some {$~h}<strong>html <em>content</em></strong>{$}
 	</div>
 {$}
 
@@ -63,7 +65,9 @@
 
 
 
-{$: "#logout" }<a class="controls logout" href="#">Logout</a>{$}
+{$: "#logout" }
+	<a class="controls logout" href="#">Logout</a>
+{$}
 
 
 
@@ -122,12 +126,12 @@
 
 
 {$: "#footer" }
-<script src="grips.js"></script>
-<script src="template-bundle.js"></script>
-<script>
-document.getElementByID("content").innerHTML =
-	grips.render("tmpl.index.html#content",{/*...*/});
-</script>
+	<script src="grips.js"></script>
+	<script src="template-bundle.js"></script>
+	<script>
+	document.getElementByID("content").innerHTML =
+		grips.render("tmpl.index.html#content",{/*...*/});
+	</script>
 {$}
 
 
