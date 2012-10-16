@@ -120,6 +120,60 @@ Short-form:
 {$= @"#yyy" | $.user $}
 ```
 
+### Escaping (html, string, url) at the block-level
+
+You can wrap a block-level escape tag around and arbitrary set of template content (inside a partial, of course), and it will cause the output of that section to be escaped according to which escaping rule(s) you specify.
+
+There are 3 types of escaping rules you can choose from: `h` for html encoding, `s` for string (JavaScript, etc) escaping, and `u` for URL encoding/escaping. You can specify more than one rule together, but in most cases you'll probably just use one. If you specify no rule, the default is `s` (string).
+
+The long-form of the rule(s) flag is `escape` or `escape h` or `escape hus`, etc. The short-form of the rule(s) flag is `~` or `~h` or `~hus`, etc.
+
+Long-form:
+
+```
+{$: "#yyy" }
+	Here is {$escape}string "escaped" content (by default){$}
+	And here is {$escape h}html <em>encoded</em> content{$}
+	Then, http://some.com/?a={$escape u}http://other.com{$}
+	Finally, multiple {$escape hu}rules "can" be <a href="http://some.com">combined</a>.{$}
+{$}
+```
+
+Short-form:
+
+```
+{$: "#yyy" }
+	Here is {$~}string "escaped" content (by default){$}
+	And here is {$~h}html <em>encoded</em> content{$}
+	Then, http://some.com/?a={$~u}http://other.com{$}
+	Finally, multiple {$~hu}rules "can" be <a href="http://some.com">combined</a>.{$}
+{$}
+```
+
+### Escaping (html, string, url) at the tag-level
+
+You can apply escaping/encoding rules to a `{$insert .. $}` or `{$partial .. $}` tag directly, without needing to wrap it in a block-level escaping tag. You have the same 3 rule choices as for block-level escaping rules (see above).
+
+The form of the rule(s) flag is `~` or `~h` or `~hus`, etc, regardless of whether the tag is long-form or short-form. **NOTE:** the "long-form" of the rule(s) flag (`escape ..`) itself is not supported for tag-level escaping.
+
+Used with long-form tags:
+
+```
+{$: "#yyy" }
+	Here's a tag-level (string) escaping: <script>var foo = "{$insert~ $.foo $}";</script>
+	Here's more tag-level (html) escaping with a partial include: {$partial~h "#zzz" $}
+{$}
+```
+
+Used with short-form tags:
+
+```
+{$: "#yyy" }
+	Here's a tag-level (string) escaping: <script>var foo = "{$=~ $.foo $}";</script>
+	Here's more tag-level (html) escaping with a partial include: {$=~h @"#zzz" $}
+{$}
+```
+
 ### Loop on data variable (array or plain key/value object)
 `_` is the current iteration binding, and it includes:
 
