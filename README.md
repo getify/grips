@@ -122,7 +122,7 @@ Short-form:
 
 ### Escaping (html, string, url) at the block-level
 
-You can wrap a block-level escape tag around and arbitrary set of template content (inside a partial, of course), and it will cause the output of that section to be escaped according to which escaping rule(s) you specify.
+You can wrap a block-level escape tag around an arbitrary set of template content (inside a partial, of course), and it will cause the output of that section to be escaped according to which escaping rule(s) you specify.
 
 There are 3 types of escaping rules you can choose from: `h` for html encoding, `s` for string (JavaScript, etc) escaping, and `u` for URL encoding/escaping. You can specify more than one rule together, but in most cases you'll probably just use one. If you specify no rule, the default is `s` (string).
 
