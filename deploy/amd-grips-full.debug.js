@@ -408,6 +408,34 @@ if (!Object.prototype.toJSON) {
 			}
 		}
 
+		// adapted from dust.js (http://akdubya.github.com/dustjs/)
+		function strEscapes(str,escapes) {
+			if (typeof str === "string") {
+				if (escapes.html && /[&<>"]/.test(str)) {
+					str = str
+					.replace(/&/g,"&amp;")
+					.replace(/</g,"&lt;")
+					.replace(/>/g,"&gt;")
+					.replace(/"/,"&quot;");
+				}
+				if (escapes.string) {
+					str = str
+					.replace(/\\/g,"\\\\")
+					.replace(/"/g,'\\"')
+					.replace(/'/g,"\\'")
+					.replace(/\r/g,"\\r")
+					.replace(/\u2028/g,"\\u2028")
+					.replace(/\u2029/g,"\\u2029")
+					.replace(/\n/g,"\\n")
+					.replace(/\f/g,"\\f")
+					.replace(/\t/g,"\\t");
+				}
+				if (escapes.url) {
+					str = encodeURIComponent(str);
+				}
+			}
+			return str;
+		}
 
 		var _Grips, collections = {},
 			unknown_error = new Error("Unknown error"),
@@ -417,8 +445,8 @@ if (!Object.prototype.toJSON) {
 		_Grips = {
 			extend: extend,
 			cloneObj: cloneObj,
-			error: error,
 			definePartial: definePartial,
+			strEscapes: strEscapes,
 
 
 			compile: compile,
@@ -431,7 +459,10 @@ if (!Object.prototype.toJSON) {
 
 			render: render,
 
+
+			error: error,
 			TemplateError: TemplateError,
+
 
 			noConflict: noConflict,
 			sandbox: createSandbox,
@@ -585,7 +616,7 @@ if (!Object.prototype.toJSON) {
 						tokens.push(token);
 						// look ahead to the tag-type signifier, if any
 						if ((next_match_idx < chunk.length - 1) &&
-							(match = chunk.substr(next_match_idx).match(/^(?:[:+=*\/%]|(?:define|extend|insert|print|partial|loop|comment|raw)\b)/))
+							(match = chunk.substr(next_match_idx).match(/^(?:(?:~|escape\s+)[hsuHSU]+|[~:+=*\/%]|(?:(?:define|extend|insert|print|partial|loop|comment|raw|escape)\b))/))
 						) {
 							tokens.push(new Token({
 								type: TOKEN_TAG_SIGNIFIER,
@@ -705,6 +736,13 @@ if (!Object.prototype.toJSON) {
 				else if (match[0] === "@") {
 					tokens.push(new Token({
 						type: TOKEN_TAG_AT,
+						val: match[0],
+						pos: lineCol(next_match_idx - match[0].length,collectionID)
+					}));
+				}
+				else if (match[0].match(/^~[hsuHSU]*$/)) {
+					tokens.push(new Token({
+						type: TOKEN_TAG_TILDE,
 						val: match[0],
 						pos: lineCol(next_match_idx - match[0].length,collectionID)
 					}));
@@ -962,11 +1000,12 @@ if (!Object.prototype.toJSON) {
 		TOKEN_TAG_OPERATOR = 12,
 		TOKEN_TAG_GENERAL = 13,
 		TOKEN_TAG_WHITESPACE = 14,
+		TOKEN_TAG_TILDE = 15,
 
 		not_escaped_pattern = /(?:[^\\]|(?:^|[^\\])(?:\\\\)+)$/,
 		parser_state_patterns = [
 			/\{\$\}|\{\$/g, /*outside*/
-			/\$\}|\}|(?:\.\.)|["':=@\|?\(\)\[\],\-.!]|\s+/g, /*inside*/
+			/\$\}|\}|(?:\.\.)|(?:~[hsuHSU]*)|["':=@\|?\(\)\[\],\-.!]|\s+/g, /*inside*/
 			/%\$\}/g, /*raw*/
 			/\/\$\}/g /*comment*/
 		],
@@ -990,6 +1029,7 @@ if (!Object.prototype.toJSON) {
 		OPERATOR: TOKEN_TAG_OPERATOR,
 		GENERAL: TOKEN_TAG_GENERAL,
 		WHITESPACE: TOKEN_TAG_WHITESPACE,
+		TILDE: TOKEN_TAG_TILDE,
 
 		process: process,
 
@@ -1037,6 +1077,14 @@ if (!Object.prototype.toJSON) {
 			return ret;
 		}
 
+		function showEscapes(node) {
+			var ret = "~";
+			if (node.escapes.html) ret += "h";
+			if (node.escapes.string) ret += "s";
+			if (node.escapes.url) ret += "u";
+			return ret;
+		}
+
 		var i, ret, ret2;
 
 		if (this.type === NODE_TAG_DEFINE) {
@@ -1054,7 +1102,7 @@ if (!Object.prototype.toJSON) {
 			ret += " $}";
 		}
 		else if (this.type === NODE_TAG_INCL_TMPL) {
-			ret = "{$= @";
+			ret = "{$=" + (this.escapes ? showEscapes(this) : "") + " @";
 			if (this.main_expr) {
 				ret += this.main_expr.toString();
 				ret2 = this.context_expr.toString();
@@ -1065,7 +1113,7 @@ if (!Object.prototype.toJSON) {
 			ret += " $}";
 		}
 		else if (this.type === NODE_TAG_INCL_VAR) {
-			ret = "{$= ";
+			ret = "{$=" + (this.escapes ? showEscapes(this) : "") + " ";
 			if (this.main_expr) {
 				ret += this.main_expr.toString();
 			}
@@ -1077,6 +1125,9 @@ if (!Object.prototype.toJSON) {
 				ret += this.main_expr.toString();
 			}
 			ret += " }";
+		}
+		else if (this.type === NODE_TAG_ESCAPE) {
+			ret = "{$" + showEscapes(this) + "}";
 		}
 		else if (this.type === NODE_TAG_RAW) {
 			ret = "{$% " + showChildren(this) + " %$}";
@@ -1306,6 +1357,7 @@ if (!Object.prototype.toJSON) {
 					else if (token.val.match(/^(?:\*|loop)$/)) current_parent.type = NODE_TAG_LOOP;
 					else if (token.val.match(/^(?:\%|raw)$/)) current_parent.type = NODE_TAG_RAW;
 					else if (token.val.match(/^(?:\/|comment)$/)) current_parent.type = NODE_TAG_COMMENT;
+					else if (token.val.match(/^(?:escape|(?:~|escape\s+)[hsuHSU]*)$/)) current_parent.type = NODE_TAG_ESCAPE;
 
 					// special handling for various tag types
 					if (current_parent.type === NODE_TAG_EXTEND ||
@@ -1321,6 +1373,15 @@ if (!Object.prototype.toJSON) {
 						current_parent.type === NODE_TAG_LOOP
 					) {
 						current_parent.close_header = _Grips.tokenizer.BLOCK_HEAD_CLOSE;
+					}
+					else if (current_parent.type === NODE_TAG_ESCAPE) {
+						current_parent.close_header = _Grips.tokenizer.BLOCK_HEAD_CLOSE;
+						current_parent.escapes = {};
+						if (token.val.match(/(?:~.*|escape\s+.*)h/i)) current_parent.escapes.html = true;
+						if (token.val.match(/(?:~.*|escape\s+.*)s/i)) current_parent.escapes.string = true;
+						if (token.val.match(/(?:~.*|escape\s+.*)u/i)) current_parent.escapes.url = true;
+						if (!token.val.match(/\b[hsu]$/i)) current_parent.escapes.string = true;
+						delete current_parent.def; // escape tags don't have a declaration
 					}
 					else if (current_parent.type === NODE_TAG_RAW) {
 						current_parent.val = "";
@@ -1368,11 +1429,14 @@ if (!Object.prototype.toJSON) {
 						current_parent.type === NODE_TAG_INCL_TMPL ||
 						current_parent.type === NODE_TAG_INCL_VAR ||
 						current_parent.type === NODE_TAG_LOOP ||
+						current_parent.type === NODE_TAG_ESCAPE ||
 						current_parent.type === NODE_GENERAL_EXPR ||
 						current_parent.type === NODE_MAIN_REF_EXPR
 					) {
 						// is this node's declaration already in progress?
-						if (current_parent.def.length > 0) {
+						if (current_parent.def &&
+							current_parent.def.length > 0
+						) {
 							// keep the whitespace node (could be relevant)
 							current_parent.def.push(new Node({
 								parent: current_parent,
@@ -1396,6 +1460,25 @@ if (!Object.prototype.toJSON) {
 					current_parent.def.length === 0 // is the node's declaration not yet defined?
 				) {
 					current_parent.type = NODE_TAG_INCL_TMPL;
+				}
+				else {
+					instance_api.state = NODE_STATE_INVALID;
+					return new _Grips.tokenizer.TokenizerError("Unexpected token",token) ||unknown_error;
+				}
+			}
+			else if (token.type === _Grips.tokenizer.TILDE) {
+				if (current_parent &&
+					(
+						current_parent.type === NODE_TAG_INCL_VAR ||
+						current_parent.type === NODE_TAG_INCL_VAR
+					) &&
+					current_parent.def.length === 0 // is the node's declaration not yet defined?
+				) {
+					current_parent.escapes = {};
+					if (token.val.match(/h/i)) current_parent.escapes.html = true;
+					if (token.val.match(/s/i)) current_parent.escapes.string = true;
+					if (token.val.match(/u/i)) current_parent.escapes.url = true;
+					if (!token.val.match(/[hsu]/i)) current_parent.escapes.string = true;
 				}
 				else {
 					instance_api.state = NODE_STATE_INVALID;
@@ -2858,10 +2941,6 @@ if (!Object.prototype.toJSON) {
 
 			return node;
 		}
-		else if (node.type === NODE_STRING_LITERAL) {
-			// does this need any validation?
-			return node;
-		}
 		else if (node.type === NODE_TEXT) {
 			if (!node.parent && node.token.type !== _Grips.tokenizer.WHITESPACE) {
 				throw new ParserError("Unexpected text outside of tag2",node) ||unknown_error;
@@ -2919,6 +2998,7 @@ if (!Object.prototype.toJSON) {
 		NODE_WHITESPACE = 19,
 		NODE_OPERATOR = 20,
 		NODE_COLLECTION_MARKER = 21,
+		NODE_TAG_ESCAPE = 22,
 
 		instance_api,
 
@@ -2955,6 +3035,7 @@ if (!Object.prototype.toJSON) {
 		WHITESPACE: NODE_WHITESPACE,
 		OPERATOR: NODE_OPERATOR,
 		COLLECTION_MARKER: NODE_COLLECTION_MARKER,
+		TAG_ESCAPE: NODE_TAG_ESCAPE,
 
 		state: NODE_STATE_OUTSIDE,
 
@@ -3023,7 +3104,7 @@ if (!Object.prototype.toJSON) {
 		var code = "";
 		code += "(function" + " __" + identifierify(node.start) + "__" + "(G){";
 		code += "function __sort_fn__(a,b){ return a-b; }";
-		code += "var partial = G.definePartial, clone = G.cloneObj, extend = G.extend,";
+		code += "var partial = G.definePartial, clone = G.cloneObj, extend = G.extend, esc = G.strEscapes,";
 
 		code += "error = G.error,";
 
@@ -3211,6 +3292,18 @@ if (!Object.prototype.toJSON) {
 		return code;
 	}
 
+	function tagEscape(node) {
+		var code = "";
+
+		code += "ret2 = esc((function" + " __escape__ " + "(){";
+		code += "var ret = \"\", ret2;";
+		code += children(node);
+		code += "return ret;";
+		code += "})()," + JSON.stringify(node.escapes) + ");";
+		code += templateErrorGuard("ret","ret2");
+		return code;
+	}
+
 	function tagLoop(node) {
 		var i, code = "", def;
 
@@ -3340,18 +3433,26 @@ if (!Object.prototype.toJSON) {
 		code += "}";
 		code += "}";
 
+		if (node.escapes) {
+			code += "ret2 = esc(ret2," + JSON.stringify(node.escapes) + ");";
+		}
 		code += templateErrorGuard("ret","ret2");
 
 		return code;
 	}
 
 	function tagIncludeVar(node) {
-		var code = "";
+		var code = "", tmp = expr(node.main_expr);
 
 
 		code += "try {";
 
-		code += "ret += " + expr(node.main_expr) + ";";
+		if (node.escapes) {
+			code += "ret += esc(" + tmp + "," + JSON.stringify(node.escapes) + ");";
+		}
+		else {
+			code += "ret += " + tmp + ";";
+		}
 
 		code += "} catch (err) {";
 		code += "return error(cID," + simpleNodeJSON(node.main_expr) + ",\"Include reference failed\",err);";
@@ -3377,6 +3478,9 @@ if (!Object.prototype.toJSON) {
 			}
 			else if (child.type === _Grips.parser.TAG_INCL_VAR) {
 				code += tagIncludeVar(child);
+			}
+			else if (child.type === _Grips.parser.TAG_ESCAPE) {
+				code += tagEscape(child);
 			}
 		}
 

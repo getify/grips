@@ -210,6 +210,34 @@ if (!Object.keys) {
 			}
 		}
 
+		// adapted from dust.js (http://akdubya.github.com/dustjs/)
+		function strEscapes(str,escapes) {
+			if (typeof str === "string") {
+				if (escapes.html && /[&<>"]/.test(str)) {
+					str = str
+					.replace(/&/g,"&amp;")
+					.replace(/</g,"&lt;")
+					.replace(/>/g,"&gt;")
+					.replace(/"/,"&quot;");
+				}
+				if (escapes.string) {
+					str = str
+					.replace(/\\/g,"\\\\")
+					.replace(/"/g,'\\"')
+					.replace(/'/g,"\\'")
+					.replace(/\r/g,"\\r")
+					.replace(/\u2028/g,"\\u2028")
+					.replace(/\u2029/g,"\\u2029")
+					.replace(/\n/g,"\\n")
+					.replace(/\f/g,"\\f")
+					.replace(/\t/g,"\\t");
+				}
+				if (escapes.url) {
+					str = encodeURIComponent(str);
+				}
+			}
+			return str;
+		}
 
 		var _Grips, collections = {},
 			unknown_error = new Error("Unknown error"),
@@ -219,14 +247,14 @@ if (!Object.keys) {
 		_Grips = {
 			extend: extend,
 			cloneObj: cloneObj,
-			
 			definePartial: definePartial,
+			strEscapes: strEscapes,
 
 
 
 			render: render,
 
-			
+
 
 			noConflict: noConflict,
 			sandbox: createSandbox,
