@@ -8,6 +8,10 @@ grips takes as its only input data in a simple JSON data-dictionary format, and 
 
 grips will "compile" requested templates into executable JavaScript functions, which take the JSON data dictionary as input and return the output. The compilation of templates can either be JIT (at request time) or pre-compiled in a build process.
 
+The design philosophy behind grips is not to be remarkable for what it can do, but to be remarkable for what it cannot do. That is, to say, that grips wants to be as restrained in functionality as is necessary to accomplish all reasonable templating tasks.
+
+If you find yourself needing to do something in templating that you cannot do with the features that grips provides, there's a good chance you're doing something you shouldn't be doing in templating. The goal is a minimal but capable set of logic for templating which in its limitations enforces (and encourages) responsible separation-of-concerns.
+
 ## Examples
 
 The examples/ directory has several sample template files. Take a look at "tmpl.master.html" and "tmpl.index.html" in particular for good general real-world looking examples. "test.html" is more esoteric and shows off more complexities of the syntax nuances.
