@@ -1469,7 +1469,7 @@ if (!Object.prototype.toJSON) {
 			else if (token.type === _Grips.tokenizer.TILDE) {
 				if (current_parent &&
 					(
-						current_parent.type === NODE_TAG_INCL_VAR ||
+						current_parent.type === NODE_TAG_INCL_TMPL ||
 						current_parent.type === NODE_TAG_INCL_VAR
 					) &&
 					current_parent.def.length === 0 // is the node's declaration not yet defined?
