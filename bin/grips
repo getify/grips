@@ -168,13 +168,13 @@ process.argv.slice(2).forEach(function(arg){
 			OPT_KEEP_PATHS = true;
 			break;
 		default:
-			if ((tmp = arg.match(/^--compile=(.*)$/))) {
+			if ((tmp = arg.match(/^--compile=(.+)$/))) {
 				OPT_COMPILE.push(tmp[1]);
 			}
-			else if ((tmp = arg.match(/^--initialize=(.*)$/))) {
+			else if ((tmp = arg.match(/^--initialize=(.+)$/))) {
 				OPT_INITIALIZE.push(tmp[1]);
 			}
-			else if ((tmp = arg.match(/^--render=(["'])?(.*)(?:\1)$/))) {
+			else if ((tmp = arg.match(/^--render=(["'])?(.+)(?:\1)$/))) {
 				OPT_RENDER.push(tmp[2]);
 			}
 			else {
