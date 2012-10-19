@@ -382,7 +382,7 @@ If you plan to use grips on the server (in node.js), install it with npm:
 npm install grips
 ```
 
-If you want to use the "grips" CLI tool and the "grips-build" build tool from your command line, and you want those binaries added to your normal system bin path, you can instead install grips globally, by adding a "-g" to your `npm install` command.
+If you want to use the `grips` CLI tool and the `grips-build` build tool from your command line, and you want those binaries added to your normal system bin path, you can instead install grips globally, by adding a "-g" to your `npm install` command.
 
 Once installed with npm, you will have a "./node_modules/grips/deploy" directory, and there is where you will find the files you need to deploy for browser usage, as just described.
 
@@ -390,13 +390,13 @@ To use the grips module in a node.js script, you simply call `require("grips")`,
 
 ## Using the JavaScript API
 
-The JavaScript API is accessible in a couple of different ways. The raw library can be loaded in a traditional fashion in a browser, and will produce a single global symbol called "grips". It can be loaded as an AMD module, using the "amd-*.js" versions of the files (assuming they were built with the "grips-build" tool). And finally, you can use the "grips" module in node.js code (see above).
+The JavaScript API is accessible in a couple of different ways. The raw library can be loaded in a traditional fashion in a browser, and will produce a single global symbol called `grips`. It can be loaded as an AMD module, using the "amd-*.js" versions of the files (assuming they were built with the `grips-build` tool). And finally, you can use the "grips" module in node.js code (see above).
 
 Regardless of how you include the library and get access to the core `grips` API, the following methods and signatures are all available. The only caveat is that if you load the runtime version of the library (which has the compiler stripped), only the runtime parts (`initialize`, `render`, etc) of the API are available.
 
 The two most typical tasks for the JavaScript API are `compileCollection()` and `render()`.
 
-"grips" organizes template partials by grouping them together in collections. A single collection is an arbitrary grouping of one or more partials, but it usually will correspond to a single template file. The collection-ID is arbitrary, but again, will usually be the filename of the template file.
+grips organizes template partials by grouping them together in collections. A single collection is an arbitrary grouping of one or more partials, but it usually will correspond to a single template file. The collection-ID is arbitrary, but again, will usually be the filename of the template file.
 
 You will render an individual partial, but you will compile a collection of one or more partials.
 
@@ -459,7 +459,7 @@ grips.initialize(compiledSource);
 
 ## Using the grips CLI
 
-grips comes with a node.js tool called "grips" (I know, creative, right!?), in the "bin/" directory, which is a CLI tool for compiling, initializing, and rendering templates.
+grips comes with a node.js tool called `grips` (I know, creative, right!?), in the "bin/" directory, which is a CLI tool for compiling, initializing, and rendering templates.
 
 Here are the options for the CLI tool:
 
@@ -495,9 +495,9 @@ echo "{\"some\":\"data\"}" | bin/grips --compile=templates/foo.bar.html --compil
 
 ## Building grips
 
-grips comes with a node.js tool called "grips-build", in the "bin/" directory, which when run will generate the files you need to use grips, in a directory called "deploy".
+grips comes with a node.js tool called `grips-build`, in the "bin/" directory, which when run will generate the files you need to use grips, in a directory called "deploy".
 
-There are a few simple options for the grips-build tool:
+There are a few simple options for the `grips-build` tool:
 
 ```
 usage: grips-build [opt, ...]
@@ -522,7 +522,7 @@ If you pass neither --full nor --runtime, --full will be assumed.
 If you pass neither --debug nor --nodebug, --debug will be assumed.
 ```
 
-By default, the grips-build tool is silent, meaning it outputs nothing to the console unless there are errors. If you'd like verbose output, pass the `--verbose` flag.
+By default, the `grips-build` tool is silent, meaning it outputs nothing to the console unless there are errors. If you'd like verbose output, pass the `--verbose` flag.
 
 `--full` builds the full compiler+runtime together. `--runtime` builds only the stripped down (no compiler) runtime separately. Both flags can be passed to build both options. If you pass neither `--full` nor `--runtime`, `--full` will be assumed.
 
