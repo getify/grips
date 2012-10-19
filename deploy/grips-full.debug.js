@@ -1056,7 +1056,7 @@ if (!Object.prototype.toJSON) {
 		}}
 	}
 
-	Node.prototype.toString = function __Node_toString__() {
+	Node.prototype.toString = function __Node_toString__(includeToken) {
 
 		function showStringLiteral(node) {
 			return node.delimiter + node.val + node.delimiter;
@@ -1175,6 +1175,10 @@ if (!Object.prototype.toJSON) {
 		}
 		else {
 			ret = JSON.stringify(this);
+		}
+
+		if (includeToken && this.token) {
+			ret += "; " + this.token;
 		}
 
 		return ret;
@@ -1596,6 +1600,10 @@ if (!Object.prototype.toJSON) {
 					if (current_parent.type === NODE_GENERAL_EXPR ||
 						current_parent.type === NODE_MAIN_REF_EXPR
 					) {
+						if (current_parent.def.length === 0) {
+							instance_api.state = NODE_STATE_INVALID;
+							return new ParserError("Expected EXPR",token) ||unknown_error;
+						}
 						current_parent = current_parent.parent;
 					}
 

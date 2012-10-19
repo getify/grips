@@ -1177,6 +1177,10 @@ if (!Object.keys) {
 					if (current_parent.type === NODE_GENERAL_EXPR ||
 						current_parent.type === NODE_MAIN_REF_EXPR
 					) {
+						if (current_parent.def.length === 0) {
+							instance_api.state = NODE_STATE_INVALID;
+							return unknown_error;
+						}
 						current_parent = current_parent.parent;
 					}
 
