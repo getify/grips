@@ -61,7 +61,7 @@ function checkTokens(tokens,collectionID) {
 					tag_form = tmp;
 				}
 				else if (tmp !== tag_form) {
-					warnings.push("[" + collectionID + "] Mixing short-form and long-form tag types is discouraged; " + token.toString());
+					warn("Mixing short-form and long-form tag types is discouraged; " + token,collectionID);
 					tag_form = false; // no more warnings of this type
 				}
 			}
@@ -69,25 +69,99 @@ function checkTokens(tokens,collectionID) {
 	}
 }
 
-function checkNodes(nodes,collectionID) {
-	var node, i, found_define;
+function checkNodes(nodes,collectionID,topLevel) {
+	function checkForNonWhitespace(nodes) {
+		var i, found_non_whitespace = false, node;
+
+		// check to see if the node only contains whitespace
+		found_non_whitespace = false;
+		for (i=0; i<nodes.length; i++) {
+			node = nodes[i];
+			if (!(
+					node.type === lib.grips.parser.WHITESPACE ||
+					(
+						node.type === lib.grips.parser.TEXT &&
+						!node.val.match(/[^\s\r\n]/)
+					)
+				)
+			) {
+				found_non_whitespace = true;
+			}
+		}
+
+		return found_non_whitespace;
+	}
+
+	topLevel = !(topLevel === false);
+
+	var node, i, tmp, found_define = !topLevel, define_ids = {};
 
 	for (i=0; i<nodes.length; i++) {
 		node = nodes[i];
 
 		if (node.type === lib.grips.parser.TAG_DEFINE) {
 			found_define = true;
+			if (!(node.id.val in define_ids)) {
+				define_ids[node.id.val] = true;
+			}
+			else {
+				warn("Partial-ID already defined in this template collection, so previous definition will be discarded; " + node.toString(/*includeToken=*/true),collectionID);
+			}
+
+			// does this tag have children we need to check?
+			if (node.children.length > 0) {
+				if (checkForNonWhitespace(node.children)) {
+					checkNodes(node.children,collectionID,/*topLevel=*/false);
+				}
+				else {
+					warn("Partial contains only whitespace, so it's probably pointless; " + node.toString(/*includeToken=*/true),collectionID);
+				}
+			}
+		}
+		else if (node.type === lib.grips.parser.TAG_LOOP) {
+			// does this tag have children we need to check?
+			if (node.children.length > 0) {
+				if (checkForNonWhitespace(node.children)) {
+					checkNodes(node.children,collectionID,/*topLevel=*/false);
+				}
+				else {
+					warn("Loop contains only whitespace, so it's probably pointless; " + node.toString(/*includeToken=*/true),collectionID);
+				}
+			}
+			else {
+				warn("Loop is empty, so it's pointless; " + node.toString(/*includeToken=*/true),collectionID);
+			}
+		}
+		else if (node.type === lib.grips.parser.TAG_ESCAPE) {
+			// does this tag have children we need to check?
+			if (node.children.length > 0) {
+				if (checkForNonWhitespace(node.children)) {
+					checkNodes(node.children,collectionID,/*topLevel=*/false);
+				}
+				else {
+					warn("Escaping block-tag contains only whitespace, so it's probably pointless; " + node.toString(/*includeToken=*/true),collectionID);
+				}
+			}
+			else {
+				warn("Escaping block-tag is empty, so it's pointless; " + node.toString(/*includeToken=*/true),collectionID);
+			}
 		}
 	}
 
 	if (!found_define) {
-		warnings.push("[" + collectionID + "] No partial was defined, so this template collection is pointless.");
+		warn("No partial was defined, so this template collection is pointless.",collectionID);
 	}
+}
+
+function warn(msg,collectionID) {
+	warnings.push("[" + collectionID + "] " + msg);
 }
 
 function printWarnings() {
 	if (warnings.length < 1) {
-		console.log("No warnings.");
+		if (OPT_VERBOSE) {
+			console.log("No warnings.");
+		}
 		return;
 	}
 
@@ -160,7 +234,6 @@ for (var i=0; i<OPT_FILE.length; i++) {
 	}
 }
 
-
 try {
 	for (var i in compiles) { if (compiles.hasOwnProperty(i)) {
 		lib = build_lib(); // get a fresh copy of the lib to use for each file
@@ -174,6 +247,8 @@ try {
 
 		// check nodes
 		checkNodes(lib.peek["nodes"](),i);
+
+		lib.grips.generator.process(/*initialize=*/true);
 	}}
 
 	printWarnings();
@@ -184,6 +259,6 @@ try {
 }
 catch (err) {
 	printWarnings();
-	console.error("Lint failed; " + err.toString());
+	console.error("Lint failed; " + err.toString() + (err.stack ? "\n" + err.stack : ""));
 	process.exit(1);
 }

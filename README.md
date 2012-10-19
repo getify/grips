@@ -534,7 +534,7 @@ Finally, `--all` will build all files and option combinations.
 
 ## Linting grips templates
 
-The `grips-lint` tool is a work in progress, but aims to be a simple linting tool to help you check your templates for a variety of bad practices and potential pitfalls. Right now, it only performs two simple checks, but of course, there will be plenty more checks coming.
+The `grips-lint` tool is a work in progress, but aims to be a simple linting tool to help you check your templates for a variety of bad practices and potential pitfalls. Right now, it only performs a few simple checks, but of course, there will be plenty more checks coming.
 
 Also, right now, there's only one level of warning, but `grips-lint` will eventually let you configure specific warnings into different levels, and set thresholds for which warnings you want to see. To effectively disable a warning, you'll be able to set it to a level that is below the allowed threshold, thereby hiding it.
 
