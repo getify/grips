@@ -133,7 +133,7 @@ var path = require("path"),
 ;
 
 // must pass at least one argument
-if (process.argc < 3) {
+if (process.argv.length < 3) {
 	console.log("No arguments passed.");
 	console.log("");
 	print_help();
