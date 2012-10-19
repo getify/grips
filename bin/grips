@@ -2,7 +2,7 @@
 
 /* grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/ */
 
-function print_help() {
+function printHelp() {
 	console.log("grips templating engine");
 	console.log("(c) 2012 Kyle Simpson | http://getify.mit-license.org/");
 	console.log("");
@@ -107,6 +107,13 @@ function main() {
 	console.log(output);
 }
 
+function usageError(msg) {
+	console.log(msg);
+	console.log("");
+	printHelp();
+	process.exit(1);
+}
+
 
 var path = require("path"),
 	fs = require("fs"),
@@ -134,17 +141,14 @@ var path = require("path"),
 
 // must pass at least one argument
 if (process.argv.length < 3) {
-	console.log("No arguments passed.");
-	console.log("");
-	print_help();
-	process.exit(1);
+	usageError("No arguments passed.");
 }
 
 process.argv.slice(2).forEach(function(arg){
 	var tmp;
 	switch (arg) {
 		case "--help":
-			print_help();
+			printHelp();
 			process.exit(1);
 			break;
 		case "--nodebug":
@@ -157,10 +161,7 @@ process.argv.slice(2).forEach(function(arg){
 				pro = require("uglify-js").uglify;
 			}
 			catch (err) {
-				console.log("--minify failed because 'uglify-js' module is missing or invalid.");
-				console.log("");
-				print_help();
-				process.exit(1);
+				usageError("--minify failed because 'uglify-js' module is missing or invalid.");
 				break;
 			}
 			break;
@@ -178,10 +179,7 @@ process.argv.slice(2).forEach(function(arg){
 				OPT_RENDER.push(tmp[2]);
 			}
 			else {
-				console.log("Unrecognized flag: " + arg);
-				console.log("");
-				print_help();
-				process.exit(1);
+				usageError("Unrecognized flag: " + arg);
 			}
 			break;
 	}
@@ -189,33 +187,21 @@ process.argv.slice(2).forEach(function(arg){
 
 // must pass at least one argument
 if (!(OPT_COMPILE.length > 0 || OPT_RENDER.length > 0)) {
-	console.log("--compile or --render required.");
-	console.log("");
-	print_help();
-	process.exit(1);
+	usageError("--compile or --render required.");
 }
 // --minify only valid with --compile
 else if (OPT_MINIFY && !(OPT_COMPILE.length > 0)) {
-	console.log("--minify only valid with --compile.");
-	console.log("");
-	print_help();
-	process.exit(1);
+	usageError("--minify only valid with --compile.");
 }
 // --keep-paths only valid with --compile or --initialize
 else if (OPT_KEEP_PATHS && !(OPT_COMPILE.length > 0 || OPT_INITIALIZE.length > 0)) {
-	console.log("--keep-paths only valid with --compile or --initialize.");
-	console.log("");
-	print_help();
-	process.exit(1);
+	usageError("--keep-paths only valid with --compile or --initialize.");
 }
 // --render requirements
 else if (OPT_RENDER.length > 0) {
 	// --render requires --compile or --initialize
 	if (!(OPT_COMPILE.length > 0 || OPT_INITIALIZE.length > 0)) {
-		console.log("--render requires --compile or --initialize.");
-		console.log("");
-		print_help();
-		process.exit(1);
+		usageError("--render requires --compile or --initialize.");
 	}
 	// --render requires stdin
 	else {
@@ -229,11 +215,7 @@ else if (OPT_RENDER.length > 0) {
 				data = JSON.parse(data);
 			}
 			catch (err) {
-				console.log("--render requires JSON data from stdin: " + data.replace(/[\r\n]/g,"").substr(0,20) + (data.length > 20 ? "..." : ""));
-				console.log("Error: " + err.toString());
-				console.log("");
-				print_help();
-				process.exit(1);
+				usageError("--render requires JSON data from stdin: " + data.replace(/[\r\n]/g,"").substr(0,20) + (data.length > 20 ? "..." : "") + "\nError: " + err.toString());
 			}
 			main();
 		});

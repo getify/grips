@@ -2,7 +2,7 @@
 
 /* grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/ */
 
-function print_help() {
+function printHelp() {
 	console.log("build tool for grips templating engine");
 	console.log("(c) 2012 Kyle Simpson | http://getify.mit-license.org/");
 	console.log("");
@@ -111,7 +111,7 @@ var path = require("path"),
 process.argv.slice(2).forEach(function(arg){
 	switch (arg) {
 		case "--help":
-			print_help();
+			printHelp();
 			process.exit(1);
 			break;
 		case "--all":
@@ -144,7 +144,7 @@ process.argv.slice(2).forEach(function(arg){
 		default:
 			console.log("Unrecognized flag: " + arg);
 			console.log("");
-			print_help();
+			printHelp();
 			process.exit(1);
 			break;
 	}
@@ -194,7 +194,7 @@ if (OPT_MINIFY) {
 	catch (err) {
 		console.log("'uglify-js' module is missing or invalid.");
 		console.log("");
-		print_help();
+		printHelp();
 		process.exit(1);
 	}
 }
