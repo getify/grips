@@ -466,7 +466,9 @@ if (!Object.prototype.toJSON) {
 			noConflict: noConflict,
 			sandbox: createSandbox,
 
-			RangeLiteralHash: RangeLiteralHash
+			RangeLiteralHash: RangeLiteralHash,
+
+			collections: collections
 		};
 
 		return _Grips;
