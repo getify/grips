@@ -1,11 +1,12 @@
 {
   "name": "grips",
-  "version": "0.2.2-b",
+  "version": "0.2.2-c",
   "description": "grips templating engine",
   "main": "./node-base.js",
   "bin": {
     "grips-build": "./bin/grips-build",
-    "grips": "./bin/grips"
+    "grips": "./bin/grips",
+    "grips-lint": "./bin/grips-lint"
   },
   "directories": {
     "example": "./examples",

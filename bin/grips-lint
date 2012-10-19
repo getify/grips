@@ -1,0 +1,189 @@
+#!/usr/bin/env node
+
+/* grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/ */
+
+function printHelp() {
+	console.log("lint tool for grips templating engine");
+	console.log("(c) 2012 Kyle Simpson | http://getify.mit-license.org/");
+	console.log("");
+	console.log("usage: grips-lint opt [, ..opt]");
+	console.log("");
+	console.log("options:");
+	console.log("--help                                    show this help");
+	console.log("--verbose                                 display progress");
+	console.log("");
+	console.log("--file=file                               specify a collection file to be checked");
+	console.log("");
+}
+
+function build_lib() {
+	var tmp = "", file_contents = "", lib,
+		injects = {
+			"base.js": "registerPeek(\"collections\",function(){return global.grips.collections;});",
+			"tokenizer.js": "registerPeek(\"tokens\",function(){return tokens;});",
+			"parser.js": "registerPeek(\"nodes\",function(){return nodes;}); registerPeek(\"node_idx\",function(){return node_idx;});"
+		}
+	;
+
+	if (!lib_contents) {
+		["base.js","tokenizer.js","parser.js","generator.js"].forEach(function(filename){
+			tmp = fs.readFileSync(path.join(DIR_LIB,filename),"utf8");
+			if (filename in injects) {
+				tmp = tmp.replace(/(\}\)\(this(?:\.grips)?\);)/,injects[filename]+"\n$1");
+			}
+			file_contents += ";" + tmp;
+		});
+
+		lib_contents += "var self = this;\n";
+		lib_contents += "self.peek = {};\n";
+		lib_contents += "function registerPeek(name,val) {\n";
+		lib_contents += "self.peek[name] = val;\n";
+		lib_contents += "}\n";
+		lib_contents += file_contents + "\n";
+		lib_contents += "return this;";
+	}
+
+	return (new Function(lib_contents)).call({});
+}
+
+function checkTokens(tokens,collectionID) {
+	var token, i, tag_form, tmp;
+
+	for (i=0; i<tokens.length; i++) {
+		token = tokens[i];
+
+		if (token.type === lib.grips.tokenizer.SIGNIFIER) {
+			// have we reported a warning for mixed-form tag types yet?
+			if (tag_form !== false) {
+				// check to make sure the tag types are either all short-form or all long-form
+				tmp = (token.val.match(/^[+:~=*%\/]$/)) ? "short" : "long";
+				if (!tag_form) {
+					tag_form = tmp;
+				}
+				else if (tmp !== tag_form) {
+					warnings.push("[" + collectionID + "] Mixing short-form and long-form tag types is discouraged; " + token.toString());
+					tag_form = false; // no more warnings of this type
+				}
+			}
+		}
+	}
+}
+
+function checkNodes(nodes,collectionID) {
+	var node, i, found_define;
+
+	for (i=0; i<nodes.length; i++) {
+		node = nodes[i];
+
+		if (node.type === lib.grips.parser.TAG_DEFINE) {
+			found_define = true;
+		}
+	}
+
+	if (!found_define) {
+		warnings.push("[" + collectionID + "] No partial was defined, so this template collection is pointless.");
+	}
+}
+
+function printWarnings() {
+	if (warnings.length < 1) {
+		console.log("No warnings.");
+		return;
+	}
+
+	for (var i=0; i<warnings.length; i++) {
+		console.log("Warning: " + warnings[i]);
+	}
+}
+
+function usageError(msg) {
+	console.log(msg);
+	console.log("");
+	printHelp();
+	process.exit(1);
+}
+
+var path = require("path"),
+	fs = require("fs"),
+
+	DIR_LIB = path.join(__dirname,"..","lib"),
+
+	OPT_VERBOSE = false,
+	OPT_FILE = [],
+
+	lib_contents = "",
+	lib,
+	warnings = [],
+
+	compiles = {},
+	output = ""
+;
+
+// must pass at least one argument
+if (process.argv.length < 3) {
+	usageError("No arguments passed.");
+}
+
+process.argv.slice(2).forEach(function(arg){
+	var tmp;
+	switch (arg) {
+		case "--help":
+			printHelp();
+			process.exit(1);
+			break;
+		case "--verbose":
+			OPT_VERBOSE = true;
+			break;
+		default:
+			if ((tmp = arg.match(/^--file=(.+)$/))) {
+				OPT_FILE.push(tmp[1]);
+			}
+			else {
+				usageError("Unrecognized flag: " + arg);
+			}
+			break;
+	}
+});
+
+if (OPT_FILE.length < 1) {
+	usageError("No --file arguments passed.");
+}
+
+// process --file arguments
+for (var i=0; i<OPT_FILE.length; i++) {
+	if (fs.existsSync(OPT_FILE[i])) {
+		compiles[OPT_FILE[i]] = fs.readFileSync(OPT_FILE[i],"utf8");
+	}
+	else {
+		console.error("File not found: " + OPT_FILE[i]);
+		process.exit(1);
+	}
+}
+
+
+try {
+	for (var i in compiles) { if (compiles.hasOwnProperty(i)) {
+		lib = build_lib(); // get a fresh copy of the lib to use for each file
+
+		// perform tokenization and stage-1 parsing
+		lib.grips.tokenizer.process(compiles[i],i);
+		lib.grips.parser.end();
+
+		// check tokens
+		checkTokens(lib.peek["tokens"](),i);
+
+		// check nodes
+		checkNodes(lib.peek["nodes"](),i);
+	}}
+
+	printWarnings();
+
+	if (OPT_VERBOSE) {
+		console.log("Lint complete.");
+	}
+}
+catch (err) {
+	printWarnings();
+	console.error("Lint failed; " + err.toString());
+	process.exit(1);
+}
