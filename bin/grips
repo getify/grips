@@ -61,7 +61,7 @@ function main() {
 			output = grips.compile(compiles);
 		}
 		catch (err) {
-			console.error("Compilation failed; " + err.toString());
+			console.error("Compilation failed; " + err.toString() + (err.stack ? "\n" + err.stack : ""));
 			process.exit(1);
 		}
 
@@ -79,7 +79,7 @@ function main() {
 					grips.initialize(fs.readFileSync(OPT_INITIALIZE[i],"utf8"));
 				}
 				catch (err) {
-					console.error("Initialization failed [" + OPT_INITIALIZE[i] + "]; " + err.toString());
+					console.error("Initialization failed [" + OPT_INITIALIZE[i] + "]; " + err.toString() + (err.stack ? "\n" + err.stack : ""));
 					process.exit(1);
 				}
 			}
@@ -98,7 +98,7 @@ function main() {
 				output += grips.render(OPT_RENDER[i],data);
 			}
 			catch (err) {
-				console.error("Render failed [" + OPT_RENDER[i] + "]; " + err.toString());
+				console.error("Render failed [" + OPT_RENDER[i] + "]; " + err.toString() + (err.stack ? "\n" + err.stack : ""));
 				process.exit(1);
 			}
 		}
