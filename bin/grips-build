@@ -61,6 +61,13 @@ function amd_ify(str) {
 	return ret;
 }
 
+function usageError(msg) {
+	console.log(msg);
+	console.log("");
+	printHelp();
+	process.exit(1);
+}
+
 
 var path = require("path"),
 	fs = require("fs"),
@@ -142,10 +149,7 @@ process.argv.slice(2).forEach(function(arg){
 			OPT_VERBOSE = true;
 			break;
 		default:
-			console.log("Unrecognized flag: " + arg);
-			console.log("");
-			printHelp();
-			process.exit(1);
+			usageError("Unrecognized flag: " + arg);
 			break;
 	}
 });
@@ -192,10 +196,7 @@ if (OPT_MINIFY) {
 		pro = require("uglify-js").uglify;
 	}
 	catch (err) {
-		console.log("'uglify-js' module is missing or invalid.");
-		console.log("");
-		printHelp();
-		process.exit(1);
+		usageError("'uglify-js' module is missing or invalid.");
 	}
 }
 
