@@ -1060,30 +1060,37 @@ if (!Object.prototype.toJSON) {
 	Node.prototype.toString = function __Node_toString__(includeToken) {
 
 		function showStringLiteral(node) {
-			return node.delimiter + node.val + node.delimiter;
+			return (node.delimiter || "\"") + (node.val || "") + (node.delimiter || "\"");
 		}
 
 		function showDeclaration(node) {
 			var i, ret = "";
-			for (var i=0; i<node.def.length; i++) {
-				ret += node.def[i].toString();
+			if (node.def) {
+				for (var i=0; i<node.def.length; i++) {
+					ret += node.def[i].toString();
+				}
 			}
 			return ret;
 		}
 
 		function showChildren(node) {
 			var i, ret = "";
-			for (var i=0; i<node.children.length; i++) {
-				ret += node.children[i].toString();
+			if (node.children) {
+				for (var i=0; i<node.children.length; i++) {
+					ret += node.children[i].toString();
+				}
 			}
 			return ret;
 		}
 
 		function showEscapes(node) {
-			var ret = "~";
-			if (node.escapes.html) ret += "h";
-			if (node.escapes.string) ret += "s";
-			if (node.escapes.url) ret += "u";
+			var ret = "";
+			if (node.escapes) {
+				ret += "~";
+				if (node.escapes.html) ret += "h";
+				if (node.escapes.string) ret += "s";
+				if (node.escapes.url) ret += "u";
+			}
 			return ret;
 		}
 
@@ -2244,7 +2251,11 @@ if (!Object.prototype.toJSON) {
 				}
 			}
 			else if (id.parent.type === NODE_TAG_INCL_TMPL) {
-				if (!id.val) {
+				if (!(
+						id.val &&
+						id.val.match(/#.+/)
+					)
+				) {
 					return new ParserError("Expected #id",id) ||unknown_error;
 				}
 				else if ((tmp = id.val.match(/(#.*?)([^a-z0-9_\-$.]).*$/i))) {
@@ -2691,7 +2702,6 @@ if (!Object.prototype.toJSON) {
 							return new ParserError("Unexpected number",node) ||unknown_error;
 						}
 					}
-
 				}
 			}
 			else {

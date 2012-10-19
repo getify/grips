@@ -1804,7 +1804,11 @@ if (!Object.keys) {
 				}
 			}
 			else if (id.parent.type === NODE_TAG_INCL_TMPL) {
-				if (!id.val) {
+				if (!(
+						id.val &&
+						id.val.match(/#.+/)
+					)
+				) {
 					return unknown_error;
 				}
 				else if ((tmp = id.val.match(/(#.*?)([^a-z0-9_\-$.]).*$/i))) {
@@ -2238,7 +2242,6 @@ if (!Object.keys) {
 							return unknown_error;
 						}
 					}
-
 				}
 			}
 			else {
