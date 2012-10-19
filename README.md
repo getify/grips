@@ -16,7 +16,7 @@ If you find yourself needing to do something in templating that you cannot do wi
 
 The examples/ directory has several sample template files. Take a look at "tmpl.master.html" and "tmpl.index.html" in particular for good general real-world looking examples. "test.html" is more esoteric and shows off more complexities of the syntax nuances.
 
-## Templating sytax
+## Templating syntax
 
 Template tags (as defined below) have a short/terse form and a long/friendlier form. You can mix and match the forms as you see fit. Examples may use the short form (for conciseness), but there's no reason to infer a preference either way. Some people prefer less templating cruft in their templates, others prefer more readable and less cryptic templates. To each his/her own. Just a matter of taste.
 
