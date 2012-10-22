@@ -2644,7 +2644,7 @@ if (!Object.keys) {
 	}
 
 	function closeCollection() {
-		return "})(this.grips);";
+		return "})(grips||this.grips);";
 	}
 
 	function conditional(node) {
