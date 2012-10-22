@@ -3402,7 +3402,7 @@ if (!Object.prototype.toJSON) {
 			code += "}}";
 			code += "}";
 			code += "} else {";
-			code += "return";
+			code += "return ";
 
 			code += "error(cID," + simpleNodeJSON(node.main_expr) + ",\"Invalid loop-iterator reference\") || ";
 

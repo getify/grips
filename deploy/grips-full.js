@@ -2896,7 +2896,7 @@ if (!Object.keys) {
 			code += "}}";
 			code += "}";
 			code += "} else {";
-			code += "return";
+			code += "return ";
 
 			code += "unerr;";
 			code += "}";
