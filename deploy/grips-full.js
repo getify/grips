@@ -182,7 +182,7 @@ if (!Object.keys) {
 			// default empty render?
 			if (!id) return "";
 
-			var collection_id, ret, i, tmp, eligible_stack = [],
+			var collection_id, ret = false, i, tmp, eligible_stack = [],
 				collection_id_specified = false, collection_stack_pushed = false
 			;
 
@@ -253,7 +253,7 @@ if (!Object.keys) {
 				}
 			}
 
-			if (ret) {
+			if (ret !== false) {
 				render_partials_stack.pop();
 				if (collection_stack_pushed) {
 					render_collection_stack.pop();
