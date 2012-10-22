@@ -3,12 +3,20 @@
 <head>
 <title>grips Templating Engine</title>
 
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-<script src="//raw.github.com/getify/LABjs/master/LAB.min.js"></script>
+<script src="http://raw.github.com/getify/LABjs/master/LAB.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+<script src="http://raw.github.com/getify/grips/master/deploy/grips.js"></script>
+<script src="tmpls.html.js"></script>
 <script>
 
-var GRIPS_DEBUG_URL = "//raw.github.com/getify/grips/master/deploy/grips-full.debug.js";
-var GRIPS_URL = "//raw.github.com/getify/grips/master/deploy/grips-full.js";
+var GRIPS = grips.noConflict();
+var GRIPS_DEBUG_URL = "http://raw.github.com/getify/grips/master/deploy/grips-full.debug.js";
+var GRIPS_URL = "http://raw.github.com/getify/grips/master/deploy/grips-full.js";
+
+// preload the libs
+$LAB
+.script(GRIPS_DEBUG_URL).wait(function(){grips.noConflict();})
+.script(GRIPS_URL).wait(function(){grips.noConflict();});
 
 </script>
 
@@ -16,30 +24,52 @@ var GRIPS_URL = "//raw.github.com/getify/grips/master/deploy/grips-full.js";
 <body>
 
 <h1>grips Templating Engine</h1>
-<p>This is an online template playground for the <a href="http://github.com/getify/grips">grips Templating Engine</a>. <a href="https://github.com/getify/grips/blob/master/README.md">grips documentation</a> includes explanations of <a href="https://github.com/getify/grips#templating-syntax">grips syntax</a>, the <a href="https://github.com/getify/grips#using-the-javascript-api">grips API</a>, and <a href="https://github.com/getify/grips/tree/master/examples">grips template examples</a>.</p>
+<p>This is an online template playground for the <a href="http://github.com/getify/grips">grips Templating Engine</a>. The <a href="https://github.com/getify/grips/blob/master/README.md">grips documentation</a> includes explanations of the <a href="https://github.com/getify/grips#templating-syntax">grips syntax</a>, the <a href="https://github.com/getify/grips#using-the-javascript-api">grips API</a>, and some simple <a href="https://github.com/getify/grips/tree/master/examples">grips template examples</a>.</p>
+
+<hr>
+<p>
+	Select a sample template:
+	<select id="sampletemplate">
+		<option value="1">Hello World</option>
+	</select>
+	|
+	<input type="checkbox" id="usedebug" checked> Use debug build
+</p>
 
 <table cellpadding="25">
 	<tr>
-		<td>
-			Template Source:<br>
-			<textarea name="tsource" cols="50" rows="15"></textarea>
+		<td id="td_source">
 		</td>
-		<td>
-			Render Data:<br>
-			<textarea name="tdata" cols="50" rows="15"></textarea>
+		<td id="td_compiled">
 		</td>
 	</tr>
 	<tr>
 		<td>
-			Compiled Template:<br>
-			<textarea name="tcompiled" cols="50" rows="15"></textarea>
+			<p>
+			Render Data:<br>
+			<textarea id="tdata" cols="50" rows="15"></textarea>
+			</p>
 		</td>
 		<td>
+			<p>
 			Render Output:<br>
-			<textarea name="rendered" cols="50" rows="15"></textarea>
+			<textarea id="trendered" cols="50" rows="15" readonly></textarea>
+			</p>
 		</td>
 	</tr>
 </table>
+
+<script>
+
+var $sampletemplate = $("#sampletemplate"),
+	$usedebug = $("#usedebug"),
+	$td_source = $("#td_source"),
+	$td_compiled = $("#td_compiled"),
+	$tdata = $("#tdata"),
+	$trendered = $("#trendered")
+;
+
+</script>
 
 </body>
 </html>

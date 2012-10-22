@@ -1,0 +1,21 @@
+
+
+{$define "#td_source" }
+{$loop $.sources }
+<p>
+	Template Source ({$insert _.value.collection_id $}):<br>
+	<textarea class="tsource" id="tsource_{$insert _.index $}" cols="50" rows="15">{$insert _.value.collection_source $}</textarea>
+</p>
+{$}
+{$}
+
+
+
+{$define "#td_compiled" }
+{$loop $.sources }
+<p>
+	Compiled Template ({$insert _.value.collection_id $}):<br>
+	<textarea class="tcompiled" id="tcompiled_{$insert _.index $}" cols="50" rows="15"></textarea>
+</p>
+{$}
+{$}
