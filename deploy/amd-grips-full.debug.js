@@ -3135,7 +3135,7 @@ if (!Object.prototype.toJSON) {
 	}
 
 	function closeCollection() {
-		return "})(grips||this.grips);";
+		return "})(this.grips||grips);";
 	}
 
 	function conditional(node) {
