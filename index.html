@@ -3,22 +3,13 @@
 <head>
 <title>grips Templating Engine</title>
 
-<script src="http://raw.github.com/getify/LABjs/master/LAB.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
-<script src="http://raw.github.com/getify/grips/master/deploy/grips.js"></script>
-<script src="tmpls.html.js"></script>
-<script>
-
-var GRIPS = grips.noConflict();
-var GRIPS_DEBUG_URL = "http://raw.github.com/getify/grips/master/deploy/grips-full.debug.js";
-var GRIPS_URL = "http://raw.github.com/getify/grips/master/deploy/grips-full.js";
-
-// preload the libs
-$LAB
-.script(GRIPS_DEBUG_URL).wait(function(){grips.noConflict();})
-.script(GRIPS_URL).wait(function(){grips.noConflict();});
-
-</script>
+<style>
+td { vertical-align:top; }
+td textarea { width:400px; }
+.source_error, .data_error, .render_error { padding:8px; display:none; background-color:red; color:white; font-weight:bold; font-size:14px; max-width:400px;
+	-moz-box-sizing:border-box; -webkit-box-sizing:border-box; box-sizing:border-box;
+}
+</style>
 
 </head>
 <body>
@@ -27,49 +18,53 @@ $LAB
 <p>This is an online template playground for the <a href="http://github.com/getify/grips">grips Templating Engine</a>. The <a href="https://github.com/getify/grips/blob/master/README.md">grips documentation</a> includes explanations of the <a href="https://github.com/getify/grips#templating-syntax">grips syntax</a>, the <a href="https://github.com/getify/grips#using-the-javascript-api">grips API</a>, and some simple <a href="https://github.com/getify/grips/tree/master/examples">grips template examples</a>.</p>
 
 <hr>
+<p><strong>NOTE:</strong> Try toggling the 'Use debug library build' setting to see the differences in the compiled code output, as well as how it affects template parsing and rendering error messages.
+</p>
 <p>
 	Select a sample template:
 	<select id="sampletemplate">
-		<option value="1">Hello World</option>
+		<optgroup label="Hello World">
+			<option value="1">Hello World (long-form)</option>
+			<option value="2">Hello World (short-form)</option>
+		</optgroup>
+		<optgroup label="Template Parsing Errors">
+			<option value="3">Template Parsing Error #1</option>
+			<option value="4">Template Parsing Error #2</option>
+			<option value="5">Template Parsing Error #3</option>
+			<option value="6">Template Parsing Error #4</option>
+			<option value="7">Template Parsing Error #5</option>
+			<option value="8">Template Parsing Error #6</option>
+			<option value="9">Template Parsing Error #7</option>
+			<option value="10">Template Parsing Error #8</option>
+		</optgroup>
+		<optgroup label="Template Rendering Errors">
+			<option value="11">Template Rendering Error #1</option>
+			<option value="12">Template Rendering Error #2</option>
+			<option value="13">Template Rendering Error #3</option>
+		</optgroup>
 	</select>
-	|
-	<input type="checkbox" id="usedebug" checked> Use debug build
+	&nbsp;&nbsp;|&nbsp;&nbsp;
+	<input type="checkbox" id="usedebug" checked> Use debug library build
+	<!-- &nbsp;&nbsp;|&nbsp;&nbsp;
+	<input type="checkbox" id="minify"> Minify compiled templates (uglifyjs) -->
 </p>
 
 <table cellpadding="25">
 	<tr>
-		<td id="td_source">
-		</td>
-		<td id="td_compiled">
-		</td>
+		<td id="td_source"></td>
+		<td id="td_compiled"></td>
 	</tr>
 	<tr>
-		<td>
-			<p>
-			Render Data:<br>
-			<textarea id="tdata" cols="50" rows="15"></textarea>
-			</p>
-		</td>
-		<td>
-			<p>
-			Render Output:<br>
-			<textarea id="trendered" cols="50" rows="15" readonly></textarea>
-			</p>
-		</td>
+		<td id="td_data"></td>
+		<td id="td_rendered"></td>
 	</tr>
 </table>
 
-<script>
-
-var $sampletemplate = $("#sampletemplate"),
-	$usedebug = $("#usedebug"),
-	$td_source = $("#td_source"),
-	$td_compiled = $("#td_compiled"),
-	$tdata = $("#tdata"),
-	$trendered = $("#trendered")
-;
-
-</script>
+<script src="https://raw.github.com/getify/LABjs/master/LAB.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+<script src="https://raw.github.com/getify/grips/master/deploy/grips.min.js"></script>
+<script src="tmpls.html.js"></script>
+<script src="playground.js"></script>
 
 </body>
 </html>

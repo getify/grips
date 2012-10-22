@@ -1,21 +1,221 @@
 
-
 {$define "#td_source" }
 {$loop $.sources }
 <p>
-	Template Source ({$insert _.value.collection_id $}):<br>
-	<textarea class="tsource" id="tsource_{$insert _.index $}" cols="50" rows="15">{$insert _.value.collection_source $}</textarea>
+	Template Source (<span class="source_collection_id">{$insert~h _.value.collection_id $}</span>):<br>
+	<textarea class="tsource" data-collection-id="{$insert~s _.value.collection_id $}" rows="15">{$insert~h _.value.collection_source $}</textarea>
 </p>
 {$}
+<p class="source_error"></p>
 {$}
 
 
 
 {$define "#td_compiled" }
-{$loop $.sources }
+{$loop $.compiles }
 <p>
-	Compiled Template ({$insert _.value.collection_id $}):<br>
-	<textarea class="tcompiled" id="tcompiled_{$insert _.index $}" cols="50" rows="15"></textarea>
+	Compiled Template (<span class="compile_collection_id">{$insert~h _.value.collection_id $}</span>):<br>
+	<textarea class="tcompiled" rows="15" readonly>{$insert~h _.value.collection_compiled $}</textarea>
 </p>
 {$}
 {$}
+
+
+
+{$define "#td_data" }
+<p>
+	Render Context Data (JSON):<br>
+	<textarea rows="15">{$insert~h $.data $}</textarea>
+</p>
+<p class="data_error"></p>
+{$}
+
+
+
+{$define "#td_rendered" }
+<p>
+	Render Output (<span id="render_collection_id">{$insert~h $.collection_id $}</span><span id="render_partial_id">{$insert~h $.partial_id $}</span>):<br>
+	<textarea rows="15" readonly>{$insert~h $.rendered $}</textarea>
+</p>
+<p class="render_error"></p>
+{$}
+
+
+					{$/ *** Sample templates *** /$}
+
+	{$/ *** Hello World *** /$}
+
+{$define "#sample_tmpl_1" }{$raw
+{$define "#main" }
+   Hello <b>{$insert $.who $}</b>!
+{$}
+%$}{$}
+
+{$define "#sample_data_1" }
+{
+   "who": "World"
+}
+{$}
+
+{$define "#sample_tmpl_2" }{$raw
+{$: "#main" }
+   Hello <b>{$= $.who $}</b>!
+{$}
+%$}{$}
+
+{$define "#sample_data_2" }
+{
+   "who": "World"
+}
+{$}
+
+
+
+	{$/ *** Template Parsing Error #1 *** /$}
+
+{$define "#sample_tmpl_3" }{$raw
+{$define "main" }
+   Hello <b>{$insert $.who $}</b>!
+{$}
+%$}{$}
+
+{$define "#sample_data_3" }{$}
+
+
+
+	{$/ *** Template Parsing Error #2 *** /$}
+
+{$define "#sample_tmpl_4" }{$raw
+{$define "#main" . }
+   Hello <b>{$insert $.who $}</b>!
+{$}
+%$}{$}
+
+{$define "#sample_data_4" }{$}
+
+
+
+	{$/ *** Template Parsing Error #3 *** /$}
+
+{$define "#sample_tmpl_5" }{$raw
+{$define "#main" $}
+   Hello <b>{$insert $.who $}</b>!
+{$}
+%$}{$}
+
+{$define "#sample_data_5" }{$}
+
+
+
+	{$/ *** Template Parsing Error #4 *** /$}
+
+{$define "#sample_tmpl_6" }{$raw
+{$define "#main" }
+   Hello <b>{$ insert $.who $}</b>!
+{$}
+%$}{$}
+
+{$define "#sample_data_6" }{$}
+
+
+
+	{$/ *** Template Parsing Error #5 *** /$}
+
+{$define "#sample_tmpl_7" }{$raw
+{$define "#main" }
+   Hello <b>{$insert $.who $}</b>!
+{$}
+foo
+%$}{$}
+
+{$define "#sample_data_7" }{$}
+
+
+
+	{$/ *** Template Parsing Error #6 *** /$}
+
+{$define "#sample_tmpl_8" }{$raw
+{$define "#main" }
+   Hello <b>{$inser $.who $}</b>!
+{$}
+%$}{$}
+
+{$define "#sample_data_8" }{$}
+
+
+
+	{$/ *** Template Parsing Error #7 *** /$}
+
+{$define "#sample_tmpl_9" }{$raw
+{$define "#main" }
+   Hello <b>{$insert $.who }</b>!
+{$}
+%$}{$}
+
+{$define "#sample_data_9" }{$}
+
+
+
+	{$/ *** Template Parsing Error #8 *** /$}
+
+{$define "#sample_tmpl_10" }{$raw
+{$define "#main" }
+   Hello <b>{$insert $.who. $}</b>!
+{$}
+%$}{$}
+
+{$define "#sample_data_10" }{$}
+
+
+
+	{$/ *** Template Rendering Error #1 *** /$}
+
+{$define "#sample_tmpl_11" }{$raw
+{$define "#main" }
+   Hello <b>{$insert $.who2 $}</b>!
+{$}
+%$}{$}
+
+{$define "#sample_data_11" }
+{
+   "who": "World"
+}
+{$}
+
+
+	{$/ *** Template Rendering Error #2 *** /$}
+
+{$define "#sample_tmpl_12" }{$raw
+{$define "#main" }
+   Hello <b>{$insert $.who2.me $}</b>!
+{$}
+%$}{$}
+
+{$define "#sample_data_12" }
+{
+   "who": "World"
+}
+{$}
+
+
+
+	{$/ *** Template Rendering Error #3 *** /$}
+
+{$define "#sample_tmpl_13" }{$raw
+{$define "#main" |
+	who = $.who2[3]
+}
+   Hello <b>{$insert who $}</b>!
+{$}
+%$}{$}
+
+{$define "#sample_data_13" }
+{
+   "who": "World"
+}
+{$}
+
+
+
+
+
