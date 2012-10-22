@@ -1120,7 +1120,7 @@ if (!Object.prototype.toJSON) {
 			}
 			ret += " $}";
 		}
-		else if (this.type === NODE_TAG_INCL_VAR) {
+		else if (this.type === NODE_TAG_INSERT_VAR) {
 			ret = "{$=" + (this.escapes ? showEscapes(this) : "") + " ";
 			if (this.main_expr) {
 				ret += this.main_expr.toString();
@@ -1316,7 +1316,7 @@ if (!Object.prototype.toJSON) {
 
 			// check to see if we need to implicitly switch to EXPR processing
 			function implicitlyStartExpr() {
-				if (current_parent.type === NODE_TAG_INCL_VAR ||
+				if (current_parent.type === NODE_TAG_INSERT_VAR ||
 					current_parent.type === NODE_TAG_INCL_TMPL ||
 					current_parent.type === NODE_TAG_LOOP
 				) {
@@ -1335,7 +1335,7 @@ if (!Object.prototype.toJSON) {
 						node.type = NODE_MAIN_REF_EXPR;
 					}
 					// main EXPR in an INCL tag?
-					else if (current_parent.type === NODE_TAG_INCL_VAR ||
+					else if (current_parent.type === NODE_TAG_INSERT_VAR ||
 						current_parent.type === NODE_TAG_INCL_TMPL
 					) {
 						if (!current_parent.main_expr) {
@@ -1364,7 +1364,7 @@ if (!Object.prototype.toJSON) {
 				if (current_parent && current_parent.type == null) {
 					if (token.val.match(/^(?:\:|define)$/)) current_parent.type = NODE_TAG_DEFINE;
 					else if (token.val.match(/^(?:\+|extend)$/)) current_parent.type = NODE_TAG_EXTEND;
-					else if (token.val.match(/^(?:\=|insert|print)$/)) current_parent.type = NODE_TAG_INCL_VAR; // NOTE: can later be re-defined to NODE_TAG_INCL_TMPL if `@` is found subsequently
+					else if (token.val.match(/^(?:\=|insert|print)$/)) current_parent.type = NODE_TAG_INSERT_VAR; // NOTE: can later be re-defined to NODE_TAG_INCL_TMPL if `@` is found subsequently
 					else if (token.val.match(/^partial$/)) current_parent.type = NODE_TAG_INCL_TMPL;
 					else if (token.val.match(/^(?:\*|loop)$/)) current_parent.type = NODE_TAG_LOOP;
 					else if (token.val.match(/^(?:\%|raw)$/)) current_parent.type = NODE_TAG_RAW;
@@ -1373,7 +1373,7 @@ if (!Object.prototype.toJSON) {
 
 					// special handling for various tag types
 					if (current_parent.type === NODE_TAG_EXTEND ||
-						current_parent.type === NODE_TAG_INCL_VAR
+						current_parent.type === NODE_TAG_INSERT_VAR
 					) {
 						current_parent.close_header = _Grips.tokenizer.SIMPLE_CLOSE;
 						delete current_parent.children; // these tag types don't have `children`
@@ -1439,7 +1439,7 @@ if (!Object.prototype.toJSON) {
 					if (current_parent.type === NODE_TAG_EXTEND ||
 						current_parent.type === NODE_TAG_DEFINE ||
 						current_parent.type === NODE_TAG_INCL_TMPL ||
-						current_parent.type === NODE_TAG_INCL_VAR ||
+						current_parent.type === NODE_TAG_INSERT_VAR ||
 						current_parent.type === NODE_TAG_LOOP ||
 						current_parent.type === NODE_TAG_ESCAPE ||
 						current_parent.type === NODE_GENERAL_EXPR ||
@@ -1465,10 +1465,10 @@ if (!Object.prototype.toJSON) {
 				}
 				// NOTE: we ignore whitespace tokens if they're not inside a tag (parent)
 			}
-			// redefine include as a template-include?
+			// redefine insert as a template-include?
 			else if (token.type === _Grips.tokenizer.AT) {
 				if (current_parent &&
-					current_parent.type === NODE_TAG_INCL_VAR &&
+					current_parent.type === NODE_TAG_INSERT_VAR &&
 					current_parent.def.length === 0 // is the node's declaration not yet defined?
 				) {
 					current_parent.type = NODE_TAG_INCL_TMPL;
@@ -1482,7 +1482,7 @@ if (!Object.prototype.toJSON) {
 				if (current_parent &&
 					(
 						current_parent.type === NODE_TAG_INCL_TMPL ||
-						current_parent.type === NODE_TAG_INCL_VAR
+						current_parent.type === NODE_TAG_INSERT_VAR
 					) &&
 					current_parent.def.length === 0 // is the node's declaration not yet defined?
 				) {
@@ -2828,7 +2828,7 @@ if (!Object.prototype.toJSON) {
 
 			return node;
 		}
-		else if (node.type === NODE_TAG_INCL_VAR) {
+		else if (node.type === NODE_TAG_INSERT_VAR) {
 			if (!(node.main_expr && (ret = parse(node.main_expr)))) {
 				throw new ParserError("Expected EXPR for Tag",node) ||unknown_error;
 			}
@@ -2941,7 +2941,7 @@ if (!Object.prototype.toJSON) {
 						node.def = [ret];
 					}
 				}
-				else if (node.parent.type === NODE_TAG_INCL_VAR ||
+				else if (node.parent.type === NODE_TAG_INSERT_VAR ||
 					node.parent.type === NODE_TAG_LOOP
 				) {
 					err = validateRefExpr(node);
@@ -2999,7 +2999,7 @@ if (!Object.prototype.toJSON) {
 		NODE_TAG_EXTEND = 1,
 		NODE_TAG_DEFINE = 2,
 		NODE_TAG_INCL_TMPL = 3,
-		NODE_TAG_INCL_VAR = 4,
+		NODE_TAG_INSERT_VAR = 4,
 		NODE_TAG_LOOP = 5,
 		NODE_TAG_RAW = 6,
 		NODE_TAG_COMMENT = 7,
@@ -3036,7 +3036,7 @@ if (!Object.prototype.toJSON) {
 		TAG_EXTEND: NODE_TAG_EXTEND,
 		TAG_DEFINE: NODE_TAG_DEFINE,
 		TAG_INCL_TMPL: NODE_TAG_INCL_TMPL,
-		TAG_INCL_VAR: NODE_TAG_INCL_VAR,
+		TAG_INSERT_VAR: NODE_TAG_INSERT_VAR,
 		TAG_LOOP: NODE_TAG_LOOP,
 		TAG_RAW: NODE_TAG_RAW,
 		TAG_COMMENT: NODE_TAG_COMMENT,
@@ -3460,7 +3460,7 @@ if (!Object.prototype.toJSON) {
 		return code;
 	}
 
-	function tagIncludeVar(node) {
+	function tagInsertVar(node) {
 		var code = "", tmp = expr(node.main_expr);
 
 
@@ -3474,7 +3474,7 @@ if (!Object.prototype.toJSON) {
 		}
 
 		code += "} catch (err) {";
-		code += "return error(cID," + simpleNodeJSON(node.main_expr) + ",\"Include reference failed\",err);";
+		code += "return error(cID," + simpleNodeJSON(node.main_expr) + ",\"Insert reference failed\",err);";
 		code += "}";
 
 
@@ -3495,8 +3495,8 @@ if (!Object.prototype.toJSON) {
 			else if (child.type === _Grips.parser.TAG_INCL_TMPL) {
 				code += tagIncludeTemplate(child);
 			}
-			else if (child.type === _Grips.parser.TAG_INCL_VAR) {
-				code += tagIncludeVar(child);
+			else if (child.type === _Grips.parser.TAG_INSERT_VAR) {
+				code += tagInsertVar(child);
 			}
 			else if (child.type === _Grips.parser.TAG_ESCAPE) {
 				code += tagEscape(child);
