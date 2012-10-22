@@ -169,17 +169,8 @@ if (!Object.keys) {
 		}
 
 		function initialize(source) {
-			var script, script0;
-			if ("document" in global) {
-				script = document.createElement("script");
-				script.text = source;
-				script0 = document.getElementsByTagName("script")[0];
-				script0.parentNode.insertBefore(script,script0);
-			}
-			else {
-				script = new Function(source);
-				script.call(global);
-			}
+			var script = new Function(source);
+			script.call(global);
 		}
 
 		function initializeCollection(collectionID,source) {
@@ -1853,6 +1844,13 @@ if (!Object.keys) {
 					if (node.type === NODE_OPERATOR) {
 						// check for invalid simple expression operators
 						if (!node.val.match(/[.!\[\]\(\)]/)) {
+							return unknown_error;
+						}
+
+						// check for valid trailing operator
+						if (i === (expr.def.length-1) &&
+							!node.val.match(/[\]\)]/)
+						) {
 							return unknown_error;
 						}
 
