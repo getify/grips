@@ -3,16 +3,43 @@
 <head>
 <title>grips Templating Engine</title>
 
-<script src="https://raw.github.com/getify/grips/master/deploy/grips-full.debug.js"></script>
-<script>var GRIPS_DEBUG = grips.noConflict();</script>
-<script src="https://raw.github.com/getify/grips/master/deploy/grips-full.js"></script>
-<script>var GRIPS = grips.noConflict();</script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script src="//raw.github.com/getify/LABjs/master/LAB.min.js"></script>
+<script>
+
+var GRIPS_DEBUG_URL = "//raw.github.com/getify/grips/master/deploy/grips-full.debug.js";
+var GRIPS_URL = "//raw.github.com/getify/grips/master/deploy/grips-full.js";
+
+</script>
 
 </head>
 <body>
 
 <h1>grips Templating Engine</h1>
 <p>This is an online template playground for the <a href="http://github.com/getify/grips">grips Templating Engine</a>. <a href="https://github.com/getify/grips/blob/master/README.md">grips documentation</a> includes explanations of <a href="https://github.com/getify/grips#templating-syntax">grips syntax</a>, the <a href="https://github.com/getify/grips#using-the-javascript-api">grips API</a>, and <a href="https://github.com/getify/grips/tree/master/examples">grips template examples</a>.</p>
+
+<table cellpadding="25">
+	<tr>
+		<td>
+			Template Source:<br>
+			<textarea name="tsource" cols="50" rows="15"></textarea>
+		</td>
+		<td>
+			Render Data:<br>
+			<textarea name="tdata" cols="50" rows="15"></textarea>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Compiled Template:<br>
+			<textarea name="tcompiled" cols="50" rows="15"></textarea>
+		</td>
+		<td>
+			Render Output:<br>
+			<textarea name="rendered" cols="50" rows="15"></textarea>
+		</td>
+	</tr>
+</table>
 
 </body>
 </html>
