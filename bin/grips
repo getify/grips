@@ -61,7 +61,7 @@ function main() {
 			output = grips.compile(compiles);
 		}
 		catch (err) {
-			console.error("Compilation failed; " + err.toString() + (err.stack ? "\n" + err.stack : ""));
+			console.error("Compilation failed; " + err);
 			process.exit(1);
 		}
 
@@ -98,7 +98,7 @@ function main() {
 				output += grips.render(OPT_RENDER[i],data);
 			}
 			catch (err) {
-				console.error("Render failed [" + OPT_RENDER[i] + "]; " + err.toString() + (err.stack ? "\n" + err.stack : ""));
+				console.error("Render failed [" + OPT_RENDER[i] + "]; " + err.toString());
 				process.exit(1);
 			}
 		}
