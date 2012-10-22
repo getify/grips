@@ -480,7 +480,7 @@ if (!Object.prototype.toJSON) {
 ;
 
 
-(function __grips_tokenizer__(_Grips){
+(function __grips_tokenizer__(global,_Grips){
 
 	/* Token */
 	function Token(props) {
@@ -1042,12 +1042,12 @@ if (!Object.prototype.toJSON) {
 		Token: Token
 	};
 
-})(this.grips);
+})(this,this.grips);
 
 ;
 
 
-(function __grips_parser__(_Grips){
+(function __grips_parser__(global,_Grips){
 
 	/* Node */
 	function Node(props) {
@@ -3068,12 +3068,12 @@ if (!Object.prototype.toJSON) {
 
 	_Grips.parser = instance_api;
 
-})(this.grips);
+})(this,this.grips);
 
 ;
 
 
-(function __grips_generator__(_Grips){
+(function __grips_generator__(global,_Grips){
 
 	// From: https://gist.github.com/3667624
 	function escapeDoubleQuotes(str) {
@@ -3575,5 +3575,5 @@ if (!Object.prototype.toJSON) {
 		process: process
 	};
 
-})(this.grips);
+})(this,this.grips);
 

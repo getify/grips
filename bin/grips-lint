@@ -29,7 +29,7 @@ function build_lib() {
 		["base.js","tokenizer.js","parser.js","generator.js"].forEach(function(filename){
 			tmp = fs.readFileSync(path.join(DIR_LIB,filename),"utf8");
 			if (filename in injects) {
-				tmp = tmp.replace(/(\}\)\(this(?:\.grips)?\);)/,injects[filename]+"\n$1");
+				tmp = tmp.replace(/(\}\)\(this(?:,this\.grips)?\);)/,injects[filename]+"\n$1");
 			}
 			file_contents += ";" + tmp;
 		});
