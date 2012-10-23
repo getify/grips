@@ -217,5 +217,47 @@ foo
 
 
 
+	{$/ *** Include Partial Statically *** /$}
+
+{$define "#sample_tmpl_14" }{$raw
+{$define "#who" }
+   <b>{$insert $.who $}</b>
+{$}
+
+{$define "#main" }
+   Hello {$partial "#who" $}!
+{$}
+%$}{$}
+
+{$define "#sample_data_14" }
+{
+   "who": "World"
+}
+{$}
+
+
+
+	{$/ *** Include Partial Dynamically *** /$}
+
+{$define "#sample_tmpl_15" }{$raw
+{$define "#who" }
+   <b>{$insert $.who $}</b>
+{$}
+
+{$define "#main" |
+	who = $.who ? "#who"
+}
+   Hello {$partial who $}!
+{$}
+%$}{$}
+
+{$define "#sample_data_15" }
+{
+   "who": "World"
+}
+{$}
+
+
+
 
 

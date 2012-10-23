@@ -5,7 +5,10 @@
 
 <style>
 td { vertical-align:top; }
-td textarea { width:400px; }
+td textarea { width:400px; border:2px solid #999; font-size:14px; }
+#td_compiled textarea, #td_rendered textarea { outline:none; }
+td textarea.bad { border:2px solid red; }
+td textarea.good { border:2px solid green; }
 .source_error, .data_error, .render_error { padding:8px; display:none; background-color:red; color:white; font-weight:bold; font-size:14px; max-width:400px;
 	-moz-box-sizing:border-box; -webkit-box-sizing:border-box; box-sizing:border-box;
 }
@@ -18,7 +21,7 @@ td textarea { width:400px; }
 <p>This is an online template playground for the <a href="http://github.com/getify/grips">grips Templating Engine</a>. The <a href="https://github.com/getify/grips/blob/master/README.md">grips documentation</a> includes explanations of the <a href="https://github.com/getify/grips#templating-syntax">grips syntax</a>, the <a href="https://github.com/getify/grips#using-the-javascript-api">grips API</a>, and some simple <a href="https://github.com/getify/grips/tree/master/examples">grips template examples</a>.</p>
 
 <hr>
-<p><strong>NOTE:</strong> Try toggling the 'Use debug library build' setting to see the differences in the compiled code output, as well as how it affects template parsing and rendering error messages.
+<p><strong>NOTE:</strong> Try toggling the 'Use debug library build' setting to see the differences in the compiled code output, as well as how it affects error messages from template parsing and rendering.
 </p>
 <p>
 	Select a sample template:
@@ -26,6 +29,10 @@ td textarea { width:400px; }
 		<optgroup label="Hello World">
 			<option value="1">Hello World (long-form)</option>
 			<option value="2">Hello World (short-form)</option>
+		</optgroup>
+		<optgroup label="Template Partials">
+			<option value="14">Include Partial Statically</option>
+			<option value="15">Include Partial Dynamically</option>
 		</optgroup>
 		<optgroup label="Template Parsing Errors">
 			<option value="3">Template Parsing Error #1</option>

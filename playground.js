@@ -9,7 +9,7 @@ function nl2br(str) {
 function emptyCompiledRendered() {
 	$td_compiled.html(_GRIPS_.render("tmpls.html#td_compiled",{
 		compiles:[
-			{ 
+			{
 				collection_id: "n/a",
 				collection_compiled: ""
 			}
@@ -29,7 +29,8 @@ function updateCompileRender(sources,data) {
 
 	$LAB.script(src).wait(function(){
 		var i, to_compile, compile, compiles = [], rendered = "", render_error = "",
-			collection_id, data_context, partial_id = "#main", compiled = false
+			collection_id, data_context, partial_id = "#main",
+			compile_success = false, render_success = false
 		;
 
 		prev_sources = sources;
@@ -50,21 +51,30 @@ function updateCompileRender(sources,data) {
 				};
 				compiles.push(compile);
 
-				compile.collection_compiled = strip(grips.compile(to_compile,/*initialize=*/true))
+				compile.collection_compiled = strip(grips.compile(to_compile,/*initialize=*/true));
 				compile.collection_id = collection_id;
 			}
-			compiled = true;
+			compile_success = true;
 		}
 		catch (err) {
+			$td_source.find("textarea:eq(" + i + ")").addClass("bad");
 			$td_source.find(".source_error").html(nl2br(err.toString())).show();
 		}
 
 		$td_compiled.html(_GRIPS_.render("tmpls.html#td_compiled",{compiles:compiles}));
+		if (compile_success) {
+			$td_source.find("textarea").addClass("good");
+			$td_compiled.find("textarea").addClass("good");
+		}
 
 		try {
-			if (compiled && data) {
+			if (data) {
 				data_context = JSON.parse(data);
+				$td_data.find("textarea").addClass("good");
+			}
+			if (compile_success && data) {
 				rendered = grips.render(collection_id + partial_id,data_context);
+				render_success = true;
 			}
 			else {
 				collection_id = "n/a";
@@ -81,6 +91,7 @@ function updateCompileRender(sources,data) {
 			}
 			else {
 				$td_data.find(".data_error").html(nl2br(err.toString())).show();
+				$td_data.find("textarea").addClass("bad");
 			}
 			collection_id = "n/a";
 			partial_id = "";
@@ -95,6 +106,10 @@ function updateCompileRender(sources,data) {
 
 		if (render_error !== "") {
 			$td_rendered.find(".render_error").html(nl2br(render_error)).show();
+			$td_rendered.find("textarea").addClass("bad");
+		}
+		else if (render_success) {
+			$td_rendered.find("textarea").addClass("good");
 		}
 
 		grips.noConflict();
@@ -131,6 +146,8 @@ function changeSampleTemplate() {
 		case "11":
 		case "12":
 		case "13":
+		case "14":
+		case "15":
 			sources.push({
 				collection_id: "sample_tmpl_" + selected_sample_template,	
 				collection_source: strip(_GRIPS_.render("tmpls.html#sample_tmpl_" + selected_sample_template,{}))
