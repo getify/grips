@@ -217,11 +217,11 @@ if (!Object.prototype.toJSON) {
 
 			initCollectionRecord(collection_id);
 
-			collections[collection_id].partials[id.replace(/^.*#/,"#")] = function __handle_partial__(){
+			collections[collection_id].partials[id.replace(/^.*#/,"#")] = function __handle_partial__($,$$){
 				var _err, ret;
 
 				try {
-					ret = fn.apply(_Grips,arguments);
+					ret = fn($,$$);
 				}
 				catch (err) {
 

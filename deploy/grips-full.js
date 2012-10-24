@@ -100,11 +100,11 @@ if (!Object.keys) {
 
 			initCollectionRecord(collection_id);
 
-			collections[collection_id].partials[id.replace(/^.*#/,"#")] = function __handle_partial__(){
+			collections[collection_id].partials[id.replace(/^.*#/,"#")] = function __handle_partial__($,$$){
 				var  ret;
 
 				try {
-					ret = fn.apply(_Grips,arguments);
+					ret = fn($,$$);
 				}
 				catch (err) {
 
@@ -2792,7 +2792,7 @@ if (!Object.keys) {
 		var i, code = "", def;
 
 		code += "partial(function"  + "($,$$){";
-		code += "$ = clone($) || {};";
+		code += "$ = $ || {};";
 		code += "$$ = clone($$) || {};";
 		code += "var i, ret = \"\", ret2, _;";
 
@@ -2826,11 +2826,10 @@ if (!Object.keys) {
 	function tagLoop(node) {
 		var i, code = "", def;
 
-		code += "ret2 = (function"  + "($,$$,_){";
+		code += "ret2 = (function"  + "(){";
 		code += "function __iter__($,$$,value,key,index){";
 		code += "var i, ret = \"\", ret2, _;";
 		code += "if (value == null) return ret;";
-		code += "$ = clone($);";
 		code += "$$ = clone($$);";
 		code += "_ = {";
 		code += "value: value,";
@@ -2902,7 +2901,7 @@ if (!Object.keys) {
 
 
 		code += "return ret;";
-		code += "})(clone($),clone($$),clone(_));";
+		code += "})();";
 		code += templateErrorGuard("ret","ret2");
 
 		return code;

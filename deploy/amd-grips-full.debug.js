@@ -217,11 +217,11 @@ if (!Object.prototype.toJSON) {
 
 			initCollectionRecord(collection_id);
 
-			collections[collection_id].partials[id.replace(/^.*#/,"#")] = function __handle_partial__(){
+			collections[collection_id].partials[id.replace(/^.*#/,"#")] = function __handle_partial__($,$$){
 				var _err, ret;
 
 				try {
-					ret = fn.apply(_Grips,arguments);
+					ret = fn($,$$);
 				}
 				catch (err) {
 
@@ -3286,7 +3286,7 @@ if (!Object.prototype.toJSON) {
 		var i, code = "", def;
 
 		code += "partial(function" + " __" + identifierify(node.id.val.replace(/^.*#/,"")) + "__" + "($,$$){";
-		code += "$ = clone($) || {};";
+		code += "$ = $ || {};";
 		code += "$$ = clone($$) || {};";
 		code += "var i, ret = \"\", ret2, _;";
 
@@ -3328,11 +3328,10 @@ if (!Object.prototype.toJSON) {
 	function tagLoop(node) {
 		var i, code = "", def;
 
-		code += "ret2 = (function" + " __loop__ " + "($,$$,_){";
+		code += "ret2 = (function" + " __loop__ " + "(){";
 		code += "function __iter__($,$$,value,key,index){";
 		code += "var i, ret = \"\", ret2, _;";
 		code += "if (value == null) return ret;";
-		code += "$ = clone($);";
 		code += "$$ = clone($$);";
 		code += "_ = {";
 		code += "value: value,";
@@ -3418,7 +3417,7 @@ if (!Object.prototype.toJSON) {
 		code += "}";
 
 		code += "return ret;";
-		code += "})(clone($),clone($$),clone(_));";
+		code += "})();";
 		code += templateErrorGuard("ret","ret2");
 
 		return code;

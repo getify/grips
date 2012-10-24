@@ -100,11 +100,11 @@ if (!Object.keys) {
 
 			initCollectionRecord(collection_id);
 
-			collections[collection_id].partials[id.replace(/^.*#/,"#")] = function __handle_partial__(){
+			collections[collection_id].partials[id.replace(/^.*#/,"#")] = function __handle_partial__($,$$){
 				var  ret;
 
 				try {
-					ret = fn.apply(_Grips,arguments);
+					ret = fn($,$$);
 				}
 				catch (err) {
 
