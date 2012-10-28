@@ -271,6 +271,18 @@ Using a loop the above can be even more terse:
 {$}
 ```
 
+Here's a "trick" for even more terseness, by iterating over the pre-computed comparison hash:
+
+```
+{$: "#bar" |
+	checked[0..2] = $.myradio ? "checked"
+}
+	{$* checked }
+		<input type="radio" name="myradio" value="{$= _.key $}" {$= _.value $}>
+	{$}
+{$}
+```
+
 Pre-computation with a set-literal:
 
 ```
