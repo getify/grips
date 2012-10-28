@@ -259,5 +259,49 @@ foo
 
 
 
+	{$/ *** Pre-computation Comparisons #1 *** /$}
+
+{$define "#sample_tmpl_16" }{$raw
+{$define "#main" |
+	checked[0..2] = $.myradio ? "checked"
+}
+   <input type="radio" name="myradio" value="0" {$insert checked[0] $}> 0
+   <input type="radio" name="myradio" value="1" {$insert checked[1] $}> 1
+   <input type="radio" name="myradio" value="2" {$insert checked[2] $}> 2
+{$}
+%$}{$}
+
+{$define "#sample_data_16" }
+{
+   "myradio": 2
+}
+{$}
+
+
+
+	{$/ *** Pre-computation Comparisons #2 *** /$}
+
+{$define "#sample_tmpl_17" }{$raw
+
+{$comment NOTE: this is a little bit of a "hack" (aka "shortcut") to loop over the pre-computation hash, to avoid having to specify the values range twice. /$}
+
+
+{$define "#main" |
+	options[0..2] = $.myradio ? "checked"
+}
+   {$loop options }
+      <input type="radio" name="myradio" value="{$insert _.key $}" {$insert _.value $}> {$insert _.key $}
+   {$}
+{$}
+%$}{$}
+
+{$define "#sample_data_17" }
+{
+   "myradio": 2
+}
+{$}
+
+
+
 
 
