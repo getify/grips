@@ -1,6 +1,5 @@
 # grips Templating Engine
 
-<style>#trygrips a{display:block;text-align:center;background-color:#f29400;padding:6px 0px;border:1px solid #000;color:#000;}#trygrips a:hover{color:#825500}</style>
 <h3 id="trygrips"><a href="http://getify.github.com/grips/" target="_blank">Try Grips Online</a></h3>
 
 grips is a simple-logic templating engine written in JavaScript. It's designed to work either/both in the browser or on the server, with the same code-base and the same template files.
