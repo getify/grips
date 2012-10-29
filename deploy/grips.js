@@ -11,6 +11,12 @@ if (!Object.keys) {
 		return r;
 	};
 }
+// non-ES5 polyfill for Array.isArray
+if (!Array.isArray) {
+	Array.isArray = function __Array_isArray__(o) {
+		return Object.prototype.toString(o) === "[object Array]";
+	};
+}
 
 
 
@@ -48,7 +54,7 @@ if (!Object.keys) {
 			var i, ret, ret2;
 			if (typeof obj === "object") {
 				if (obj === null) return obj;
-				if (Object.prototype.toString.call(obj) === "[object Array]") {
+				if (Array.isArray(obj)) {
 					ret = [];
 					for (i = 0; i < obj.length; i++) {
 						if (typeof obj[i] === "object") {

@@ -71,7 +71,10 @@
 
 
 
-{$: "#links" }
+{$: "#links" |
+	fave[-1..6] = $.favenum ? "*" |
+	partychoice["yes","no","maybe"] = $.mychoice ? "X" : " "
+}
 	<ul>
 	{$/ loop over the "links" array /$}
 	{$loop $.links }
@@ -81,13 +84,11 @@
 	</ul>
 
 	Some numbers (* is my favorite):
-	{$loop [-1..6] | fave[-1..6] = $.favenum ? "*" }{$= fave[_.value] $}{$= _.value $} {$}
+	{$loop fave }{$= _.value $}{$= _.key $} {$}
 
 	Will I be going to the party:
-	{$* ["yes","no","maybe"] |
-		chosen["yes","no","maybe"] = $.mychoice ? "X" : " "
-	}
-		{$= chosen[_.value] $} {$= _.value $}
+	{$* partychoice }
+		{$= _.value $} {$= _.key $}
 	{$}
 {$}
 

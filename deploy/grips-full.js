@@ -11,6 +11,12 @@ if (!Object.keys) {
 		return r;
 	};
 }
+// non-ES5 polyfill for Array.isArray
+if (!Array.isArray) {
+	Array.isArray = function __Array_isArray__(o) {
+		return Object.prototype.toString(o) === "[object Array]";
+	};
+}
 
 
 
@@ -48,7 +54,7 @@ if (!Object.keys) {
 			var i, ret, ret2;
 			if (typeof obj === "object") {
 				if (obj === null) return obj;
-				if (Object.prototype.toString.call(obj) === "[object Array]") {
+				if (Array.isArray(obj)) {
 					ret = [];
 					for (i = 0; i < obj.length; i++) {
 						if (typeof obj[i] === "object") {
@@ -127,7 +133,7 @@ if (!Object.keys) {
 			// default `initialize` to `true`
 			initialize = (initialize !== false);
 
-			if (Object.prototype.toString.call(sources) === "[object Array]") {
+			if (Array.isArray(sources)) {
 				for (i=0; i<sources.length; i++) {
 					ret += compileCollection(sources[i],null,initialize);
 				}
@@ -2632,12 +2638,12 @@ if (!Object.keys) {
 	function startCollection(node) {
 		var code = "";
 		code += "(function"  + "(G){";
-		code += "function __sort_fn__(a,b){ return a-b; }";
-		code += "var partial = G.definePartial, clone = G.cloneObj, extend = G.extend, esc = G.strEscapes,";
+			code += "function __sort_fn__(a,b){ return a-b; }";
+			code += "var partial = G.definePartial, clone = G.cloneObj, extend = G.extend, esc = G.strEscapes,";
 
-		code += "unerr = new Error(\"Unknown error\"),";
-		code += "RLH = G.RangeLiteralHash,";
-		code += "cID = \"" + node.start + "\";";
+			code += "unerr = new Error(\"Unknown error\"),";
+			code += "RLH = G.RangeLiteralHash,";
+			code += "cID = \"" + node.start + "\";";
 		return code;
 	}
 
@@ -2792,7 +2798,6 @@ if (!Object.keys) {
 		var i, code = "", def;
 
 		code += "partial(function"  + "($,$$){";
-		code += "$ = $ || {};";
 		code += "$$ = clone($$) || {};";
 		code += "var i, ret = \"\", ret2, _;";
 
@@ -2828,18 +2833,18 @@ if (!Object.keys) {
 
 		code += "ret2 = (function"  + "(){";
 		code += "function __iter__($,$$,value,key,index){";
-		code += "var i, ret = \"\", ret2, _;";
-		code += "if (value == null) return ret;";
-		code += "$$ = clone($$);";
-		code += "_ = {";
-		code += "value: value,";
-		code += "key: key,";
-		code += "index: index,";
-		code += "even: (index % 2) === 0,";
-		code += "odd: (index % 2) === 1,";
-		code += "first: (index === 0),";
-		code += "last: (index === len - 1)";
-		code += "};";
+			code += "var i, ret = \"\", ret2, _;";
+			code += "if (value == null) return ret;";
+			code += "$$ = clone($$);";
+			code += "_ = {";
+				code += "value: value,";
+				code += "key: key,";
+				code += "index: index,";
+				code += "even: (index % 2) === 0,";
+				code += "odd: (index % 2) === 1,";
+				code += "first: (index === 0),";
+				code += "last: (index === len - 1)";
+			code += "};";
 		for (i=1; i<node.def.length; i++) {
 			def = node.def[i];
 
@@ -2869,33 +2874,28 @@ if (!Object.keys) {
 		else {
 			code += "it = " + expr(node.main_expr) + ";";
 			code += "if (it == null) {";
-			code += "return \"\";";
+				code += "return \"\";";
 			code += "}";
-			code += "if (Object.prototype.toString.call(it) === \"[object Array]\") {";
-			code += "len = it.length;";
-			code += "for (i=0; i<len; i++) {";
-			code += "ret2 = __iter__($,$$,it[i],\"\"+i,i);";
-			code += templateErrorGuard("ret","ret2");
-			code += "}";
+			code += "if (Array.isArray(it)) {";
+				code += "len = it.length;";
+				code += "for (i=0; i<len; i++) {";
+					code += "ret2 = __iter__($,$$,it[i],\"\"+i,i);";
+					code += templateErrorGuard("ret","ret2");
+				code += "}";
 			code += "} else if (typeof it === \"object\") {";
-			code += "tmp = Object.keys(it);";
-			code += "len = tmp.length;";
-			code += "if (it instanceof RLH) {"; // are we iterating over a previously declared RangeLiteralHash?
-			code += "tmp.sort(__sort_fn__);"; // work around Chrome-V8's buggy iteration order for "numeric" keys: http://code.google.com/p/v8/issues/detail?id=164
-			code += "for (i=0; i<len; i++) {";
-			code += "ret2 = __iter__($,$$,it[tmp[i]],tmp[i],i);";
-			code += templateErrorGuard("ret","ret2");
-			code += "}";
+				code += "tmp = Object.keys(it);";
+				code += "len = tmp.length;";
+				code += "if (it instanceof RLH) {"; // are we iterating over a previously declared RangeLiteralHash?
+					code += "tmp.sort(__sort_fn__);"; // work around Chrome-V8's buggy iteration order for "numeric" keys: http://code.google.com/p/v8/issues/detail?id=164
+				code += "}";
+				code += "for (i=0; i<len; i++) {";
+					code += "ret2 = __iter__($,$$,it[tmp[i]],tmp[i],i);";
+					code += templateErrorGuard("ret","ret2");
+				code += "}";
 			code += "} else {";
-			code += "for (i in it) { if (it.hasOwnProperty(i)) {";
-			code += "ret2 = __iter__($,$$,it[i],i,j++);";
-			code += templateErrorGuard("ret","ret2");
-			code += "}}";
-			code += "}";
-			code += "} else {";
-			code += "return ";
+				code += "return ";
 
-			code += "unerr;";
+				code += "unerr;";
 			code += "}";
 		}
 
@@ -2913,11 +2913,11 @@ if (!Object.keys) {
 		tmp = expr(node.context_expr);
 
 
-		code += "ret2 = " + tmp + ";";
+			code += "ret2 = " + tmp + ";";
 
 
 
-		code += "ret2 = G.render(" + expr(node.main_expr) + ",ret2,$$);";
+			code += "ret2 = G.render(" + expr(node.main_expr) + ",ret2,$$);";
 
 		if (node.escapes) {
 			code += "ret2 = esc(ret2," + JSON.stringify(node.escapes) + ");";
@@ -2971,7 +2971,7 @@ if (!Object.keys) {
 		var code = "";
 
 
-		code += collector + " += " + test + ";";
+			code += collector + " += " + test + ";";
 
 
 		return code;

@@ -2,3 +2,4 @@
 deploy/
 node-grips.js
 node-grips-debug.js
+test-examples.sh

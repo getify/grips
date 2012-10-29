@@ -11,6 +11,12 @@ if (!Object.keys) {
 		return r;
 	};
 }
+// non-ES5 polyfill for Array.isArray
+if (!Array.isArray) {
+	Array.isArray = function __Array_isArray__(o) {
+		return Object.prototype.toString(o) === "[object Array]";
+	};
+}
 
 
 // non-ES5 polyfill for Object.create()
@@ -51,7 +57,7 @@ if (!Object.prototype.toJSON) {
 
 			var idx, tmp, tmp2;
 
-			if (Object.prototype.toString.call(obj) === "[object Array]") {
+			if (Array.isArray(obj)) {
 				refs.push(obj);
 				tmp = [];
 				for (idx=0; idx<obj.length; idx++) {
@@ -156,7 +162,7 @@ if (!Object.prototype.toJSON) {
 			var i, ret, ret2;
 			if (typeof obj === "object") {
 				if (obj === null) return obj;
-				if (Object.prototype.toString.call(obj) === "[object Array]") {
+				if (Array.isArray(obj)) {
 					ret = [];
 					for (i = 0; i < obj.length; i++) {
 						if (typeof obj[i] === "object") {
