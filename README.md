@@ -1,14 +1,13 @@
 # grips Templating Engine
 
-**NOTE: this project used to be called "HandlebarJS". To avoid confusion with the newer but more popular "Handlebars" templating engine from @wycats, I'm renaming this project to "grips".**
+<style>#trygrips a{display:block;text-align:center;background-color:#f29400;padding:6px 0px;border:1px solid #000;color:#000;}#trygrips a:hover{color:#825500}</style>
+<h3 id="trygrips"><a href="http://getify.github.com/grips/" target="_blank">Try Grips Online</a></h3>
 
-grips is a simple templating engine written in JavaScript. It's designed to work either/both in the browser or on the server, with the same code-base and the same template files.
+grips is a simple-logic templating engine written in JavaScript. It's designed to work either/both in the browser or on the server, with the same code-base and the same template files.
 
-grips takes as its only input data in a simple JSON data-dictionary format, and returns output from the template(s) selected.
+grips will "compile" requested templates into JavaScript functions, which takes JSON data as input and returns the rendered string output. The compilation of templates can either be on-demand, or they can be pre-compiled in a build process and used later.
 
-grips will "compile" requested templates into executable JavaScript functions, which take the JSON data dictionary as input and return the output. The compilation of templates can either be JIT (at request time) or pre-compiled in a build process.
-
-The design philosophy behind grips is not to be remarkable for what it can do, but to be remarkable for what it cannot do. That is, to say, that grips wants to be as restrained in functionality as is necessary to accomplish all reasonable templating tasks.
+The design philosophy behind grips is not to be remarkable for what it can do, but to be **remarkable for what it cannot do**. That is to say, grips is as restrained in functionality as is necessary to accomplish all reasonable templating tasks.
 
 If you find yourself needing to do something in templating that you cannot do with the features that grips provides, there's a good chance you're doing something you shouldn't be doing in templating. The goal is a minimal but capable set of logic for templating which in its limitations enforces (and encourages) responsible separation-of-concerns.
 
