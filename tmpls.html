@@ -303,5 +303,32 @@ foo
 
 
 
+	{$/ *** Pre-computation Comparisons #3 *** /$}
+
+{$define "#sample_tmpl_18" }{$raw
+{$define "#main" }
+   <h1>Settings</h1>
+   {$loop $.settings |
+      name = _.key |
+      options["low","high"] = _.value ? "checked"
+   }
+      <h2>{$insert name $}</h2>
+      {$loop options }
+         <input type="radio" name="{$insert name $}" value="{$insert _.key $}" {$insert _.value $}> {$insert _.key $}
+      {$}
+   {$}
+{$}
+%$}{$}
+
+{$define "#sample_data_18" }
+{
+    "settings" : {
+        "foo" : "low",
+        "bar" : "high",
+        "baz" : "low"
+    }
+}
+{$}
+
 
 

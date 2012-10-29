@@ -150,6 +150,7 @@ function changeSampleTemplate() {
 		case "15":
 		case "16":
 		case "17":
+		case "18":
 			sources.push({
 				collection_id: "sample_tmpl_" + selected_sample_template,	
 				collection_source: strip(_GRIPS_.render("tmpls.html#sample_tmpl_" + selected_sample_template,{}))
