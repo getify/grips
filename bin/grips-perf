@@ -9,9 +9,9 @@ function printHelp() {
 	console.log("usage: grips-perf opt [, ..opt]");
 	console.log("");
 	console.log("options:");
-	console.log("--help                                    show this help");
+	console.log("--help                 show this help");
 	console.log("");
-	console.log("--nodebug                                 use the non-debug library");
+	console.log("--nodebug              use the non-debug library");
 	console.log("");
 }
 
@@ -52,46 +52,6 @@ function setupTest() {
 	};
 
 	return setup;
-}
-
-function runTests(setupFn,fn,numTests,duration) {
-	var i, j, start, end, total, count, setup, setups, test_source;
-
-	// first establish the estimated iteration count necessary to get the requested duration
-	end = start = Date.now();
-	for (i=0; i<25 || end===start; i++) {
-		fn(setupFn());
-		end = Date.now();
-	}
-	total = (end-start) / (i-1);
-	count = Math.ceil(Math.max(50,(duration / total)));
-
-	// next, let's actually time the test
-	total = 0;
-
-	// repeat the test to average the times
-	for (i=0; i<numTests; i++) {
-		setups = [];
-		// run the setup
-		for (j=0; j<count; j++) {
-			setups[j] = setupFn();
-		}
-
-		// setup code for test
-		j = count;
-		test_source = "";
-		test_source += "start = Date.now();";
-		test_source += "for (; j; j--) {";
-		test_source += "setup = setups[j-1];";
-		test_source += fn.toString().replace(/^function[^\{]+\{/,"").replace(/\}$/,"");
-		test_source += "}";
-		test_source += "total += (Date.now() - start);";
-
-		// run and time the test
-		eval(test_source);
-	}
-
-	return total / count / numTests;
 }
 
 function showResults(description,opsPerSecond) {
