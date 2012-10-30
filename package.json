@@ -1,19 +1,21 @@
 {
   "name": "grips",
-  "version": "0.2.4-a",
+  "version": "0.2.4-b",
   "description": "grips templating engine",
   "main": "./node-base.js",
   "bin": {
     "grips-build": "./bin/grips-build",
     "grips": "./bin/grips",
-    "grips-lint": "./bin/grips-lint"
+    "grips-lint": "./bin/grips-lint",
+    "grips-perf": "./bin/grips-perf"
   },
   "directories": {
     "example": "./examples",
     "lib": "./lib"
   },
   "optionalDependencies": {
-    "uglify-js": "~1.3.3"
+    "uglify-js": "~1.3.3",
+    "benchmark": "~1.0.0"
   },
   "scripts": {
     "install": "./bin/grips-build --all",

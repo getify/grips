@@ -560,6 +560,22 @@ options:
 --file=file                               specify a collection file to be checked
 ```
 
+## Performance Benchmarks
+
+Performance optimization is not really a primary design-goal of grips. If you were simply wanting the fastest performance possible, raw JavaScript written specifically to produce your desired strings would be the limit. Any "templating" logic involved would be boilerplate which couldn't help but "get in the way" and slow it down, even just a little bit.
+
+grips is far more concerned with creating a proper and responsible templating language and environment. However, performance cannot be ignored, because a templating engine which is impractically slow for real-world usage does no good.
+
+As such, grips participates in some of the performance benchmarking by which other engines are tested, to make sure that its performance is acceptable and balanced against its feature set.
+
+[Revision 46 of the "JavaScript Templating Shootoff"](http://jsperf.com/javascript-templating-shootoff-extended/46) includes grips tests. In general, grips is performing well, comparable to other well known engines like Dust.js.
+
+[grips performance](http://jsperf.com/grips-performance/3) is a grips-specific performance test (using the same template snippet from the "shootoff"), which is used for regression testing as grips is improved going forward.
+
+The main takeaway from these numbers is that, in general, grips can render thousands of partials in just a few milliseconds, which means that it almost certainly will never be a performance bottleneck in your client-side application.
+
+The `grips-perf` tool runs the templating scenario from [grips performance](http://jsperf.com/grips-performance/3) test in node.js (using benchmark.js) and reports benchmark numbers for 3 different tests: "compilation", "direct-partial" (from partials cache), and "render()".
+
 ## License
 
 grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/

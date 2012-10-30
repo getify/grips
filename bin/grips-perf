@@ -1,0 +1,198 @@
+#!/usr/bin/env node
+
+/* grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/ */
+
+function printHelp() {
+	console.log("node.js performance benchmarking for grips templating engine");
+	console.log("(c) 2012 Kyle Simpson | http://getify.mit-license.org/");
+	console.log("");
+	console.log("usage: grips-perf opt [, ..opt]");
+	console.log("");
+	console.log("options:");
+	console.log("--help                                    show this help");
+	console.log("");
+	console.log("--nodebug                                 use the non-debug library");
+	console.log("");
+}
+
+function usageError(msg) {
+	console.log(msg);
+	console.log("");
+	printHelp();
+	process.exit(1);
+}
+
+function getGrips() {
+	function sandbox() {
+		eval(FILE_CONTENTS);
+	}
+	return (new sandbox()).grips;
+}
+
+function setupTest() {
+	var setup = {};
+
+	setup.grips = getGrips();
+
+	// test scenario from these perf benchmarks: http://jsperf.com/grips-performance/3
+	setup.grips.compileCollection(
+		"{$define '#main' }<div><h1 class='header'>{$insert $.header $}</h1><h2 class='header2'>{$insert $.header2 $}</h2><h3 class='header3'>{$insert $.header3 $}</h3><h4 class='header4'>{$insert $.header4 $}</h4><h5 class='header5'>{$insert $.header5 $}</h5><h6 class='header6'>{$insert $.header6 $}</h6><ul class='list'>{$loop $.list }<li class='item'>{$= _.value $}</li>{$}</ul></div>{$}",
+		"grips",
+		/*initialize=*/true
+	);
+
+	setup.data = {
+		"header": "Header",
+		"header2": "Header2",
+		"header3": "Header3",
+		"header4": "Header4",
+		"header5": "Header5",
+		"header6": "Header6",
+		"list": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+	};
+
+	return setup;
+}
+
+function runTests(setupFn,fn,numTests,duration) {
+	var i, j, start, end, total, count, setup, setups, test_source;
+
+	// first establish the estimated iteration count necessary to get the requested duration
+	end = start = Date.now();
+	for (i=0; i<25 || end===start; i++) {
+		fn(setupFn());
+		end = Date.now();
+	}
+	total = (end-start) / (i-1);
+	count = Math.ceil(Math.max(50,(duration / total)));
+
+	// next, let's actually time the test
+	total = 0;
+
+	// repeat the test to average the times
+	for (i=0; i<numTests; i++) {
+		setups = [];
+		// run the setup
+		for (j=0; j<count; j++) {
+			setups[j] = setupFn();
+		}
+
+		// setup code for test
+		j = count;
+		test_source = "";
+		test_source += "start = Date.now();";
+		test_source += "for (; j; j--) {";
+		test_source += "setup = setups[j-1];";
+		test_source += fn.toString().replace(/^function[^\{]+\{/,"").replace(/\}$/,"");
+		test_source += "}";
+		test_source += "total += (Date.now() - start);";
+
+		// run and time the test
+		eval(test_source);
+	}
+
+	return total / count / numTests;
+}
+
+function showResults(description,opsPerSecond) {
+	var opsPerMs = opsPerSecond / 1000;
+	console.log(description + ": " + (Math.round(opsPerSecond * 100) / 100) + "[op/s]     " + (Math.round(opsPerMs * 100) / 100) + "[op/ms]");
+}
+
+
+var path = require("path"),
+	fs = require("fs"),
+	benchmark = require("benchmark"),
+
+	DIR_LIB = path.join(__dirname,"..","lib"),
+	DIR_ROOT = path.join(__dirname,".."),
+
+	OPT_NO_DEBUG = false,
+
+	FILE_CONTENTS = "",
+	STRIP_BUILD_TAGS = /\/\* ST(?:ART|OP)_(?:DEBUG|COMPILER) \*\//g,
+	STRIP_DEBUG = /\/\* START_DEBUG[\s\S]*?STOP_DEBUG \*\//g,
+
+	results,
+
+	bench1,
+	bench2,
+	bench3
+;
+
+process.argv.slice(2).forEach(function(arg){
+	var tmp;
+	switch (arg) {
+		case "--help":
+			printHelp();
+			process.exit(1);
+			break;
+		case "--nodebug":
+			OPT_NO_DEBUG = true;
+			break;
+		default:
+			break;
+	}
+});
+
+["base.js","tokenizer.js","parser.js","generator.js"].forEach(function(filename){
+	FILE_CONTENTS += ";" + fs.readFileSync(path.join(DIR_LIB,filename),"utf8");
+});
+
+// load/build grips lib from files
+if (OPT_NO_DEBUG) {
+	FILE_CONTENTS = FILE_CONTENTS.replace(STRIP_DEBUG,"").replace(STRIP_BUILD_TAGS,"");
+}
+else {
+	FILE_CONTENTS = FILE_CONTENTS.replace(STRIP_BUILD_TAGS,"");
+}
+
+this.getGrips = getGrips;
+
+// compilation benchmark
+bench1 = new benchmark.Benchmark("bench1",{
+	getGrips: getGrips,
+	setup: "\
+		var c = this.count, setups = [], i, idx = 0;\
+		for (i=0; i<c; i++) {\
+			setups.push({\
+				grips: this.options.getGrips()\
+			});\
+		}\
+	",
+	fn: "\
+		setups[idx++].grips.compileCollection(\
+			\"{$define '#main' }<div><h1 class='header'>{$insert $.header $}</h1><h2 class='header2'>{$insert $.header2 $}</h2><h3 class='header3'>{$insert $.header3 $}</h3><h4 class='header4'>{$insert $.header4 $}</h4><h5 class='header5'>{$insert $.header5 $}</h5><h6 class='header6'>{$insert $.header6 $}</h6><ul class='list'>{$loop $.list }<li class='item'>{$= _.value $}</li>{$}</ul></div>{$}\",\
+			\"grips\",\
+			false\
+		);\
+	",
+	onComplete: function(){
+		showResults("Compilation",bench1.hz);
+	}
+});
+
+// rendering with direct-partial benchmark
+bench2 = new benchmark.Benchmark("bench2",{
+	setupTest: setupTest,
+	setup: "var setup = this.options.setupTest();",
+	fn: "setup.grips.collections[\"grips\"].partials[\"#main\"](setup.data);",
+	onComplete: function(){
+		showResults("Direct-partial",bench2.hz);
+	}
+});
+
+// rendering with render() benchmark
+bench3 = new benchmark.Benchmark("bench3",{
+	setupTest: setupTest,
+	setup: "var setup = this.options.setupTest();",
+	fn: "setup.grips.render(\"grips#main\",setup.data);",
+	onComplete: function(){
+		showResults("render()",bench3.hz);
+	}
+});
+
+bench1.run();
+bench2.run();
+bench3.run();
+
