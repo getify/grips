@@ -6,7 +6,7 @@ function printHelp() {
 	console.log("node.js performance benchmarking for grips templating engine");
 	console.log("(c) 2012 Kyle Simpson | http://getify.mit-license.org/");
 	console.log("");
-	console.log("usage: grips-perf opt [, ..opt]");
+	console.log("usage: grips-perf [opt, ..opt]");
 	console.log("");
 	console.log("options:");
 	console.log("--help                 show this help");
@@ -15,6 +15,7 @@ function printHelp() {
 	console.log("");
 }
 
+// NOTE: not used yet, but will be eventually
 function usageError(msg) {
 	console.log(msg);
 	console.log("");
@@ -22,25 +23,28 @@ function usageError(msg) {
 	process.exit(1);
 }
 
+// create a grips module instance
 function getGrips() {
 	function sandbox() {
+		// this is a hack to get a new copy of the grips module for
+		// each 'compilation' test run, because `require()` caches the
+		// module instance :(
 		eval(FILE_CONTENTS);
 	}
 	return (new sandbox()).grips;
 }
 
+// setup used by the 'direct-partial' and 'render()' tests to create
+// a single grips instance with the template already compiled, to be
+// reused in each test run
 function setupTest() {
 	var setup = {};
 
 	setup.grips = getGrips();
 
-	// test scenario from these perf benchmarks: http://jsperf.com/grips-performance/3
-	setup.grips.compileCollection(
-		"{$define '#main' }<div><h1 class='header'>{$insert $.header $}</h1><h2 class='header2'>{$insert $.header2 $}</h2><h3 class='header3'>{$insert $.header3 $}</h3><h4 class='header4'>{$insert $.header4 $}</h4><h5 class='header5'>{$insert $.header5 $}</h5><h6 class='header6'>{$insert $.header6 $}</h6><ul class='list'>{$loop $.list }<li class='item'>{$= _.value $}</li>{$}</ul></div>{$}",
-		"grips",
-		/*initialize=*/true
-	);
+	setup.grips.compileCollection(template,/*collectionID=*/"grips",/*initialize=*/true);
 
+	// render test data
 	setup.data = {
 		"header": "Header",
 		"header2": "Header2",
@@ -56,7 +60,10 @@ function setupTest() {
 
 function showResults(description,opsPerSecond) {
 	var opsPerMs = opsPerSecond / 1000;
-	console.log(description + ": " + (Math.round(opsPerSecond * 100) / 100) + "[op/s]     " + (Math.round(opsPerMs * 100) / 100) + "[op/ms]");
+	console.log(description + ": " +
+		(Math.round(opsPerSecond * 100) / 100) + "[op/s]     " +
+		(Math.round(opsPerMs * 100) / 100) + "[op/ms]"
+	);
 }
 
 
@@ -73,13 +80,21 @@ var path = require("path"),
 	STRIP_BUILD_TAGS = /\/\* ST(?:ART|OP)_(?:DEBUG|COMPILER) \*\//g,
 	STRIP_DEBUG = /\/\* START_DEBUG[\s\S]*?STOP_DEBUG \*\//g,
 
-	results,
+	// test scenario from these perf benchmarks: http://jsperf.com/grips-performance/3
+	template = "\
+{$define '#main' }<div><h1 class='header'>{$insert $.header $}</h1>\
+<h2 class='header2'>{$insert $.header2 $}</h2><h3 class='header3'>\
+{$insert $.header3 $}</h3><h4 class='header4'>{$insert $.header4 $}\
+</h4><h5 class='header5'>{$insert $.header5 $}</h5><h6 class='header6'>\
+{$insert $.header6 $}</h6><ul class='list'>{$loop $.list }<li class='item'>\
+{$= _.value $}</li>{$}</ul></div>{$}",
 
-	bench1,
-	bench2,
-	bench3
+	bench1, // "compilation" test benchmark
+	bench2, // "direct-partial" test benchmark
+	bench3  // "render()" test benchmark
 ;
 
+// process any CLI arguments
 process.argv.slice(2).forEach(function(arg){
 	var tmp;
 	switch (arg) {
@@ -95,11 +110,12 @@ process.argv.slice(2).forEach(function(arg){
 	}
 });
 
+// load the grips module files and combine them into a single code string
 ["base.js","tokenizer.js","parser.js","generator.js"].forEach(function(filename){
 	FILE_CONTENTS += ";" + fs.readFileSync(path.join(DIR_LIB,filename),"utf8");
 });
 
-// load/build grips lib from files
+// build the debug or non-debug version of the code string
 if (OPT_NO_DEBUG) {
 	FILE_CONTENTS = FILE_CONTENTS.replace(STRIP_DEBUG,"").replace(STRIP_BUILD_TAGS,"");
 }
@@ -107,9 +123,7 @@ else {
 	FILE_CONTENTS = FILE_CONTENTS.replace(STRIP_BUILD_TAGS,"");
 }
 
-this.getGrips = getGrips;
-
-// compilation benchmark
+// "compilation" benchmark
 bench1 = new benchmark.Benchmark("bench1",{
 	getGrips: getGrips,
 	setup: "\
@@ -122,7 +136,7 @@ bench1 = new benchmark.Benchmark("bench1",{
 	",
 	fn: "\
 		setups[idx++].grips.compileCollection(\
-			\"{$define '#main' }<div><h1 class='header'>{$insert $.header $}</h1><h2 class='header2'>{$insert $.header2 $}</h2><h3 class='header3'>{$insert $.header3 $}</h3><h4 class='header4'>{$insert $.header4 $}</h4><h5 class='header5'>{$insert $.header5 $}</h5><h6 class='header6'>{$insert $.header6 $}</h6><ul class='list'>{$loop $.list }<li class='item'>{$= _.value $}</li>{$}</ul></div>{$}\",\
+			\"" + template + "\",\
 			\"grips\",\
 			false\
 		);\
@@ -132,7 +146,7 @@ bench1 = new benchmark.Benchmark("bench1",{
 	}
 });
 
-// rendering with direct-partial benchmark
+// rendering with "direct-partial" benchmark
 bench2 = new benchmark.Benchmark("bench2",{
 	setupTest: setupTest,
 	setup: "var setup = this.options.setupTest();",
@@ -142,7 +156,7 @@ bench2 = new benchmark.Benchmark("bench2",{
 	}
 });
 
-// rendering with render() benchmark
+// rendering with "render()" benchmark
 bench3 = new benchmark.Benchmark("bench3",{
 	setupTest: setupTest,
 	setup: "var setup = this.options.setupTest();",
@@ -152,7 +166,7 @@ bench3 = new benchmark.Benchmark("bench3",{
 	}
 });
 
+// actually run the performance benchmarks
 bench1.run();
 bench2.run();
 bench3.run();
-
