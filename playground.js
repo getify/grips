@@ -152,10 +152,33 @@ function changeSampleTemplate() {
 		case "17":
 		case "18":
 		case "19":
+		case "20":
+		case "21":
+		case "22":
+		case "23":
+		case "24":
+		case "25":
+		case "26":
+		case "27":
 			sources.push({
 				collection_id: "sample_tmpl_" + selected_sample_template,
 				collection_source: strip(_GRIPS_.render("tmpls.html#sample_tmpl_" + selected_sample_template,{}))
 			});
+			render_data = strip(_GRIPS_.render("tmpls.html#sample_data_" + selected_sample_template,{}));
+			break;
+		case "28":
+		case "29":
+		case "30":
+			sources.push(
+				{
+					collection_id: "sample_tmpl_" + selected_sample_template + "_a",
+					collection_source: strip(_GRIPS_.render("tmpls.html#sample_tmpl_" + selected_sample_template + "_a",{}))
+				},
+				{
+					collection_id: "sample_tmpl_" + selected_sample_template + "_b",
+					collection_source: strip(_GRIPS_.render("tmpls.html#sample_tmpl_" + selected_sample_template + "_b",{}))
+				}
+			);
 			render_data = strip(_GRIPS_.render("tmpls.html#sample_data_" + selected_sample_template,{}));
 			break;
 		default:

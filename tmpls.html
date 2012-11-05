@@ -2,8 +2,8 @@
 {$define "#td_source" }
 {$loop $.sources }
 <p>
-	Template Source (<span class="source_collection_id">{$insert~h _.value.collection_id $}</span>):<br>
-	<textarea class="tsource" data-collection-id="{$insert~s _.value.collection_id $}" rows="15">{$insert~h _.value.collection_source $}</textarea>
+   Template Source (<span class="source_collection_id">{$insert~h _.value.collection_id $}</span>):<br>
+   <textarea class="tsource" data-collection-id="{$insert~s _.value.collection_id $}" rows="15">{$insert~h _.value.collection_source $}</textarea>
 </p>
 {$}
 <p class="source_error"></p>
@@ -14,8 +14,8 @@
 {$define "#td_compiled" }
 {$loop $.compiles }
 <p>
-	Compiled Template (<span class="compile_collection_id">{$insert~h _.value.collection_id $}</span>):<br>
-	<textarea class="tcompiled" rows="15" readonly>{$insert~h _.value.collection_compiled $}</textarea>
+   Compiled Template (<span class="compile_collection_id">{$insert~h _.value.collection_id $}</span>):<br>
+   <textarea class="tcompiled" rows="15" readonly>{$insert~h _.value.collection_compiled $}</textarea>
 </p>
 {$}
 {$}
@@ -24,8 +24,8 @@
 
 {$define "#td_data" }
 <p>
-	Render Context Data (JSON):<br>
-	<textarea rows="15">{$insert~h $.data $}</textarea>
+   Render Context Data (JSON):<br>
+   <textarea rows="15">{$insert~h $.data $}</textarea>
 </p>
 <p class="data_error"></p>
 {$}
@@ -34,16 +34,16 @@
 
 {$define "#td_rendered" }
 <p>
-	Render Output (<span id="render_collection_id">{$insert~h $.collection_id $}</span><span id="render_partial_id">{$insert~h $.partial_id $}</span>):<br>
-	<textarea rows="15" readonly>{$insert~h $.rendered $}</textarea>
+   Render Output (<span id="render_collection_id">{$insert~h $.collection_id $}</span><span id="render_partial_id">{$insert~h $.partial_id $}</span>):<br>
+   <textarea rows="15" readonly>{$insert~h $.rendered $}</textarea>
 </p>
 <p class="render_error"></p>
 {$}
 
 
-					{$/ *** Sample templates *** /$}
+               {$/ *** Sample templates *** /$}
 
-	{$/ *** Hello World *** /$}
+   {$/ *** Hello World *** /$}
 
 {$define "#sample_tmpl_1" }{$raw
 {$define "#main" }
@@ -71,7 +71,7 @@
 
 
 
-	{$/ *** Template Parsing Error #1 *** /$}
+   {$/ *** Template Parsing Error #1 *** /$}
 
 {$define "#sample_tmpl_3" }{$raw
 {$define "main" }
@@ -83,7 +83,7 @@
 
 
 
-	{$/ *** Template Parsing Error #2 *** /$}
+   {$/ *** Template Parsing Error #2 *** /$}
 
 {$define "#sample_tmpl_4" }{$raw
 {$define "#main" . }
@@ -95,7 +95,7 @@
 
 
 
-	{$/ *** Template Parsing Error #3 *** /$}
+   {$/ *** Template Parsing Error #3 *** /$}
 
 {$define "#sample_tmpl_5" }{$raw
 {$define "#main" $}
@@ -107,7 +107,7 @@
 
 
 
-	{$/ *** Template Parsing Error #4 *** /$}
+   {$/ *** Template Parsing Error #4 *** /$}
 
 {$define "#sample_tmpl_6" }{$raw
 {$define "#main" }
@@ -119,7 +119,7 @@
 
 
 
-	{$/ *** Template Parsing Error #5 *** /$}
+   {$/ *** Template Parsing Error #5 *** /$}
 
 {$define "#sample_tmpl_7" }{$raw
 {$define "#main" }
@@ -132,7 +132,7 @@ foo
 
 
 
-	{$/ *** Template Parsing Error #6 *** /$}
+   {$/ *** Template Parsing Error #6 *** /$}
 
 {$define "#sample_tmpl_8" }{$raw
 {$define "#main" }
@@ -144,7 +144,7 @@ foo
 
 
 
-	{$/ *** Template Parsing Error #7 *** /$}
+   {$/ *** Template Parsing Error #7 *** /$}
 
 {$define "#sample_tmpl_9" }{$raw
 {$define "#main" }
@@ -156,7 +156,7 @@ foo
 
 
 
-	{$/ *** Template Parsing Error #8 *** /$}
+   {$/ *** Template Parsing Error #8 *** /$}
 
 {$define "#sample_tmpl_10" }{$raw
 {$define "#main" }
@@ -168,7 +168,7 @@ foo
 
 
 
-	{$/ *** Template Rendering Error #1 *** /$}
+   {$/ *** Template Rendering Error #1 *** /$}
 
 {$define "#sample_tmpl_11" }{$raw
 {$define "#main" }
@@ -183,7 +183,7 @@ foo
 {$}
 
 
-	{$/ *** Template Rendering Error #2 *** /$}
+   {$/ *** Template Rendering Error #2 *** /$}
 
 {$define "#sample_tmpl_12" }{$raw
 {$define "#main" }
@@ -199,11 +199,11 @@ foo
 
 
 
-	{$/ *** Template Rendering Error #3 *** /$}
+   {$/ *** Template Rendering Error #3 *** /$}
 
 {$define "#sample_tmpl_13" }{$raw
 {$define "#main" |
-	who = $.who2[3]
+   who = $.who2[3]
 }
    Hello <b>{$insert who $}</b>!
 {$}
@@ -217,7 +217,7 @@ foo
 
 
 
-	{$/ *** Include Partial Statically *** /$}
+   {$/ *** Include Partial Statically *** /$}
 
 {$define "#sample_tmpl_14" }{$raw
 {$define "#who" }
@@ -237,7 +237,7 @@ foo
 
 
 
-	{$/ *** Include Partial Dynamically *** /$}
+   {$/ *** Include Partial Dynamically *** /$}
 
 {$define "#sample_tmpl_15" }{$raw
 {$define "#who" }
@@ -245,7 +245,7 @@ foo
 {$}
 
 {$define "#main" |
-	who = $.who ? "#who"
+   who = $.who ? "#who"
 }
    Hello {$partial who $}!
 {$}
@@ -259,11 +259,11 @@ foo
 
 
 
-	{$/ *** Pre-computation Comparisons #1 *** /$}
+   {$/ *** Pre-computation Comparisons #1 *** /$}
 
 {$define "#sample_tmpl_16" }{$raw
 {$define "#main" |
-	checked[0..2] = $.myradio ? "checked"
+   checked[0..2] = $.myradio ? "checked"
 }
    <input type="radio" name="myradio" value="0" {$insert checked[0] $}> 0
    <input type="radio" name="myradio" value="1" {$insert checked[1] $}> 1
@@ -279,7 +279,7 @@ foo
 
 
 
-	{$/ *** Pre-computation Comparisons #2 *** /$}
+   {$/ *** Pre-computation Comparisons #2 *** /$}
 
 {$define "#sample_tmpl_17" }{$raw
 
@@ -287,7 +287,7 @@ foo
 
 
 {$define "#main" |
-	options[0..2] = $.myradio ? "checked"
+   options[0..2] = $.myradio ? "checked"
 }
    {$loop options }
       <input type="radio" name="myradio" value="{$insert _.key $}" {$insert _.value $}> {$insert _.key $}
@@ -303,7 +303,7 @@ foo
 
 
 
-	{$/ *** Pre-computation Comparisons #3 *** /$}
+   {$/ *** Pre-computation Comparisons #3 *** /$}
 
 {$define "#sample_tmpl_18" }{$raw
 {$define "#main" }
@@ -332,7 +332,7 @@ foo
 
 
 
-	{$/ *** Performance Benchmark Snippet #1 *** /$}
+   {$/ *** Performance Benchmark Snippet #1 *** /$}
 
 {$define "#sample_tmpl_19" }{$raw
 
@@ -351,6 +351,344 @@ foo
    "header5": "Header5",
    "header6": "Header6",
    "list": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+}
+{$}
+
+
+
+   {$/ *** Looping #1 *** /$}
+
+{$define "#sample_tmpl_20" }{$raw
+{$define "#main" }
+   <h1>A list of ({$insert $.fruits.length $}) fruits</h1>
+   <ul>
+      {$loop $.fruits }
+         <li>{$insert _.key $}: {$insert _.value $}</li>
+      {$}
+   </ul>
+{$}
+%$}{$}
+
+{$define "#sample_data_20" }
+{
+   "fruits": [
+      "Apple",
+      "Banana",
+      "Orange",
+      "Grape"
+   ]
+}
+{$}
+
+
+
+   {$/ *** Looping #2 *** /$}
+
+{$define "#sample_tmpl_21" }{$raw
+{$define "#main" }
+   <h1>A list of fruits</h1>
+   <ul>
+      {$loop $.fruits }
+         <li>{$insert _.key $}: {$insert _.value $}</li>
+      {$}
+   </ul>
+{$}
+%$}{$}
+
+{$define "#sample_data_21" }
+{
+   "fruits": {
+      "apple": "Apple",
+      "banana": "Banana",
+      "orange": "Orange",
+      "grape": "Grape"
+   }
+}
+{$}
+
+
+
+   {$/ *** Looping #3 *** /$}
+
+{$define "#sample_tmpl_22" }{$raw
+{$define "#main" }
+   <h1>A list of fruits</h1>
+   <ul>
+      {$loop $.fruits |
+         oddeven = _.odd ? "odd_row" : "even_row" |
+         first = _.first ? "first_row" |
+         last = _.last ? "last_row"
+      }
+         <li class="{$insert oddeven $} {$insert first $} {$insert last $}">
+            {$insert _.value $}
+         </li>
+      {$}
+   </ul>
+{$}
+%$}{$}
+
+{$define "#sample_data_22" }
+{
+   "fruits": [
+      "Apple",
+      "Banana",
+      "Orange",
+      "Grape"
+   ]
+}
+{$}
+
+
+
+   {$/ *** Looping #4 *** /$}
+
+{$define "#sample_tmpl_23" }{$raw
+
+{$define "#main" }
+   <h1>A list of fruits</h1>
+   <ul>
+      {$loop $.fruits | name = _.value }
+         {$partial "#fruit" | _ $}
+      {$}
+   </ul>
+{$}
+
+{$define "#fruit" |
+   oddeven = $.odd ? "odd_row" : "even_row" |
+   first = $.first ? "first_row" |
+   last = $.last ? "last_row"
+}
+   <li class="{$insert oddeven $} {$insert first $} {$insert last $}">
+      {$insert name $}
+   </li>
+{$}
+
+%$}{$}
+
+{$define "#sample_data_23" }
+{
+   "fruits": [
+      "Apple",
+      "Banana",
+      "Orange",
+      "Grape"
+   ]
+}
+{$}
+
+
+
+   {$/ *** Looping #5 *** /$}
+
+{$define "#sample_tmpl_24" }{$raw
+
+{$define "#main" }
+   <h1>Grocery Cart</h1>
+   <ul>
+   {$loop $.grocerycart }
+      <li>
+         <h2>{$insert _.key $}</h2>
+         <ul>
+            {$loop _.value | name = _.value }
+               {$partial "#produce" | _ $}
+            {$}
+         </ul>
+      </li>
+   {$}
+   </ul>
+{$}
+
+{$define "#produce" |
+   oddeven = $.odd ? "odd_row" : "even_row" |
+   first = $.first ? "first_row" |
+   last = $.last ? "last_row"
+}
+   <li class="{$insert oddeven $} {$insert first $} {$insert last $}">
+      {$insert name $}
+   </li>
+{$}
+
+%$}{$}
+
+{$define "#sample_data_24" }
+{
+   "grocerycart": {
+      "Fruits": [
+         "Apple",
+         "Banana",
+         "Orange",
+         "Grape"
+      ],
+      "Veggies": [
+         "Broccoli",
+         "Carrot",
+         "Tomato"
+      ]
+   }
+}
+{$}
+
+
+
+   {$/ *** Looping #6 *** /$}
+
+{$define "#sample_tmpl_25" }{$raw
+{$define "#main" }
+   <h1>A list of numbers</h1>
+   <ul>
+      {$loop [3..6] }
+         <li>{$insert _.value $}</li>
+      {$}
+   </ul>
+{$}
+%$}{$}
+
+{$define "#sample_data_25" }
+{}
+{$}
+
+
+
+   {$/ *** Looping #7 *** /$}
+
+{$define "#sample_tmpl_26" }{$raw
+{$define "#main" }
+   <h1>A set of strings</h1>
+   <ul>
+      {$loop ["apple","orange","banana"] }
+         <li>{$insert _.value $}</li>
+      {$}
+   </ul>
+{$}
+%$}{$}
+
+{$define "#sample_data_26" }
+{}
+{$}
+
+
+
+   {$/ *** Include Partial, Context *** /$}
+
+{$define "#sample_tmpl_27" }{$raw
+
+{$define "#who" }
+   <b>{$insert $.name $}</b>
+{$}
+
+{$define "#main" }
+   Hello {$partial "#who" | $.who $}!
+{$}
+
+%$}{$}
+
+{$define "#sample_data_27" }
+{
+   "who": {
+      "name": "World"
+   }
+}
+{$}
+
+
+
+   {$/ *** Inheritance #1 *** /$}
+
+{$define "#sample_tmpl_28_a" }{$raw
+
+{$define "#who" }
+   <b>{$insert $.name $}</b>
+{$}
+
+{$define "#main" }
+   Hello {$partial "#who" | $.who $}!
+{$}
+
+%$}{$}
+
+{$define "#sample_tmpl_28_b" }{$raw
+
+{$extend "sample_tmpl_28_a" $}
+
+{$define "#who" }
+   <b><em>{$insert $.name $}</em></b>
+{$}
+
+%$}{$}
+
+{$define "#sample_data_28" }
+{
+   "who": {
+      "name": "World"
+   }
+}
+{$}
+
+
+
+   {$/ *** Inheritance #2 *** /$}
+
+{$define "#sample_tmpl_29_a" }{$raw
+
+{$define "#who" }
+   <b>{$insert $.name $}</b>
+{$}
+
+{$define "#main" }
+   Hello {$partial "#who" | $.who $}!
+{$}
+
+%$}{$}
+
+{$define "#sample_tmpl_29_b" }{$raw
+
+{$extend "sample_tmpl_29_a" $}
+
+{$define "#main" }
+   Hello {$partial "#who" | $.who $}!!!!!
+{$}
+
+%$}{$}
+
+{$define "#sample_data_29" }
+{
+   "who": {
+      "name": "World"
+   }
+}
+{$}
+
+
+
+   {$/ *** Inheritance #3 *** /$}
+
+{$define "#sample_tmpl_30_a" }{$raw
+
+{$define "#who" }
+   <b>{$insert $.name $}</b>
+{$}
+
+{$define "#main" }
+   Hello {$partial "#who" | $.who $}!
+{$}
+
+%$}{$}
+
+{$define "#sample_tmpl_30_b" }{$raw
+
+{$extend "sample_tmpl_30_a" $}
+
+{$define "#main" }
+   {$partial "sample_tmpl_30_a#main" $}!!!!
+{$}
+
+%$}{$}
+
+{$define "#sample_data_30" }
+{
+   "who": {
+      "name": "World"
+   }
 }
 {$}
 
