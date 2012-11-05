@@ -160,6 +160,13 @@ function changeSampleTemplate() {
 		case "25":
 		case "26":
 		case "27":
+		case "31":
+		case "32":
+		case "33":
+		case "34":
+		case "35":
+		case "36":
+		case "37":
 			sources.push({
 				collection_id: "sample_tmpl_" + selected_sample_template,
 				collection_source: strip(_GRIPS_.render("tmpls.html#sample_tmpl_" + selected_sample_template,{}))

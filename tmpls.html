@@ -43,7 +43,7 @@
 
                {$/ *** Sample templates *** /$}
 
-   {$/ *** Hello World *** /$}
+   {$/ *** Hello World (long-form) *** /$}
 
 {$define "#sample_tmpl_1" }{$raw
 {$define "#main" }
@@ -56,6 +56,10 @@
    "who": "World"
 }
 {$}
+
+
+
+   {$/ *** Hello World (short-form) *** /$}
 
 {$define "#sample_tmpl_2" }{$raw
 {$: "#main" }
@@ -692,6 +696,137 @@ foo
 }
 {$}
 
+
+
+   {$/ *** Escaping #1 *** /$}
+
+{$define "#sample_tmpl_31" }{$raw
+{$define "#main" }
+   Hello <b>{$insert~h $.who $}</b>!
+{$}
+%$}{$}
+
+{$define "#sample_data_31" }
+{
+   "who": "{$escape s }World<script>alert("Owned");</script>{$}"
+}
+{$}
+
+
+
+   {$/ *** Escaping #2 *** /$}
+
+{$define "#sample_tmpl_32" }{$raw
+{$define "#main" }
+   <script>
+   var name = "{$insert~s $.who $}";
+   alert(name);
+   </script>
+{$}
+%$}{$}
+
+{$define "#sample_data_32" }
+{
+   "who": "Chad 'Ochocinco' Johnson"
+}
+{$}
+
+
+
+   {$/ *** Escaping #3 *** /$}
+
+{$define "#sample_tmpl_33" }{$raw
+{$define "#main" }
+   <a href="http://someproxy.net?u={$insert~u $.where $}">Proxied search</a>
+{$}
+%$}{$}
+
+{$define "#sample_data_33" }
+{
+   "where": "https://www.google.com/search?q=grips"
+}
+{$}
+
+
+
+   {$/ *** Escaping #4 *** /$}
+
+{$define "#sample_tmpl_34" }{$raw
+{$define "#main" }
+   Here's some markup:
+   <pre>{$escape h }
+      <p>
+         This is <b>{$insert $.what $}</b>!
+      </p>
+   {$}</pre>
+{$}
+%$}{$}
+
+{$define "#sample_data_34" }
+{
+   "what": "super <em>awesome</em> sauce"
+}
+{$}
+
+
+
+   {$/ *** Misc #1 *** /$}
+
+{$define "#sample_tmpl_35" }{$raw
+{$define "#main" |
+   foo = $.foo ? "foo" : "bar" |
+   baz = $.baz ? "baz"
+}
+   foo: {$insert foo $}
+   baz: {$insert baz $}
+{$}
+
+%$}{$}
+
+{$define "#sample_data_35" }
+{
+   "foo": false,
+   "baz": false
+}
+{$}
+
+
+
+   {$/ *** Misc #2 *** /$}
+
+{$define "#sample_tmpl_36" }{$raw
+{$define "#main" }
+   Sample grips template:
+   {$raw 
+      foo: {$insert $.foo $}
+   \%$}
+{$}
+%$}{$}
+
+{$define "#sample_data_36" }
+{}
+{$}
+
+
+
+   {$/ *** Misc #3 *** /$}
+
+{$define "#sample_tmpl_37" }{$raw
+{$define "#main" }
+   If you want to do a template comment in
+   grips...
+
+   {$comment this is how you do it. /$}
+
+   Easy, huh?
+{$}
+
+{$comment this is a comment too! /$}
+%$}{$}
+
+{$define "#sample_data_37" }
+{}
+{$}
 
 
 
