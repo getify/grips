@@ -3,7 +3,7 @@
 {$loop $.sources }
 <p>
    Template Source (<span class="source_collection_id">{$insert~h _.value.collection_id $}</span>):<br>
-   <textarea class="tsource" data-collection-id="{$insert~s _.value.collection_id $}" rows="15">{$insert~h _.value.collection_source $}</textarea>
+   <textarea class="tsource" data-collection-id="{$insert~s _.value.collection_id $}" rows="20">{$insert~h _.value.collection_source $}</textarea>
 </p>
 {$}
 <p class="source_error"></p>
@@ -15,7 +15,7 @@
 {$loop $.compiles }
 <p>
    Compiled Template (<span class="compile_collection_id">{$insert~h _.value.collection_id $}</span>):<br>
-   <textarea class="tcompiled" rows="15" readonly>{$insert~h _.value.collection_compiled $}</textarea>
+   <textarea class="tcompiled" rows="20" readonly>{$insert~h _.value.collection_compiled $}</textarea>
 </p>
 {$}
 {$}
@@ -25,7 +25,7 @@
 {$define "#td_data" }
 <p>
    Render Context Data (JSON):<br>
-   <textarea rows="15">{$insert~h $.data $}</textarea>
+   <textarea rows="20">{$insert~h $.data $}</textarea>
 </p>
 <p class="data_error"></p>
 {$}
@@ -35,7 +35,7 @@
 {$define "#td_rendered" }
 <p>
    Render Output (<span id="render_collection_id">{$insert~h $.collection_id $}</span><span id="render_partial_id">{$insert~h $.partial_id $}</span>):<br>
-   <textarea rows="15" readonly>{$insert~h $.rendered $}</textarea>
+   <textarea rows="20" readonly>{$insert~h $.rendered $}</textarea>
 </p>
 <p class="render_error"></p>
 {$}
