@@ -343,7 +343,7 @@ if (!Object.prototype.toJSON) {
 					.replace(/&/g,"&amp;")
 					.replace(/</g,"&lt;")
 					.replace(/>/g,"&gt;")
-					.replace(/"/,"&quot;");
+					.replace(/"/g,"&quot;");
 				}
 				if (escapes.string) {
 					str = str
