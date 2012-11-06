@@ -2865,7 +2865,7 @@ if (!Object.prototype.toJSON) {
 
 			node.context_expr.type = NODE_REF_EXPR;
 			node.context_expr.def = stripWhitespace(node.context_expr.def);
-			err = validateRefExpr(node.context_expr);
+			err = validateValueExpr(node.context_expr);
 			if (err) {
 				throw err;
 			}
