@@ -35,7 +35,9 @@
 	
 		<h3>User Details</h3>
 
-		<p>Welcome back, {$=~h $.full_name $}!</p>
+		{$let full_name = $.full_name }
+			<p>Welcome back, {$=~h full_name $}!</p>
+		{$}
 		
 		{$= @info $}
 		

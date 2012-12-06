@@ -72,6 +72,24 @@ The `else` condition of a conditional can be omitted and defaults to `""`.
 {$}
 ```
 
+### Let-local Assignments
+The Let tag provides a way to make a local variable assignment that only exists for the block it creates, which contains the assignment to a more limited scope than the Define tag and Loop tag assignments.
+Long-form:
+
+```
+{$let foo = "foo" | bar = "bar" }
+	...
+{$}
+```
+
+Short-form:
+
+```
+{$# foo = "foo" | bar = "bar" }
+	...
+{$}
+```
+
 ### Insert/print data property or variable
 Long-form:
 

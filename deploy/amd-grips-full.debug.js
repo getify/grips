@@ -615,7 +615,7 @@ if (!Object.prototype.toJSON) {
 						tokens.push(token);
 						// look ahead to the tag-type signifier, if any
 						if ((next_match_idx < chunk.length - 1) &&
-							(match = chunk.substr(next_match_idx).match(/^(?:(?:~|escape\s+)[hsuHSU]+|[~:+=*\/%]|(?:(?:define|extend|insert|print|partial|loop|comment|raw|escape)\b))/))
+							(match = chunk.substr(next_match_idx).match(/^(?:(?:~|escape\s+)[hsuHSU]+|[~:+=*\/%#]|(?:(?:define|extend|insert|print|partial|loop|let|comment|raw|escape)\b))/))
 						) {
 							tokens.push(new Token({
 								type: TOKEN_TAG_SIGNIFIER,
@@ -1004,7 +1004,7 @@ if (!Object.prototype.toJSON) {
 		not_escaped_pattern = /(?:[^\\]|(?:^|[^\\])(?:\\\\)+)$/,
 		parser_state_patterns = [
 			/\{\$\}|\{\$/g, /*outside*/
-			/\$\}|\}|(?:\.\.)|(?:~[hsuHSU]*)|["':=@\|?\(\)\[\],\-.!]|\s+/g, /*inside*/
+			/\$\}|\}|(?:\.\.)|(?:~[hsuHSU]*)|["':=@\|?\(\)\[\],\-.!#]|\s+/g, /*inside*/
 			/%\$\}/g, /*raw*/
 			/\/\$\}/g /*comment*/
 		],
@@ -1134,6 +1134,9 @@ if (!Object.prototype.toJSON) {
 		}
 		else if (this.type === NODE_TAG_ESCAPE) {
 			ret = "{$" + showEscapes(this) + "}";
+		}
+		else if (this.type === NODE_TAG_LET) {
+			ret = "{$# " + showDeclaration(this) + " $}";
 		}
 		else if (this.type === NODE_TAG_RAW) {
 			ret = "{$% " + showChildren(this) + " %$}";
@@ -1316,7 +1319,8 @@ if (!Object.prototype.toJSON) {
 			function implicitlyStartExpr() {
 				if (current_parent.type === NODE_TAG_INSERT_VAR ||
 					current_parent.type === NODE_TAG_INCL_TMPL ||
-					current_parent.type === NODE_TAG_LOOP
+					current_parent.type === NODE_TAG_LOOP ||
+					current_parent.type === NODE_TAG_LET
 				) {
 					node = new Node({
 						parent: current_parent,
@@ -1365,6 +1369,7 @@ if (!Object.prototype.toJSON) {
 					else if (token.val.match(/^(?:\=|insert|print)$/)) current_parent.type = NODE_TAG_INSERT_VAR; // NOTE: can later be re-defined to NODE_TAG_INCL_TMPL if `@` is found subsequently
 					else if (token.val.match(/^partial$/)) current_parent.type = NODE_TAG_INCL_TMPL;
 					else if (token.val.match(/^(?:\*|loop)$/)) current_parent.type = NODE_TAG_LOOP;
+					else if (token.val.match(/^(?:#|let)$/)) current_parent.type = NODE_TAG_LET;
 					else if (token.val.match(/^(?:\%|raw)$/)) current_parent.type = NODE_TAG_RAW;
 					else if (token.val.match(/^(?:\/|comment)$/)) current_parent.type = NODE_TAG_COMMENT;
 					else if (token.val.match(/^(?:escape|(?:~|escape\s+)[hsuHSU]*)$/)) current_parent.type = NODE_TAG_ESCAPE;
@@ -1380,7 +1385,8 @@ if (!Object.prototype.toJSON) {
 						current_parent.close_header = _Grips.tokenizer.SIMPLE_CLOSE;
 					}
 					else if (current_parent.type === NODE_TAG_DEFINE ||
-						current_parent.type === NODE_TAG_LOOP
+						current_parent.type === NODE_TAG_LOOP ||
+						current_parent.type === NODE_TAG_LET
 					) {
 						current_parent.close_header = _Grips.tokenizer.BLOCK_HEAD_CLOSE;
 					}
@@ -1406,7 +1412,7 @@ if (!Object.prototype.toJSON) {
 						delete current_parent.children; // comment tags don't have `children`
 					}
 
-					// is top-level tag that's invalid?
+					// invalid top-level tag?
 					if ((
 							!current_parent.parent &&
 							!(
@@ -1415,6 +1421,7 @@ if (!Object.prototype.toJSON) {
 								current_parent.type === NODE_TAG_COMMENT
 							)
 						) ||
+						// top-level-only tag invalidly nested?
 						(
 							current_parent.parent &&
 							(
@@ -1439,6 +1446,7 @@ if (!Object.prototype.toJSON) {
 						current_parent.type === NODE_TAG_INCL_TMPL ||
 						current_parent.type === NODE_TAG_INSERT_VAR ||
 						current_parent.type === NODE_TAG_LOOP ||
+						current_parent.type === NODE_TAG_LET ||
 						current_parent.type === NODE_TAG_ESCAPE ||
 						current_parent.type === NODE_GENERAL_EXPR ||
 						current_parent.type === NODE_MAIN_REF_EXPR
@@ -1612,6 +1620,14 @@ if (!Object.prototype.toJSON) {
 						current_parent = current_parent.parent;
 					}
 
+					// is this PIPE coming too early in a LET Tag?
+					if (current_parent.type === NODE_TAG_LET &&
+						current_parent.def.length === 0
+					) {
+						instance_api.state = NODE_STATE_INVALID;
+						return new ParserError("Expected EXPR",token) ||unknown_error;
+					}
+
 					// did we fail to see a Tag ID where one is expected?
 					if (!current_parent.id &&
 						(
@@ -1710,6 +1726,14 @@ if (!Object.prototype.toJSON) {
 						current_parent.type === NODE_MAIN_REF_EXPR
 					) {
 						current_parent = current_parent.parent;
+					}
+
+					// LET Tag with no declarations?
+					if (current_parent.type === NODE_TAG_LET &&
+						current_parent.def.length === 0
+					) {
+						instance_api.state = NODE_STATE_INVALID;
+						return new ParserError("Expected EXPR",token) ||unknown_error;
 					}
 
 					// did we fail to see a Tag ID where one is expected?
@@ -2836,6 +2860,33 @@ if (!Object.prototype.toJSON) {
 
 			return node;
 		}
+		else if (node.type === NODE_TAG_LET) {
+			// parse the Tag's declaration
+			if (node.def && node.def.length) {
+				ret = stripWhitespace(node.def);
+				for (i=0; i<ret.length; i++) {
+					ret2 = parse(ret[i]);
+					if (ret2) ret[i] = ret2;
+				}
+				node.def = ret;
+			}
+			else {
+				throw new ParserError("Expected EXPR in Tag",node) ||unknown_error;
+			}
+
+			// do we need to parse the Tag's children?
+			if (node.children && node.children.length) {
+				node.children = combineNodes(node.children);
+				ret = [];
+				for (i=0; i<node.children.length; i++) {
+					ret2 = parse(node.children[i]);
+					if (ret2) ret.push(ret2);
+				}
+				node.children = combineNodes(ret);
+			}
+
+			return node;
+		}
 		else if (node.type === NODE_TAG_INSERT_VAR) {
 			if (!(node.main_expr && (ret = parse(node.main_expr)))) {
 				throw new ParserError("Expected EXPR for Tag",node) ||unknown_error;
@@ -3026,6 +3077,7 @@ if (!Object.prototype.toJSON) {
 		NODE_OPERATOR = 20,
 		NODE_COLLECTION_MARKER = 21,
 		NODE_TAG_ESCAPE = 22,
+		NODE_TAG_LET = 23,
 
 		instance_api,
 
@@ -3063,6 +3115,7 @@ if (!Object.prototype.toJSON) {
 		OPERATOR: NODE_OPERATOR,
 		COLLECTION_MARKER: NODE_COLLECTION_MARKER,
 		TAG_ESCAPE: NODE_TAG_ESCAPE,
+		TAG_LET: NODE_TAG_LET,
 
 		state: NODE_STATE_OUTSIDE,
 
@@ -3423,6 +3476,35 @@ if (!Object.prototype.toJSON) {
 		return code;
 	}
 
+	function tagLet(node) {
+		var i, code = "", def;
+
+		code += "ret2 = (function" + " __let__ " + "($,$$){";
+		code += "$$ = clone($$) || {};";
+		code += "var i, ret = \"\", ret2, _;";
+
+		for (i=0; i<node.def.length; i++) {
+			def = node.def[i];
+
+			code += "try {";
+
+			code += assignment(def);
+
+			code += "} catch (err" + i + ") {";
+			code += "return error(cID," + simpleNodeJSON(def) + ",\"Assignment failed\",err" + i + ");";
+			code += "}";
+
+		}
+
+		code += children(node);
+
+		code += "return ret;";
+		code += "})($,$$);";
+		code += templateErrorGuard("ret","ret2");
+
+		return code;
+	}
+
 	function tagIncludeTemplate(node) {
 		var code = "", tmp;
 
@@ -3492,6 +3574,9 @@ if (!Object.prototype.toJSON) {
 			}
 			else if (child.type === _Grips.parser.TAG_LOOP) {
 				code += tagLoop(child);
+			}
+			else if (child.type === _Grips.parser.TAG_LET) {
+				code += tagLet(child);
 			}
 			else if (child.type === _Grips.parser.TAG_INCL_TMPL) {
 				code += tagIncludeTemplate(child);
