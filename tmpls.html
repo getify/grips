@@ -830,3 +830,23 @@ foo
 
 
 
+   {$/ *** Misc #4 *** /$}
+
+{$define "#sample_tmpl_38" }{$raw
+{$define "#main" | foo = $.foo }
+   foo: {$insert foo $}
+   {$let foo = "bar" }
+      foo: {$insert foo $}
+   {$}
+   foo: {$insert foo $}
+{$}
+%$}{$}
+
+{$define "#sample_data_38" }
+{
+   "foo": "foo"
+}
+{$}
+
+
+
