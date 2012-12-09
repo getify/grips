@@ -3397,7 +3397,7 @@ if (!Object.prototype.toJSON) {
 		code += "})()," + JSON.stringify(node.escapes) + ");";
 		code += templateErrorGuard("ret","ret2");
 
-		needs.escape = true;	// update collection dependencies list
+		needs.esc = true;	// update collection dependencies list
 		return code;
 	}
 
