@@ -3179,17 +3179,27 @@ if (!Object.prototype.toJSON) {
 	}
 
 
+	function collectionDependencies() {
+		var code = "";
+		if (needs.sort)	code += "function __sort_fn__(a,b){ return a-b; }";
+		code += "var partial = G.definePartial, clone = G.cloneObj";
+
+		code += ", error = G.error";
+
+		if (needs.extend) code += ", extend = G.extend";
+		if (needs.esc) code += ", esc = G.strEscapes";
+		if (needs.unerr) code += ", unerr = new Error(\"Unknown error\")";
+		if (needs.RLH) code += ", RLH = G.RangeLiteralHash";
+		if (needs.cID) code += ", cID = \"" + needs.cID_value + "\"";
+		code += ";";
+
+		return code;
+	}
+
 	function startCollection(node) {
 		var code = "";
 		code += "(function" + " __" + identifierify(node.start) + "__" + "(G){";
-			code += "function __sort_fn__(a,b){ return a-b; }";
-			code += "var partial = G.definePartial, clone = G.cloneObj, extend = G.extend, esc = G.strEscapes,";
-
-			code += "error = G.error,";
-
-			code += "unerr = new Error(\"Unknown error\"),";
-			code += "RLH = G.RangeLiteralHash,";
-			code += "cID = \"" + node.start + "\";";
+			code += "/*startCollection*/";	// NOTE: this will get replaced later by whatever the dependencies are for this collection
 		return code;
 	}
 
@@ -3295,6 +3305,8 @@ if (!Object.prototype.toJSON) {
 		code += expr(def.def[1]) + " : " + expr(def.def[2]) + ";";
 		code += "}";
 
+		needs.RLH = true;	// update collection dependencies list
+
 		return code;
 	}
 
@@ -3337,6 +3349,9 @@ if (!Object.prototype.toJSON) {
 	}
 
 	function tagExtend(node) {
+		needs.extend = true;	// update collection dependencies list
+		needs.cID = true;	// update collection dependencies list
+
 		return "extend(cID,\"" + node.id.val + "\");";
 	}
 
@@ -3357,6 +3372,7 @@ if (!Object.prototype.toJSON) {
 			code += "} catch (err" + i + ") {";
 			code += "return error(cID," + simpleNodeJSON(def) + ",\"Assignment failed\",err" + i + ");";
 			code += "}";
+			needs.cID = true;	// update collection dependencies list
 
 		}
 
@@ -3379,6 +3395,8 @@ if (!Object.prototype.toJSON) {
 		code += "return ret;";
 		code += "})()," + JSON.stringify(node.escapes) + ");";
 		code += templateErrorGuard("ret","ret2");
+
+		needs.escape = true;	// update collection dependencies list
 		return code;
 	}
 
@@ -3409,6 +3427,7 @@ if (!Object.prototype.toJSON) {
 			code += "} catch (err" + i + ") {";
 			code += "return error(cID," + simpleNodeJSON(def) + ",\"Assignment failed in loop iteration: \" + JSON.stringify(_,[\"key\",\"index\"]),err" + i + ");";
 			code += "}";
+			needs.cID = true;	// update collection dependencies list
 
 		}
 		code += children(node);
@@ -3458,20 +3477,25 @@ if (!Object.prototype.toJSON) {
 				code += "return ";
 
 				code += "error(cID," + simpleNodeJSON(node.main_expr) + ",\"Invalid loop-iterator reference\") || ";
+				needs.cID = true;	// update collection dependencies list
 
 				code += "unerr;";
 			code += "}";
+
+			needs.sort = true;	// update collection dependencies list
+			needs.RLH = true;	// update collection dependencies list
+			needs.unerr = true;	// update collection dependencies list
 		}
 
 
 		code += "} catch (err) {";
 			code += "return error(cID," + simpleNodeJSON(node.main_expr) + ",\"Failed loop iteration\",err);";
 		code += "}";
+		needs.cID = true;	// update collection dependencies list
 
 		code += "return ret;";
 		code += "})();";
 		code += templateErrorGuard("ret","ret2");
-
 		return code;
 	}
 
@@ -3492,6 +3516,7 @@ if (!Object.prototype.toJSON) {
 			code += "} catch (err" + i + ") {";
 			code += "return error(cID," + simpleNodeJSON(def) + ",\"Assignment failed\",err" + i + ");";
 			code += "}";
+			needs.cID = true;	// update collection dependencies list
 
 		}
 
@@ -3517,6 +3542,7 @@ if (!Object.prototype.toJSON) {
 		code += "} catch (err) {";
 			code += "return error(cID," + simpleNodeJSON(node.context_expr) + ",\"Include template context reference failed\",err);";
 		code += "}";
+		needs.cID = true;	// update collection dependencies list
 
 
 
@@ -3533,9 +3559,11 @@ if (!Object.prototype.toJSON) {
 				code += "return error(cID," + tmp + ",\"Include template reference failed\",err);";
 			code += "}";
 		code += "}";
+		needs.cID = true;	// update collection dependencies list
 
 		if (node.escapes) {
 			code += "ret2 = esc(ret2," + JSON.stringify(node.escapes) + ");";
+			needs.esc = true;	// update collection dependencies list
 		}
 		code += templateErrorGuard("ret","ret2");
 
@@ -3550,6 +3578,7 @@ if (!Object.prototype.toJSON) {
 
 		if (node.escapes) {
 			code += "ret += esc(" + tmp + "," + JSON.stringify(node.escapes) + ");";
+			needs.esc = true;	// update collection dependencies list
 		}
 		else {
 			code += "ret += " + tmp + ";";
@@ -3558,6 +3587,7 @@ if (!Object.prototype.toJSON) {
 		code += "} catch (err) {";
 			code += "return error(cID," + simpleNodeJSON(node.main_expr) + ",\"Insert reference failed\",err);";
 		code += "}";
+		needs.cID = true;	// update collection dependencies list
 
 
 		return code;
@@ -3608,21 +3638,26 @@ if (!Object.prototype.toJSON) {
 	}
 
 	function process(initialize) {
-		var node, nodes = [], collection = "", code = "", tmp;
+		var node, nodes = [], collection = "", code = "", tmp, tmp2;
 
 		while ((node = _Grips.parser.parseNextNode())) {
 			nodes.push(node);
 
 			if (node.type === _Grips.parser.COLLECTION_MARKER) {
 				if (node.start) {
+					needs = {};
 					tmp = startCollection(node);
+					needs.cID_value = node.start;
 					collection += tmp;
 					code += tmp;
 				}
 				else if (node.close) {
+					tmp2 = collectionDependencies(needs);
 					tmp = closeCollection(node);
 					collection += tmp;
+					collection = collection.replace(/\/\*startCollection\*\//,tmp2);
 					code += tmp;
+					code = code.replace(/\/\*startCollection\*\//,tmp2);
 					if (initialize) {
 						_Grips.initializeCollection(node.close,collection);
 					}
@@ -3654,7 +3689,9 @@ if (!Object.prototype.toJSON) {
 		return code;
 	}
 
-	var unknown_error = new Error("Unknown error");
+	var unknown_error = new Error("Unknown error"),
+		needs
+	;
 
 	_Grips.generator = {
 		process: process
