@@ -14,7 +14,7 @@
 {$define "#td_compiled" }
 {$loop $.compiles }
 <p>
-   grips.compile({ <span class="compile_collection_id">{$insert~h _.value.collection_id $}</span>: "<span id="compile_source">{$~h}{$insert~s _.value.compile_source $}{$}</span>" });<br>
+   grips.compile({ "<span class="compile_collection_id">{$insert~h _.value.collection_id $}</span>": "<span id="compile_source">{$~h}{$insert~s _.value.compile_source $}{$}</span>" });<br>
    <textarea class="tcompiled" rows="20" readonly>{$insert~h _.value.collection_compiled $}</textarea>
 </p>
 {$}

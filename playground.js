@@ -101,6 +101,10 @@ function updateCompileRender(sources,data) {
 			else {
 				$td_data.find(".data_error").html(nl2br(err.toString())).show();
 				$td_data.find("textarea").addClass("bad");
+				collection_id = "";
+				partial_id = "";
+				data_context = {};
+				rendered = "";
 			}
 		}
 
