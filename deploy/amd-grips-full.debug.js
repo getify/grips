@@ -496,12 +496,12 @@ if (!Object.prototype.toJSON) {
 		rawPos = Math.max(0,rawPos);
 		var i, ret = { raw:rawPos, line:1, col:rawPos };
 
-		for (i=1; i<start_of_line_map[collectionID].length; i++) {
-			ret.line = i + 1; // line numbers are 1-based
-			ret.col = rawPos - start_of_line_map[collectionID][i];
+		for (i=0; i<start_of_line_map[collectionID].length; i++) {
 			if (start_of_line_map[collectionID][i] > rawPos) {
 				break;
 			}
+			ret.line = i + 1; // line numbers are 1-based
+			ret.col = rawPos - start_of_line_map[collectionID][i];
 		}
 
 		return ret;
@@ -2241,18 +2241,21 @@ if (!Object.prototype.toJSON) {
 				if (!id.val) {
 					return new ParserError("Expected #id",id) ||unknown_error;
 				}
+				else if (!id.val.match(/^#/)) {
+					return new ParserError("Unexpected text before #id",id) ||unknown_error;
+				}
+				else if (!id.val.match(/^#[a-z0-9_\-$.]/i)) {
+					return new ParserError("Expected #id",id) ||unknown_error;
+				}
 				else if ((tmp = id.val.match(/(#.*?)([^a-z0-9_\-$.]).*$/i))) {
 					return new _Grips.tokenizer.TokenizerError(
 						"Unexpected token",
 						new _Grips.tokenizer.Token({
 							type: _Grips.tokenizer.GENERAL,
 							val: tmp[2],
-							pos: _Grips.tokenizer.lineCol(id.token.pos.raw + tmp.index + tmp[1].length,collectionID)
+							pos: _Grips.tokenizer.lineCol(id.token.pos.raw + tmp.index + tmp[1].length,current_collection_id)
 						})
 					) ||unknown_error;
-				}
-				else if (!id.val.match(/^#/)) {
-					return new ParserError("Unexpected text before #id",id) ||unknown_error;
 				}
 				// need to add the collectionID to the Define Tag ID
 				else {
@@ -2266,7 +2269,7 @@ if (!Object.prototype.toJSON) {
 						new _Grips.tokenizer.Token({
 							type: _Grips.tokenizer.GENERAL,
 							val: "#",
-							pos: _Grips.tokenizer.lineCol(id.token.pos.raw + tmp.index,collectionID)
+							pos: _Grips.tokenizer.lineCol(id.token.pos.raw + tmp.index,current_collection_id)
 						})
 					) ||unknown_error;
 				}
@@ -2285,7 +2288,7 @@ if (!Object.prototype.toJSON) {
 						new _Grips.tokenizer.Token({
 							type: _Grips.tokenizer.GENERAL,
 							val: tmp[2],
-							pos: _Grips.tokenizer.lineCol(id.token.pos.raw + tmp.index + tmp[1].length,collectionID)
+							pos: _Grips.tokenizer.lineCol(id.token.pos.raw + tmp.index + tmp[1].length,current_collection_id)
 						})
 					) ||unknown_error;
 				}
@@ -3026,6 +3029,15 @@ if (!Object.prototype.toJSON) {
 			if (node.val !== "") {
 				return node;
 			}
+		}
+		else if (node.type === NODE_COLLECTION_MARKER) {
+			if (node.start) {
+				current_collection_id = node.start;
+			}
+			else if (node.close) {
+				current_collection_id = null;
+			}
+			return node;
 		}
 		else {
 			return node;

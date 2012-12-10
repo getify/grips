@@ -1805,10 +1805,13 @@ if (!Array.isArray) {
 				if (!id.val) {
 					return unknown_error;
 				}
-				else if ((tmp = id.val.match(/(#.*?)([^a-z0-9_\-$.]).*$/i))) {
+				else if (!id.val.match(/^#/)) {
 					return unknown_error;
 				}
-				else if (!id.val.match(/^#/)) {
+				else if (!id.val.match(/^#[a-z0-9_\-$.]/i)) {
+					return unknown_error;
+				}
+				else if ((tmp = id.val.match(/(#.*?)([^a-z0-9_\-$.]).*$/i))) {
 					return unknown_error;
 				}
 				// need to add the collectionID to the Define Tag ID
@@ -2560,6 +2563,15 @@ if (!Array.isArray) {
 			if (node.val !== "") {
 				return node;
 			}
+		}
+		else if (node.type === NODE_COLLECTION_MARKER) {
+			if (node.start) {
+				current_collection_id = node.start;
+			}
+			else if (node.close) {
+				current_collection_id = null;
+			}
+			return node;
 		}
 		else {
 			return node;
