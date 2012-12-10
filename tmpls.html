@@ -14,7 +14,7 @@
 {$define "#td_compiled" }
 {$loop $.compiles }
 <p>
-   Compiled Template (<span class="compile_collection_id">{$insert~h _.value.collection_id $}</span>):<br>
+   grips.compile({ <span class="compile_collection_id">{$insert~h _.value.collection_id $}</span>: "<span id="compile_source">{$~h}{$insert~s _.value.compile_source $}{$}</span>" });<br>
    <textarea class="tcompiled" rows="20" readonly>{$insert~h _.value.collection_compiled $}</textarea>
 </p>
 {$}
@@ -34,7 +34,7 @@
 
 {$define "#td_rendered" }
 <p>
-   Render Output (<span id="render_collection_id">{$insert~h $.collection_id $}</span><span id="render_partial_id">{$insert~h $.partial_id $}</span>):<br>
+   grips.render("<span id="render_collection_id">{$insert~h $.collection_id $}</span><span id="render_partial_id">{$insert~h $.partial_id $}</span>", <span id="render_data">{$insert~h $.render_data $}</span>);<br>
    <textarea rows="20" readonly>{$insert~h $.rendered $}</textarea>
 </p>
 <p class="render_error"></p>
@@ -821,7 +821,7 @@ foo
    Easy, huh?
 {$}
 
-{$comment this is a comment too! /$}
+{$/ this is a comment too! /$}
 %$}{$}
 
 {$define "#sample_data_37" }

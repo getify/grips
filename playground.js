@@ -10,16 +10,22 @@ function emptyCompiledRendered() {
 	$td_compiled.html(_GRIPS_.render("tmpls.html#td_compiled",{
 		compiles:[
 			{
-				collection_id: "n/a",
-				collection_compiled: ""
+				collection_id: "",
+				collection_compiled: "",
+				compile_source: ""
 			}
 		]
 	}));
 	$td_rendered.html(_GRIPS_.render("tmpls.html#td_rendered",{
-		collection_id: "n/a",
+		collection_id: "",
 		partial_id: "",
+		render_data: "{}",
 		rendered: ""
 	}));
+}
+
+function shortenStr(str,length) {
+	return str.substr(0,length) + (str.length > length ? "..." : "");
 }
 
 function updateCompileRender(sources,data) {
@@ -36,7 +42,7 @@ function updateCompileRender(sources,data) {
 		prev_sources = sources;
 		prev_data = data;
 
-		$td_source.html(_GRIPS_.render("tmpls.html#td_source",{sources:sources}));
+		$td_source.html(_GRIPS_.render("tmpls.html#td_source",{ sources: sources }));
 		$td_data.html(_GRIPS_.render("tmpls.html#td_data",{ data: data }));
 
 		try {
@@ -46,8 +52,9 @@ function updateCompileRender(sources,data) {
 				to_compile = {};
 				to_compile[collection_id] = sources[i].collection_source;
 				compile = {
-					collection_id: "n/a",
-					collection_compiled: ""
+					collection_id: "",
+					collection_compiled: "",
+					compile_source: shortenStr(sources[i].collection_source.replace(/\n/g,""),30)
 				};
 				compiles.push(compile);
 
@@ -59,9 +66,10 @@ function updateCompileRender(sources,data) {
 		catch (err) {
 			$td_source.find("textarea:eq(" + i + ")").addClass("bad");
 			$td_source.find(".source_error").html(nl2br(err.toString())).show();
+			compiles[i].compile_source = "";
 		}
 
-		$td_compiled.html(_GRIPS_.render("tmpls.html#td_compiled",{compiles:compiles}));
+		$td_compiled.html(_GRIPS_.render("tmpls.html#td_compiled",{ compiles: compiles }));
 		if (compile_success) {
 			$td_source.find("textarea").addClass("good");
 			$td_compiled.find("textarea").addClass("good");
@@ -77,8 +85,9 @@ function updateCompileRender(sources,data) {
 				render_success = true;
 			}
 			else {
-				collection_id = "n/a";
+				collection_id = "";
 				partial_id = "";
+				data_context = {};
 				rendered = "";
 			}
 		}
@@ -93,14 +102,12 @@ function updateCompileRender(sources,data) {
 				$td_data.find(".data_error").html(nl2br(err.toString())).show();
 				$td_data.find("textarea").addClass("bad");
 			}
-			collection_id = "n/a";
-			partial_id = "";
-			rendered = "";
 		}
 
 		$td_rendered.html(_GRIPS_.render("tmpls.html#td_rendered",{
 			collection_id: collection_id,
 			partial_id: partial_id,
+			render_data: shortenStr(JSON.stringify(data_context),30),
 			rendered: rendered
 		}));
 
