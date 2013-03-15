@@ -270,8 +270,8 @@ var $sampletemplate = $("#sampletemplate"),
 	prev_data,
 
 	_GRIPS_ = grips.noConflict(),
-	GRIPS_DEBUG_URL = "https://raw.github.com/getify/grips/master/deploy/grips-full.debug.js",
-	GRIPS_URL = "https://raw.github.com/getify/grips/master/deploy/grips-full.js"
+	GRIPS_DEBUG_URL = "deploy_0.3.3-a/grips-full.debug.js",
+	GRIPS_URL = "deploy_0.3.3-a/grips-full.js"
 ;
 
 $LAB.setGlobalDefaults({

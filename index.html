@@ -102,11 +102,14 @@ td textarea.good { border:2px solid green; }
 	</tr>
 </table>
 
-<script src="https://raw.github.com/getify/LABjs/master/LAB.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
-<script src="https://raw.github.com/getify/grips/master/deploy/grips.min.js"></script>
-<script src="tmpls.html.js"></script>
-<script src="playground.js"></script>
+<script src="LAB.min.js"></script>
+<script>
+$LAB
+.script("https://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js")
+.script("deploy_0.3.3-a/grips.min.js").wait()
+.script("tmpls.html.js").wait()
+.script("playground.js");
+</script>
 
 </body>
 </html>
