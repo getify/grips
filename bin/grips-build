@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-/* grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/ */
+/* grips (c) 2012-2014 Kyle Simpson | http://getify.mit-license.org/ */
 
 function printHelp() {
 	console.log("build tool for grips templating engine");
-	console.log("(c) 2012 Kyle Simpson | http://getify.mit-license.org/");
+	console.log("(c) 2012-2014 Kyle Simpson | http://getify.mit-license.org/");
 	console.log("");
 	console.log("usage: grips-build [opt, ...]");
 	console.log("");
@@ -104,7 +104,7 @@ var path = require("path"),
 	STRIP_COMPILER = /\/\* START_COMPILER[\s\S]*?STOP_COMPILER \*\//g,
 	STRIP_DEBUG = /\/\* START_DEBUG[\s\S]*?STOP_DEBUG \*\//g,
 
-	HEADER_STAMP = "/* grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/ */\n",
+	HEADER_STAMP = "/* grips (c) 2012-2014 Kyle Simpson | http://getify.mit-license.org/ */\n",
 	HEADER_REGEX = /\/\* grips \(c\).*?\*\//gi,
 
 	content,

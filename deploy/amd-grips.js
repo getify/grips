@@ -1,4 +1,4 @@
-/* grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/ */
+/* grips (c) 2012-2014 Kyle Simpson | http://getify.mit-license.org/ */
 (function __grips_amd__(){
 ;
 

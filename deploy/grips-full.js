@@ -1,4 +1,4 @@
-/* grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/ */
+/* grips (c) 2012-2014 Kyle Simpson | http://getify.mit-license.org/ */
 ;
 
 // non-ES5 polyfill for Object.keys()
@@ -366,11 +366,11 @@ if (!Array.isArray) {
 			var start, end, i, j;
 
 			for (i=0; i<tokensSlice.length; i++) {
-				if (tokensSlice[i].type === TOKEN_TAG_GENERAL) {
+				if (tokensSlice[i].type === TOKEN_GENERAL) {
 					start = end = i;
 					for (j=start+1; j<tokensSlice.length; j++) {
 						end = j;
-						if (tokensSlice[j].type !== TOKEN_TAG_GENERAL) {
+						if (tokensSlice[j].type !== TOKEN_GENERAL) {
 							end = j-1;
 							break;
 						}
@@ -390,7 +390,7 @@ if (!Array.isArray) {
 
 		function unescapeGeneralTokens(tokensSlice) {
 			for (var i=0; i<tokensSlice.length; i++) {
-				if (tokensSlice[i].type === TOKEN_TAG_GENERAL) {
+				if (tokensSlice[i].type === TOKEN_GENERAL) {
 					tokensSlice[i].val = tokensSlice[i].val.replace(/\\\\/g,"\\");
 				}
 			}
@@ -407,11 +407,11 @@ if (!Array.isArray) {
 					type: null,
 					val: unmatched
 				});
-				if (unmatched.match(/^\s+$/)) {
+				if (/^\s+$/.test(unmatched)) {
 					token.type = TOKEN_TAG_WHITESPACE;
 				}
 				else {
-					token.type = TOKEN_TAG_GENERAL;
+					token.type = TOKEN_GENERAL;
 				}
 				tokens.push(token);
 			}
@@ -419,7 +419,7 @@ if (!Array.isArray) {
 				leftContext = chunk.substring(0,next_match_idx - match[0].length);
 
 				// is the match at the beginning or is it NOT escaped?
-				if (!leftContext || leftContext.match(not_escaped_pattern)) {
+				if (!leftContext || not_escaped_pattern.test(leftContext)) {
 					// block footer tag?
 					if (match[0] === "{$}") {
 						tokens.push(new Token({
@@ -456,14 +456,14 @@ if (!Array.isArray) {
 				// otherwise, since it was escaped, treat the match as just a general token
 				else {
 					tokens.push(new Token({
-						type: TOKEN_TAG_GENERAL,
+						type: TOKEN_GENERAL,
 						val: match[0]
 					}));
 					// general tokens can't change the state of the parser, so skip the parse step for now
 					return;
 				}
 			}
-			
+
 			// run the parser step, only on the unprocessed tokens
 			tokens = tokens.concat((tokensSlice = unescapeGeneralTokens(combineGeneralTokens(tokens.splice(token_idx-tokens.length)))));
 			parser_res = _Grips.parser.nodify(tokensSlice,collectionID);
@@ -481,7 +481,7 @@ if (!Array.isArray) {
 				}
 				else {
 					tokens.push(new Token({
-						type: TOKEN_TAG_GENERAL,
+						type: TOKEN_GENERAL,
 						val: unmatched
 					}));
 				}
@@ -499,7 +499,7 @@ if (!Array.isArray) {
 						val: match[0]
 					}));
 				}
-				else if (match[0].match(/^\s+$/)) {
+				else if (/^\s+$/.test(match[0])) {
 					tokens.push(new Token({
 						type: TOKEN_TAG_WHITESPACE,
 						val: match[0]
@@ -507,7 +507,7 @@ if (!Array.isArray) {
 					// whitespace can't change the state of the parser, so skip the parse step for now
 					return;
 				}
-				else if (match[0].match(/^["']$/)) {
+				else if (/^["']$/.test(match[0])) {
 					token = new Token({
 						type: 0,
 						val: match[0]
@@ -520,7 +520,7 @@ if (!Array.isArray) {
 					parser_state_patterns[_Grips.parser.LITERAL] = new RegExp(match[0],"g");
 					parser_state_patterns[_Grips.parser.LITERAL].lastIndex = 0; // reset to prevent browser "regex caching" bug
 				}
-				else if (match[0].match(/^(?:\.\.)|[:=?\(\)\[\],\-.!]$/)) {
+				else if (/^(?:\.\.)|[:=?\(\)\[\],\-.!]$/.test(match[0])) {
 					tokens.push(new Token({
 						type: TOKEN_TAG_OPERATOR,
 						val: match[0]
@@ -538,7 +538,7 @@ if (!Array.isArray) {
 						val: match[0]
 					}));
 				}
-				else if (match[0].match(/^~[hsuHSU]*$/)) {
+				else if (/^~[hsuHSU]*$/.test(match[0])) {
 					tokens.push(new Token({
 						type: TOKEN_TAG_TILDE,
 						val: match[0]
@@ -546,7 +546,7 @@ if (!Array.isArray) {
 				}
 				else {
 					tokens.push(new Token({
-						type: TOKEN_TAG_GENERAL,
+						type: TOKEN_GENERAL,
 						val: match[0]
 					}));
 					// general tokens can't change the state of the parser, so skip the parse step for now
@@ -564,9 +564,9 @@ if (!Array.isArray) {
 			var tokensSlice, leftContext;
 
 			// make sure we have a general content token for the current raw tag
-			if (tokens[tokens.length-1].type !== TOKEN_TAG_GENERAL) {
+			if (tokens[tokens.length-1].type !== TOKEN_GENERAL) {
 				tokens.push(new Token({
-					type: TOKEN_TAG_GENERAL,
+					type: TOKEN_GENERAL,
 					val: ""
 				}));
 			}
@@ -579,7 +579,7 @@ if (!Array.isArray) {
 				leftContext = tokens[tokens.length-1].val;
 
 				// is the match at the beginning or is it NOT escaped?
-				if (!leftContext || leftContext.match(not_escaped_pattern)) {
+				if (!leftContext || not_escaped_pattern.test(leftContext)) {
 					tokens.push(new Token({
 						type: TOKEN_TAG_RAW_CLOSE,
 						val: match[0]
@@ -593,7 +593,7 @@ if (!Array.isArray) {
 				// otherwise just add the match to the literal's general content token
 				else {
 					// was it escaped?
-					if (leftContext && !leftContext.match(not_escaped_pattern)) {
+					if (leftContext && !not_escaped_pattern.test(leftContext)) {
 						tokens[tokens.length-1].val = tokens[tokens.length-1].val.substr(0,tokens[tokens.length-1].val.length-1);
 					}
 					tokens[tokens.length-1].val += match[0];
@@ -608,7 +608,7 @@ if (!Array.isArray) {
 				leftContext = tokens[tokens.length-1].val;
 
 				// is the match at the beginning or is it NOT escaped?
-				if (!leftContext || leftContext.match(not_escaped_pattern)) {
+				if (!leftContext || not_escaped_pattern.test(leftContext)) {
 					tokens.push(new Token({
 						type: TOKEN_TAG_COMMENT_CLOSE,
 						val: match[0]
@@ -626,9 +626,9 @@ if (!Array.isArray) {
 			var tokensSlice, leftContext;
 
 			// make sure we have a general content token for the current literal
-			if (tokens[tokens.length-1].type !== TOKEN_TAG_GENERAL) {
+			if (tokens[tokens.length-1].type !== TOKEN_GENERAL) {
 				tokens.push(new Token({
-					type: TOKEN_TAG_GENERAL,
+					type: TOKEN_GENERAL,
 					val: ""
 				}));
 			}
@@ -641,7 +641,7 @@ if (!Array.isArray) {
 				leftContext = tokens[tokens.length-1].val;
 
 				// is the match at the beginning or is it NOT escaped?
-				if (!leftContext || leftContext.match(not_escaped_pattern)) {
+				if (!leftContext || not_escaped_pattern.test(leftContext)) {
 					tokens.push(new Token({
 						type: (match[0] === "\"" ? TOKEN_TAG_DOUBLE_QUOTE : TOKEN_TAG_SINGLE_QUOTE),
 						val: match[0]
@@ -658,7 +658,7 @@ if (!Array.isArray) {
 				// otherwise just add the match to the literal's general content token
 				else {
 					// was it escaped?
-					if (leftContext && !leftContext.match(not_escaped_pattern)) {
+					if (leftContext && !not_escaped_pattern.test(leftContext)) {
 						tokens[tokens.length-1].val = tokens[tokens.length-1].val.substr(0,tokens[tokens.length-1].val.length-1);
 					}
 					tokens[tokens.length-1].val += match[0];
@@ -760,7 +760,7 @@ if (!Array.isArray) {
 		TOKEN_TAG_SINGLE_QUOTE = 10,
 		TOKEN_TAG_DOUBLE_QUOTE = 11,
 		TOKEN_TAG_OPERATOR = 12,
-		TOKEN_TAG_GENERAL = 13,
+		TOKEN_GENERAL = 13,
 		TOKEN_TAG_WHITESPACE = 14,
 		TOKEN_TAG_TILDE = 15,
 
@@ -789,7 +789,7 @@ if (!Array.isArray) {
 		SINGLE_QUOTE: TOKEN_TAG_SINGLE_QUOTE,
 		DOUBLE_QUOTE: TOKEN_TAG_DOUBLE_QUOTE,
 		OPERATOR: TOKEN_TAG_OPERATOR,
-		GENERAL: TOKEN_TAG_GENERAL,
+		GENERAL: TOKEN_GENERAL,
 		WHITESPACE: TOKEN_TAG_WHITESPACE,
 		TILDE: TOKEN_TAG_TILDE,
 
@@ -929,15 +929,15 @@ if (!Array.isArray) {
 
 			if (token.type === _Grips.tokenizer.SIGNIFIER) {
 				if (current_parent && current_parent.type == null) {
-					if (token.val.match(/^(?:\:|define)$/)) current_parent.type = NODE_TAG_DEFINE;
-					else if (token.val.match(/^(?:\+|extend)$/)) current_parent.type = NODE_TAG_EXTEND;
-					else if (token.val.match(/^(?:\=|insert|print)$/)) current_parent.type = NODE_TAG_INSERT_VAR; // NOTE: can later be re-defined to NODE_TAG_INCL_TMPL if `@` is found subsequently
-					else if (token.val.match(/^partial$/)) current_parent.type = NODE_TAG_INCL_TMPL;
-					else if (token.val.match(/^(?:\*|loop)$/)) current_parent.type = NODE_TAG_LOOP;
-					else if (token.val.match(/^(?:#|let)$/)) current_parent.type = NODE_TAG_LET;
-					else if (token.val.match(/^(?:\%|raw)$/)) current_parent.type = NODE_TAG_RAW;
-					else if (token.val.match(/^(?:\/|comment)$/)) current_parent.type = NODE_TAG_COMMENT;
-					else if (token.val.match(/^(?:escape|(?:~|escape\s+)[hsuHSU]*)$/)) current_parent.type = NODE_TAG_ESCAPE;
+					if (/^(?:\:|define)$/.test(token.val)) current_parent.type = NODE_TAG_DEFINE;
+					else if (/^(?:\+|extend)$/.test(token.val)) current_parent.type = NODE_TAG_EXTEND;
+					else if (/^(?:\=|insert|print)$/.test(token.val)) current_parent.type = NODE_TAG_INSERT_VAR; // NOTE: can later be re-defined to NODE_TAG_INCL_TMPL if `@` is found subsequently
+					else if (/^partial$/.test(token.val)) current_parent.type = NODE_TAG_INCL_TMPL;
+					else if (/^(?:\*|loop)$/.test(token.val)) current_parent.type = NODE_TAG_LOOP;
+					else if (/^(?:#|let)$/.test(token.val)) current_parent.type = NODE_TAG_LET;
+					else if (/^(?:\%|raw)$/.test(token.val)) current_parent.type = NODE_TAG_RAW;
+					else if (/^(?:\/|comment)$/.test(token.val)) current_parent.type = NODE_TAG_COMMENT;
+					else if (/^(?:escape|(?:~|escape\s+)[hsuHSU]*)$/.test(token.val)) current_parent.type = NODE_TAG_ESCAPE;
 
 					// special handling for various tag types
 					if (current_parent.type === NODE_TAG_EXTEND ||
@@ -958,10 +958,10 @@ if (!Array.isArray) {
 					else if (current_parent.type === NODE_TAG_ESCAPE) {
 						current_parent.close_header = _Grips.tokenizer.BLOCK_HEAD_CLOSE;
 						current_parent.escapes = {};
-						if (token.val.match(/(?:~.*|escape\s+.*)h/i)) current_parent.escapes.html = true;
-						if (token.val.match(/(?:~.*|escape\s+.*)s/i)) current_parent.escapes.string = true;
-						if (token.val.match(/(?:~.*|escape\s+.*)u/i)) current_parent.escapes.url = true;
-						if (!token.val.match(/\b[hsu]$/i)) current_parent.escapes.string = true;
+						if (/(?:~.*|escape\s+.*)h/i.test(token.val)) current_parent.escapes.html = true;
+						if (/(?:~.*|escape\s+.*)s/i.test(token.val)) current_parent.escapes.string = true;
+						if (/(?:~.*|escape\s+.*)u/i.test(token.val)) current_parent.escapes.url = true;
+						if (!/\b[hsu]$/i.test(token.val)) current_parent.escapes.string = true;
 						delete current_parent.def; // escape tags don't have a declaration
 					}
 					else if (current_parent.type === NODE_TAG_RAW) {
@@ -1058,10 +1058,10 @@ if (!Array.isArray) {
 					current_parent.def.length === 0 // is the node's declaration not yet defined?
 				) {
 					current_parent.escapes = {};
-					if (token.val.match(/h/i)) current_parent.escapes.html = true;
-					if (token.val.match(/s/i)) current_parent.escapes.string = true;
-					if (token.val.match(/u/i)) current_parent.escapes.url = true;
-					if (!token.val.match(/[hsu]/i)) current_parent.escapes.string = true;
+					if (/h/i.test(token.val)) current_parent.escapes.html = true;
+					if (/s/i.test(token.val)) current_parent.escapes.string = true;
+					if (/u/i.test(token.val)) current_parent.escapes.url = true;
+					if (!/[hsu]/i.test(token.val)) current_parent.escapes.string = true;
 				}
 				else {
 					instance_api.state = NODE_STATE_INVALID;
@@ -1131,7 +1131,7 @@ if (!Array.isArray) {
 			else if (token.type === _Grips.tokenizer.OPERATOR) {
 				if (current_parent) {
 					// do we need to implicitly switch to EXPR processing for this tag?
-					if (token.val.match(/[\(\[]/)) {
+					if (/[\(\[]/.test(token.val)) {
 						implicitlyStartExpr();
 					}
 
@@ -1148,7 +1148,7 @@ if (!Array.isArray) {
 							if (current_parent.def[current_parent.def.length-1].type !== NODE_WHITESPACE &&
 								!(
 									current_parent.def[current_parent.def.length-1].type === NODE_OPERATOR &&
-									current_parent.def[current_parent.def.length-1].val.match(/(?:\.\.)|\[/)
+									/(?:\.\.)|\[/.test(current_parent.def[current_parent.def.length-1].val)
 								)
 							) {
 								return unknown_error;
@@ -1333,7 +1333,7 @@ if (!Array.isArray) {
 							current_parent.token = token;
 						}
 						// do we need to negate a number because of a preceeding `-` operator?
-						if (token.val.match(/^\d+$/) &&
+						if (/^\d+$/.test(token.val) &&
 							current_parent.def.length > 0 &&
 							current_parent.def[current_parent.def.length-1].type === NODE_OPERATOR &&
 							current_parent.def[current_parent.def.length-1].val === "-"
@@ -1649,10 +1649,10 @@ if (!Array.isArray) {
 					if (node.val === "]") {
 						break;
 					}
-					else if (!node.val.match(/(?:\.\.)|[\-,]/)) {
+					else if (!/(?:\.\.)|[\-,]/.test(node.val)) {
 						return false;
 					}
-					else if (node.val.match(/(?:\.\.)|,/)) {
+					else if (/(?:\.\.)|,/.test(node.val)) {
 						special_operator_found = true;
 					}
 				}
@@ -1703,7 +1703,7 @@ if (!Array.isArray) {
 					node = nodes[i];
 
 					if (node.type === NODE_OPERATOR &&
-						node.val.match(/[?:]/)
+						/[?:]/.test(node.val)
 					) {
 						if (node.val === "?") {
 							if (!conditional_expr) {
@@ -1805,10 +1805,10 @@ if (!Array.isArray) {
 				if (!id.val) {
 					return unknown_error;
 				}
-				else if (!id.val.match(/^#/)) {
+				else if (!/^#/.test(id.val)) {
 					return unknown_error;
 				}
-				else if (!id.val.match(/^#[a-z0-9_\-$.]/i)) {
+				else if (!/^#[a-z0-9_\-$.]/i.test(id.val)) {
 					return unknown_error;
 				}
 				else if ((tmp = id.val.match(/(#.*?)([^a-z0-9_\-$.]).*$/i))) {
@@ -1827,7 +1827,7 @@ if (!Array.isArray) {
 			else if (id.parent.type === NODE_TAG_INCL_TMPL) {
 				if (!(
 						id.val &&
-						id.val.match(/#.+/)
+						/#.+/.test(id.val)
 					)
 				) {
 					return unknown_error;
@@ -1872,13 +1872,13 @@ if (!Array.isArray) {
 
 					if (node.type === NODE_OPERATOR) {
 						// check for invalid simple expression operators
-						if (!node.val.match(/[.!\[\]\(\)]/)) {
+						if (!/[.!\[\]\(\)]/.test(node.val)) {
 							return unknown_error;
 						}
 
 						// check for valid trailing operator
 						if (i === (expr.def.length-1) &&
-							!node.val.match(/[\]\)]/)
+							!/[\]\)]/.test(node.val)
 						) {
 							return unknown_error;
 						}
@@ -1888,41 +1888,41 @@ if (!Array.isArray) {
 							// are there two operators in a row?
 							if (prev_node.type === NODE_OPERATOR) {
 								if (node.val === "(" &&
-									!prev_node.val.match(/[!\(\[]/)
+									!/[!\(\[]/.test(prev_node.val)
 								) {
 									return unknown_error;
 								}
 								else if (node.val === "!" &&
-									!prev_node.val.match(/[!\(]/)
+									!/[!\(]/.test(prev_node.val)
 								) {
 									return unknown_error;
 								}
-								else if (node.val.match(/[.\[\]\)]/) &&
-									!prev_node.val.match(/[\]\)]/)
+								else if (/[.\[\]\)]/.test(node.val) &&
+									!/[\]\)]/.test(prev_node.val)
 								) {
 									return unknown_error;
 								}
 							}
 							else if (prev_node.type === NODE_TEXT &&
-								!node.val.match(/[.\[\]\)]/)
+								!/[.\[\]\)]/.test(node.val)
 							) {
 								return unknown_error;
 							}
 							else if (prev_node.type === NODE_STRING_LITERAL &&
-								!node.val.match(/[\]\)]/)
+								!/[\]\)]/.test(node.val)
 							) {
 								return unknown_error;
 							}
 						}
-						else if (!node.val.match(/[!\(]/)) {
+						else if (!/[!\(]/.test(node.val)) {
 							return unknown_error;
 						}
 
 						// check [] () balance
-						if (node.val.match(/[\[\(]/)) {
+						if (/[\[\(]/.test(node.val)) {
 							stack.push(node.val);
 						}
-						else if (node.val.match(/[\]\)]/)) {
+						else if (/[\]\)]/.test(node.val)) {
 							// are we balanced with a matching `(` or `[`?
 							if (stack.length > 0 &&
 								(
@@ -1938,14 +1938,14 @@ if (!Array.isArray) {
 						}
 					}
 					else if (node.type === NODE_TEXT) {
-						if (node.val.match(/^\d/)) {
-							if (!node.val.match(/^\d+$/)) {
+						if (/^\d/.test(node.val)) {
+							if (!/^\d+$/.test(node.val)) {
 								return unknown_error;
 							}
 							else if (prev_node &&
 								!(
 									prev_node.type === NODE_OPERATOR &&
-									prev_node.val.match(/[\(\[]/)
+									/[\(\[]/.test(prev_node.val)
 								)
 							) {
 								return unknown_error;
@@ -1981,7 +1981,7 @@ if (!Array.isArray) {
 								return unknown_error;
 							}
 							else if (prev_node.type === NODE_OPERATOR &&
-								!prev_node.val.match(/[.!\(\[]/)
+								!/[.!\(\[]/.test(prev_node.val)
 							) {
 								return unknown_error;
 							}
@@ -1991,7 +1991,7 @@ if (!Array.isArray) {
 						if (prev_node &&
 							!(
 								prev_node.type === NODE_OPERATOR &&
-								prev_node.val.match(/[\[\(]/)
+								/[\[\(]/.test(prev_node.val)
 							)
 						) {
 							return unknown_error;
@@ -2011,14 +2011,14 @@ if (!Array.isArray) {
 			if (expr.def && expr.def.length === 5) {
 				if (!(
 						expr.def[1].type === NODE_TEXT &&
-						expr.def[1].val.match(/^-?\d+$/)
+						/^-?\d+$/.test(expr.def[1].val)
 					)
 				) {
 					return unknown_error;
 				}
 				else if (!(
 						expr.def[3].type === NODE_TEXT &&
-						expr.def[3].val.match(/^-?\d+$/)
+						/^-?\d+$/.test(expr.def[3].val)
 					)
 				) {
 					return unknown_error;
@@ -2183,7 +2183,7 @@ if (!Array.isArray) {
 							}
 							else if (!(
 									prev_node &&
-									node.val.match(/[.\[\]]/)
+									/[.\[\]]/.test(node.val)
 								)
 							) {
 								return unknown_error;
@@ -2263,7 +2263,7 @@ if (!Array.isArray) {
 						}
 					}
 					else if (node.type === NODE_TEXT) {
-						if (!node.val.match(/^\d+$/)) {
+						if (!/^\d+$/.test(node.val)) {
 							identifier_found = true;
 						}
 						else if (!identifier_found) {
@@ -2439,7 +2439,7 @@ if (!Array.isArray) {
 						}
 					}
 				}
-				
+
 				node.def = [node.main_expr];
 			}
 

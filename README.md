@@ -102,7 +102,7 @@ Long-form:
 Short-form:
 
 ```
-{$= $.val_1 $}     {$= myval $}	
+{$= $.val_1 $}     {$= myval $}
 ```
 
 ### Include template partial, by static literal
@@ -230,7 +230,7 @@ Short-form:
 
 ```
 {$* $.val_1 |
-	rowtype = _.odd ? "#oddrow" : "#evenrow" | 
+	rowtype = _.odd ? "#oddrow" : "#evenrow" |
     someprop = _.value.someProp ? "#hassomeprop"
 }
 	...
@@ -371,14 +371,14 @@ Short-form:
 Long-form:
 
 ```
-{$comment comments get removed 
+{$comment comments get removed
 	in parsing /$}
 ```
 
 Short-form:
 
 ```
-{$/ comments get removed 
+{$/ comments get removed
 	in parsing /$}
 ```
 
@@ -417,7 +417,7 @@ Once installed with npm, you will have a "./node_modules/grips/deploy" directory
 
 To use the grips module in a node.js script, you simply call `require("grips")`, and on that module object, you choose either the debug version of the library with `require("grips").debug` or the non-debug version with `require("grips").grips`.
 
-## Using the JavaScript API
+## API
 
 The JavaScript API is accessible in a couple of different ways. The raw library can be loaded in a traditional fashion in a browser, and will produce a single global symbol called `grips`. It can be loaded as an AMD module, using the "amd-*.js" versions of the files (assuming they were built with the `grips-build` tool). And finally, you can use the "grips" module in node.js code (see above).
 
@@ -430,7 +430,7 @@ grips organizes template partials by grouping them together in collections. A si
 You will render an individual partial, but you will compile a collection of one or more partials.
 
 ### Compiling a collection
-To compile a collection of partials, call `compileCollection(templateStr, collectionID, [initialize=true])`. 
+To compile a collection of partials, call `compileCollection(templateStr, collectionID, [initialize=true])`.
 
 `templateStr` is the string representation of your collection of template partials. `collectionID` should be the same as any other references to the collection by ID, such as other absolute template includes, or template extend directives, in other collections.
 
@@ -597,4 +597,4 @@ The `grips-perf` tool runs the templating scenario from [grips performance](http
 
 ## License
 
-grips (c) 2012 Kyle Simpson | http://getify.mit-license.org/
+grips (c) 2012-2014 Kyle Simpson | http://getify.mit-license.org/
