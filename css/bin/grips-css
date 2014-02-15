@@ -1,0 +1,248 @@
+#!/usr/bin/env node
+
+/* grips-css (c) 2012-2014 Kyle Simpson | http://getify.mit-license.org/ */
+
+function printHelp() {
+	console.log("grips-css templating engine");
+	console.log("(c) 2013 Kyle Simpson | http://getify.mit-license.org/");
+	console.log("");
+	console.log("usage: grips-css opt [, ..opt]");
+	console.log("");
+	console.log("options:");
+	console.log("--help                                    show this help");
+	console.log("");
+	console.log("--nodebug                                 use the non-debug library");
+	console.log("--keep-paths                              for --compile, keep the full path in the collection ID, instead of just the filename");
+//	console.log("--minify                                  minify compiled templates with uglify.js");
+	console.log("");
+	console.log("--compile=file                            compile a template file (using {file} as the collection ID)");
+//	console.log("--initialize=file                         initializes an already compiled template collection from a file");
+//	console.log("--render='{collection-ID}#{partial-ID}'   render the specified partial, using data from stdin");
+	console.log("");
+}
+
+function minify(str) {
+	var ast;
+	ast = jsp.parse(str); // parse code and get the initial AST
+	ast = pro.ast_mangle(ast); // get a new AST with mangled names
+	ast = pro.ast_squeeze(ast); // get an AST with compression optimizations
+	return ";" + pro.gen_code(ast) + ";"; // compressed code here
+}
+
+function main() {
+	// create a grips module instance
+	function getGrips() {
+		function sandbox() {
+			this.grips = require("../../node-grips-debug.js").grips;
+			// this is a hack to get a new copy of the grips module for
+			// each 'compilation' test run, because `require()` caches the
+			// module instance :(
+			eval(FILE_CONTENTS);
+		}
+		return (new sandbox()).grips;
+	}
+
+	var i, output = "", compiles = {}, tmp,
+		DIR_LIB = path.join(__dirname,"..","lib"),
+		FILE_CONTENTS = ""
+	;
+
+	["base.js","tokenizer.js","parser.js","generator.js"].forEach(function(filename){
+		FILE_CONTENTS += ";" + fs.readFileSync(path.join(DIR_LIB,filename),"utf8");
+	});
+
+	// load/build grips lib
+	if (OPT_NO_DEBUG) {
+		//grips = require(FILE_NODE).grips;
+		grips = getGrips();
+	}
+	else {
+		//grips = require(FILE_NODE).debug;
+		grips = getGrips();
+	}
+
+	// process --compile arguments
+	if (OPT_COMPILE.length > 0) {
+		output = "";
+		for (i=0; i<OPT_COMPILE.length; i++) {
+			if (fs.existsSync(OPT_COMPILE[i])) {
+				tmp = OPT_COMPILE[i];
+				if (!OPT_KEEP_PATHS) {
+					tmp = path.basename(tmp);
+				}
+				compiles[tmp] = fs.readFileSync(OPT_COMPILE[i],"utf8");
+			}
+			else {
+				console.error("File not found: " + OPT_COMPILE[i]);
+				process.exit(1);
+			}
+		}
+
+		try {
+			output = grips.css.compile(compiles);
+		}
+		catch (err) {
+			console.error("Compilation failed; " + err);
+			process.exit(1);
+		}
+
+		// minify the compiler output?
+		if (OPT_MINIFY) {
+			output = minify(output);
+		}
+	}
+
+	// process --initialize arguments
+	if (OPT_INITIALIZE.length > 0) {
+		for (i=0; i<OPT_INITIALIZE.length; i++) {
+			if (fs.existsSync(OPT_INITIALIZE[i])) {
+				try {
+					grips.initialize(fs.readFileSync(OPT_INITIALIZE[i],"utf8"));
+				}
+				catch (err) {
+					console.error("Initialization failed [" + OPT_INITIALIZE[i] + "]; " + err.toString() + (err.stack ? "\n" + err.stack : ""));
+					process.exit(1);
+				}
+			}
+			else {
+				console.error("File not found: " + OPT_INITIALIZE[i]);
+				process.exit(1);
+			}
+		}
+	}
+
+	// process --render arguments
+	if (OPT_RENDER.length > 0) {
+		output = "";
+		for (i=0; i<OPT_RENDER.length; i++) {
+			try {
+				output += grips.render(OPT_RENDER[i],data);
+			}
+			catch (err) {
+				console.error("Render failed [" + OPT_RENDER[i] + "]; " + err.toString());
+				process.exit(1);
+			}
+		}
+	}
+
+	console.log(output);
+}
+
+function usageError(msg) {
+	console.log(msg);
+	console.log("");
+	printHelp();
+	process.exit(1);
+}
+
+
+var path = require("path"),
+	fs = require("fs"),
+
+	DIR_ROOT = path.join(__dirname,".."),
+
+	FILE_NODE = path.join(DIR_ROOT,"node-base.js"),
+
+	OPT_NO_DEBUG = false,
+	OPT_MINIFY = false,
+	OPT_KEEP_PATHS = false,
+	OPT_COMPILE = [],
+	OPT_INITIALIZE = [],
+	OPT_RENDER = [],
+
+	data = "",
+	content = "",
+	wrapper,
+	grips,
+
+	// for uglify, if desired
+	jsp,
+	pro
+;
+
+// must pass at least one argument
+if (process.argv.length < 3) {
+	usageError("No arguments passed.");
+}
+
+process.argv.slice(2).forEach(function(arg){
+	var tmp;
+	switch (arg) {
+		case "--help":
+			printHelp();
+			process.exit(1);
+			break;
+		case "--nodebug":
+			OPT_NO_DEBUG = true;
+			break;
+		case "--minify":
+			OPT_MINIFY = true;
+			try {
+				jsp = require("uglify-js").parser;
+				pro = require("uglify-js").uglify;
+			}
+			catch (err) {
+				usageError("--minify failed because 'uglify-js' module is missing or invalid.");
+				break;
+			}
+			break;
+		case "--keep-paths":
+			OPT_KEEP_PATHS = true;
+			break;
+		default:
+			if ((tmp = arg.match(/^--compile=(.+)$/))) {
+				OPT_COMPILE.push(tmp[1]);
+			}
+			else if ((tmp = arg.match(/^--initialize=(.+)$/))) {
+				OPT_INITIALIZE.push(tmp[1]);
+			}
+			else if ((tmp = arg.match(/^--render=(["'])?(.+)(?:\1)$/))) {
+				OPT_RENDER.push(tmp[2]);
+			}
+			else {
+				usageError("Unrecognized flag: " + arg);
+			}
+			break;
+	}
+});
+
+// must pass at least one argument
+if (!(OPT_COMPILE.length > 0 || OPT_RENDER.length > 0)) {
+	usageError("--compile or --render required.");
+}
+// --minify only valid with --compile
+else if (OPT_MINIFY && !(OPT_COMPILE.length > 0)) {
+	usageError("--minify only valid with --compile.");
+}
+// --keep-paths only valid with --compile or --initialize
+else if (OPT_KEEP_PATHS && !(OPT_COMPILE.length > 0 || OPT_INITIALIZE.length > 0)) {
+	usageError("--keep-paths only valid with --compile or --initialize.");
+}
+// --render requirements
+else if (OPT_RENDER.length > 0) {
+	// --render requires --compile or --initialize
+	if (!(OPT_COMPILE.length > 0 || OPT_INITIALIZE.length > 0)) {
+		usageError("--render requires --compile or --initialize.");
+	}
+	// --render requires stdin
+	else {
+		process.stdin.resume();
+		process.stdin.setEncoding("utf8");
+		process.stdin.on("data",function(chunk){
+			if (chunk) data += chunk;
+		});
+		process.stdin.on("end",function(){
+			try {
+				data = JSON.parse(data);
+			}
+			catch (err) {
+				usageError("--render requires JSON data from stdin: " + data.replace(/[\r\n]/g,"").substr(0,20) + (data.length > 20 ? "..." : "") + "\nError: " + err.toString());
+			}
+			main();
+		});
+	}
+}
+else {
+	main();
+}
+

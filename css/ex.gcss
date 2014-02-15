@@ -1,0 +1,32 @@
+/*
+@import 'foo.gcss';
+
+@charset 'foo';
+
+::selection { color:red; }
+
+@font-face { color:blue; }
+*/
+
+html[abc=def]/*:after (foo : "bar", baz:"#222")*/ {
+
+/*
+   .foo|blah:3px|baz:"fun";
+
+   *transition: left 1s;
+
+   ::first-line { yes:no; }
+   :first-line { yes:no; }
+
+   // a single line comment
+*/
+   //padding: /* is a multi-
+   //line comment */none;
+}
+
+/*
+@*keyframe { 
+   0% { top:0px; }
+   100% { top:100px; }
+}
+*/

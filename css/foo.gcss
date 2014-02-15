@@ -1,0 +1,34 @@
+@import bar.gcss;
+
+/* this is a
+   multi-line comment */
+
+.menu {
+   border: 1px solid #000;
+}
+
+// and a single-line comment
+
+#topnav {
+   text-decoration: underline;
+}
+
+.roundedcorners (color:red) {
+   *border-radius: =radius;
+   border-color: =color;
+}
+
+.special {
+   color: =color;
+}
+
+#menu {
+   .menu;
+   #topnav;
+   .roundedcorners|radius:4px;
+
+   .special {
+      .roundedcorners|radius:=maxradius;
+      font-weight: bold;
+   }
+}

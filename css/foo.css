@@ -1,0 +1,41 @@
+.menu {
+   border: 1px solid #000;
+}
+
+#topnav {
+   text-decoration: underline;
+}
+
+.roundedcorners {
+   -webkit-border-radius: 3px;
+   -moz-border-radius: 3px;
+   -o-border-radius: 3px;
+   -ms-border-radius: 3px;
+   border-radius: 3px;
+   border-color: blue;
+}
+
+.special {
+   color: blue;
+}
+
+#menu {
+   border: 1px solid #000;
+   text-decoration: underline;
+   -webkit-border-radius: 4px;
+   -moz-border-radius: 4px;
+   -o-border-radius: 4px;
+   -ms-border-radius: 4px;
+   border-radius: 4px;
+   border-color: blue;
+}
+
+#main .special {
+   -webkit-border-radius: 6px;
+   -moz-border-radius: 6px;
+   -o-border-radius: 6px;
+   -ms-border-radius: 6px;
+   border-radius: 6px;
+   border-color: blue;
+   font-weight: bold;
+}

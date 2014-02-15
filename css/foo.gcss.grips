@@ -1,0 +1,37 @@
+{$extend "bar.gcss.grips" $}
+
+
+{$define "#css-1" }.menu{{$partial "#css-1_" $}}{$}
+{$define "#css-1_" }border: 1px solid #000;{$}
+
+
+{$define "#css-2" }#topnav{{$partial "#css-2_" $}}{$}
+{$define "#css-2_" }text-decoration: underline;{$}
+
+
+{$define "#css-3" | color = color ? color : "red" }.roundedcorners{{$partial "#css-3_" $}}{$}
+{$define "#css-3_" }{$loop ["-webkit-","-o-","-ms-","-moz-",""] }{$insert _.value $}border-radius: {$insert radius $};{$}border-color: {$insert color $};{$}
+
+
+{$define "#css-4" }.special{{$partial "#css-4_" $}}{$}
+{$define "#css-4_" }color: red;{$}
+
+
+{$define "#css-5" }#menu{{$partial "#css-5_" $}}{$}
+{$define "#css-5_" }
+	{$partial "#css-1_" $}
+	{$partial "#css-2_" $}
+	{$let radius = "4px" }
+		{$partial "#css-3_" $}
+	{$}
+{$}
+
+
+{$define "#css-6" }#menu .special{{$partial "#css-6_" $}}{$}
+{$define "#css-6_" }
+	{$let radius = "6px" }
+		{$partial "#css-3_" $}
+	{$}
+	font-weight: bold;
+{$}
+
