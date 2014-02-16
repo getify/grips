@@ -133,6 +133,10 @@ if (!Array.isArray) {
 			// default empty render?
 			if (!id) return "";
 
+			// default empty objects for `data` and `locals` contexts
+			$ = $ || {};
+			$$ = $$ || {};
+
 			var collection_id, ret = false, i, tmp, eligible_stack = [],
 				collection_id_specified = false, collection_stack_pushed = false
 			;
