@@ -14,7 +14,7 @@
 
 
 {$define "#css-4" }.special{{$partial "#css-4_" $}}{$}
-{$define "#css-4_" }color: red;{$}
+{$define "#css-4_" }color: {$insert color $};{$}
 
 
 {$define "#css-5" }#menu{{$partial "#css-5_" $}}{$}
@@ -29,7 +29,7 @@
 
 {$define "#css-6" }#menu .special{{$partial "#css-6_" $}}{$}
 {$define "#css-6_" }
-	{$let radius = "6px" }
+	{$let radius = maxradius }
 		{$partial "#css-3_" $}
 	{$}
 	font-weight: bold;
