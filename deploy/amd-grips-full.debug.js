@@ -3028,7 +3028,7 @@ if (!Object.prototype.toJSON) {
 		}
 		else if (node.type === NODE_TEXT) {
 			if (!node.parent && node.token.type !== _Grips.tokenizer.WHITESPACE) {
-				throw new ParserError("Unexpected text outside of tag2",node) ||unknown_error;
+				throw new ParserError("Unexpected text outside of tag",node) ||unknown_error;
 			}
 			if (node.val !== "") {
 				return node;

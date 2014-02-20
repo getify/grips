@@ -34,7 +34,7 @@ function main() {
 	function getGrips() {
 		function sandbox() {
 			this.grips = require("../../node-grips-debug.js").grips;
-			// this is a hack to get a new copy of the grips module for
+			// this is a hack to get a new copy of the grips-css module for
 			// each 'compilation' test run, because `require()` caches the
 			// module instance :(
 			eval(FILE_CONTENTS);
