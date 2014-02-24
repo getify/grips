@@ -531,6 +531,7 @@
 					current_parent.complete = true;
 					current_parent.parent.complete = true;
 					current_parent = current_parent.parent.parent;
+					return state_handlers[instance_api.state](token);
 				}
 				else {
 					node = new Node({
@@ -793,7 +794,10 @@
 	function parse(node) {
 		var ret, ret2, ret3, err, i;
 
-		// implicitly ending a collection node?
+		delete node.parent;
+		delete node.previous_state;
+
+		// implicitly end a collection node?
 		if (parse_stack.length > 0 &&
 			(
 				parse_stack[parse_stack.length - 1].type === NODE_UNKNOWN ||
@@ -805,11 +809,13 @@
 			) {
 				// collection node stays "unknown"
 				parse_stack[parse_stack.length - 1].complete = true;
+				parse_stack[parse_stack.length - 1].children = combineNodes(parse_stack[parse_stack.length - 1].children);
 				parse_stack.pop();
 			}
 			else if (node.type === NODE_SELECTOR_BODY) {
 				parse_stack[parse_stack.length - 1].type = NODE_SELECTOR;
 				parse_stack[parse_stack.length - 1].complete = true;
+				parse_stack[parse_stack.length - 1].children = combineNodes(parse_stack[parse_stack.length - 1].children);
 				parse_stack.pop();
 			}
 			else if (node.type === NODE_OPERATOR &&
@@ -820,21 +826,25 @@
 				}
 				parse_stack[parse_stack.length - 1].complete = true;
 				parse_stack[parse_stack.length - 1].children.push(node);
+				parse_stack[parse_stack.length - 1].children = combineNodes(parse_stack[parse_stack.length - 1].children);
 				parse_stack.pop();
 				return null;
 			}
 			else if (node.type === NODE_OPERATOR &&
 				node.token.type === _Grips_CSS.tokenizer.COLON &&
-				parse_stack[parse_stack.length - 1].type === NODE_UNKNOWN
+				parse_stack[parse_stack.length - 1].type === NODE_UNKNOWN &&
+				node.children
 			) {
 				parse_stack[parse_stack.length - 1].complete = true;
 				parse_stack[parse_stack.length - 1].type = NODE_SELECTOR;
+				parse_stack[parse_stack.length - 1].children = combineNodes(parse_stack[parse_stack.length - 1].children);
 				parse_stack.pop();
 
+				// hijack operator node as collection node
 				node.type = NODE_RULE;
-
 				parse_stack.push(node);
 
+				// preserve the now hijacked operator node
 				node.children.unshift(new Node({
 					type: NODE_OPERATOR,
 					token: node.token,
@@ -851,6 +861,7 @@
 				}
 				parse_stack[parse_stack.length - 1].complete = true;
 				parse_stack[parse_stack.length - 1].children.push(node);
+				parse_stack[parse_stack.length - 1].children = combineNodes(parse_stack[parse_stack.length - 1].children);
 				parse_stack.pop();
 				return null;
 			}
@@ -858,11 +869,13 @@
 				node.token.type === _Grips_CSS.tokenizer.UNKNOWN
 			) {
 				parse_stack[parse_stack.length - 1].complete = true;
+				parse_stack[parse_stack.length - 1].children = combineNodes(parse_stack[parse_stack.length - 1].children);
 				parse_stack.pop();
 				return node;
 			}
 		}
 
+		// process various node types
 		if (node.type === NODE_TEXT) {
 			// implicitly starting a collection node?
 			if (parse_stack.length === 0 ||
@@ -898,6 +911,7 @@
 			}
 		}
 		else if (node.type === NODE_PREFIX_EXPANDER) {
+			// implicitly starting a collection node?
 			if (parse_stack.length === 0 ||
 				parse_stack[parse_stack.length - 1].type !== NODE_UNKNOWN
 			) {
@@ -918,22 +932,33 @@
 				return null;
 			}
 		}
+		else if (node.type === NODE_PARAM_LIST ||
+			node.type === NODE_SET_PARAMS
+		) {
+			if (parse_stack.length > 0 &&
+				parse_stack[parse_stack.length - 1].type === NODE_UNKNOWN
+			) {
+				parse_stack[parse_stack.length - 1].children.push(node);
+				return null;
+			}
+			else {
+				return node;
+			}
+		}
 		else if (
 			node.type === NODE_SELECTOR ||
 			node.type === NODE_SELECTOR_BODY ||
 			node.type === NODE_RULE ||
 			node.type === NODE_INCLUDE_RULE
 		) {
-			// do we need to parse the children?
-			if (node.children && node.children.length > 0) {
-				node.children = combineNodes(node.children);
-				ret = [];
-				for (i=0; i<node.children.length; i++) {
-					ret2 = parse(node.children[i]);
-					if (ret2) ret.push(ret2);
-				}
-				node.children = combineNodes(ret);
+			// need to parse a node's children?
+			node.children = combineNodes(node.children);
+			ret = [];
+			for (i=0; i<node.children.length; i++) {
+				ret2 = parse(node.children[i]);
+				if (ret2) ret.push(ret2);
 			}
+			node.children = combineNodes(ret);
 			return node;
 		}
 		else if (node.type === NODE_FILE_MARKER) {
