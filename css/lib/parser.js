@@ -63,7 +63,7 @@
 				instance_api.state = NODE_STATE_PREFIX_EXPANSION;
 			}
 			else if (token.type === _Grips_CSS.tokenizer.BRACE_OPEN) {
-				node.type = NODE_BRACE_PAIR;
+				node.type = NODE_SELECTOR_BODY;
 				instance_api.state = NODE_STATE_INSIDE;
 			}
 			else if (token.type === _Grips_CSS.tokenizer.PAREN_OPEN) {
@@ -322,7 +322,7 @@
 				instance_api.state = NODE_STATE_SL_COMMENT;
 			}
 			else if (token.type === _Grips_CSS.tokenizer.BRACE_OPEN) {
-				node.type = NODE_BRACE_PAIR;
+				node.type = NODE_SELECTOR_BODY;
 				instance_api.state = NODE_STATE_INSIDE;
 			}
 			else if (token.type === _Grips_CSS.tokenizer.BRACE_CLOSE) {
@@ -791,9 +791,150 @@
 	}
 
 	function parse(node) {
+		var ret, ret2, ret3, err, i;
 
-		if (node.type === 1) {
+		// implicitly ending a collection node?
+		if (parse_stack.length > 0 &&
+			(
+				parse_stack[parse_stack.length - 1].type === NODE_UNKNOWN ||
+				parse_stack[parse_stack.length - 1].type === NODE_RULE
+			)
+		) {
+			if (node.type === NODE_FILE_MARKER ||
+				node.type === NODE_IMPORT_DIRECTIVE
+			) {
+				// collection node stays "unknown"
+				parse_stack[parse_stack.length - 1].complete = true;
+				parse_stack.pop();
+			}
+			else if (node.type === NODE_SELECTOR_BODY) {
+				parse_stack[parse_stack.length - 1].type = NODE_SELECTOR;
+				parse_stack[parse_stack.length - 1].complete = true;
+				parse_stack.pop();
+			}
+			else if (node.type === NODE_OPERATOR &&
+				node.token.type === _Grips_CSS.tokenizer.SEMICOLON
+			) {
+				if (parse_stack[parse_stack.length - 1].type === NODE_UNKNOWN) {
+					parse_stack[parse_stack.length - 1].type = NODE_INCLUDE_RULE;
+				}
+				parse_stack[parse_stack.length - 1].complete = true;
+				parse_stack[parse_stack.length - 1].children.push(node);
+				parse_stack.pop();
+				return null;
+			}
+			else if (node.type === NODE_OPERATOR &&
+				node.token.type === _Grips_CSS.tokenizer.COLON &&
+				parse_stack[parse_stack.length - 1].type === NODE_UNKNOWN
+			) {
+				parse_stack[parse_stack.length - 1].complete = true;
+				parse_stack[parse_stack.length - 1].type = NODE_SELECTOR;
+				parse_stack.pop();
 
+				node.type = NODE_RULE;
+
+				parse_stack.push(node);
+
+				node.children.unshift(new Node({
+					type: NODE_OPERATOR,
+					token: node.token,
+					complete: true
+				}));
+
+				return node;
+			}
+			else if (node.type === NODE_OPERATOR &&
+				node.token.type === _Grips_CSS.tokenizer.BRACE_CLOSE
+			) {
+				if (parse_stack[parse_stack.length - 1].type === NODE_UNKNOWN) {
+					parse_stack[parse_stack.length - 1].type = NODE_INCLUDE_RULE;
+				}
+				parse_stack[parse_stack.length - 1].complete = true;
+				parse_stack[parse_stack.length - 1].children.push(node);
+				parse_stack.pop();
+				return null;
+			}
+			else if (node.type === NODE_OPERATOR &&
+				node.token.type === _Grips_CSS.tokenizer.UNKNOWN
+			) {
+				parse_stack[parse_stack.length - 1].complete = true;
+				parse_stack.pop();
+				return node;
+			}
+		}
+
+		if (node.type === NODE_TEXT) {
+			// implicitly starting a collection node?
+			if (parse_stack.length === 0 ||
+				parse_stack[parse_stack.length - 1].type !== NODE_UNKNOWN
+			) {
+				ret = new Node({
+					type: NODE_UNKNOWN,
+					token: node.token,
+					children: [node],
+					complete: false
+				});
+
+				parse_stack.push(ret);
+
+				return ret;
+			}
+			else {
+				parse_stack[parse_stack.length - 1].children.push(node);
+
+				return null;
+			}
+		}
+		else if (node.type === NODE_WHITESPACE) {
+			if (parse_stack.length === 0 ||
+				parse_stack[parse_stack.length - 1].type !== NODE_UNKNOWN
+			) {
+				return node;
+			}
+			else {
+				parse_stack[parse_stack.length - 1].children.push(node);
+
+				return null;
+			}
+		}
+		else if (node.type === NODE_PREFIX_EXPANDER) {
+			if (parse_stack.length === 0 ||
+				parse_stack[parse_stack.length - 1].type !== NODE_UNKNOWN
+			) {
+				ret = new Node({
+					type: NODE_SELECTOR,
+					token: node.token,
+					children: [node],
+					complete: false
+				});
+
+				parse_stack.push(ret);
+
+				return ret;
+			}
+			else {
+				parse_stack[parse_stack.length - 1].children.push(node);
+
+				return null;
+			}
+		}
+		else if (
+			node.type === NODE_SELECTOR ||
+			node.type === NODE_SELECTOR_BODY ||
+			node.type === NODE_RULE ||
+			node.type === NODE_INCLUDE_RULE
+		) {
+			// do we need to parse the children?
+			if (node.children && node.children.length > 0) {
+				node.children = combineNodes(node.children);
+				ret = [];
+				for (i=0; i<node.children.length; i++) {
+					ret2 = parse(node.children[i]);
+					if (ret2) ret.push(ret2);
+				}
+				node.children = combineNodes(ret);
+			}
+			return node;
 		}
 		else if (node.type === NODE_FILE_MARKER) {
 			if (node.start) {
@@ -821,6 +962,7 @@
 
 	var nodes = [],
 		current_parent,
+		parse_stack = [],
 		current_file_id = "",
 		node_idx = 0,
 
@@ -842,7 +984,7 @@
 		NODE_IMPORT_DIRECTIVE = 2,
 		NODE_COMMENT = 3,
 		NODE_PREFIX_EXPANDER = 4,
-		NODE_BRACE_PAIR = 5,
+		NODE_SELECTOR_BODY = 5,
 		NODE_PARAM_LIST = 6,
 		NODE_STRING_LITERAL = 7,
 		NODE_OPERATOR = 8,
@@ -850,7 +992,10 @@
 		NODE_VARIABLE = 10,
 		NODE_SET_PARAMS = 11,
 		NODE_WHITESPACE = 12,
-		NODE_UNKNOWN = 13,
+		NODE_SELECTOR = 13,
+		NODE_RULE = 14,
+		NODE_INCLUDE_RULE = 15,
+		NODE_UNKNOWN = 16,
 
 		instance_api,
 
@@ -877,7 +1022,7 @@
 		IMPORT_DIRECTIVE: NODE_IMPORT_DIRECTIVE,
 		COMMENT: NODE_COMMENT,
 		PREFIX_EXPANDER: NODE_PREFIX_EXPANDER,
-		BRACE_PAIR: NODE_BRACE_PAIR,
+		SELECTOR_BODY: NODE_SELECTOR_BODY,
 		PARAM_LIST: NODE_PARAM_LIST,
 		STRING_LITERAL: NODE_STRING_LITERAL,
 		OPERATOR: NODE_OPERATOR,

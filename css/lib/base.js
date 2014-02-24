@@ -51,7 +51,15 @@
 				if (_Grips_CSS.tokenizer.process(source,fileID)) {
 					_Grips_CSS.parser.end(); // end the file stream
 					//return _Grips_CSS.generator.process(initialize);
-					return _Grips_CSS.parser.dumpNodes();
+
+					var nodes = [], node;
+
+					while ((node = _Grips_CSS.parser.parseNextNode())) {
+						nodes.push(node);
+					}
+
+					//return _Grips_CSS.parser.dumpNodes();
+					return JSON.stringify(nodes,null,"\t");
 				}
 			}
 			catch (err) {
