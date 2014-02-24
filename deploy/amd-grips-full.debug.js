@@ -2791,7 +2791,7 @@ if (!Object.prototype.toJSON) {
 			node.id = ret;
 
 			// is there any non-whitespace left in the Tag declaration?
-			if (node.def && node.def.length) {
+			if (node.def && node.def.length > 0) {
 				node.def[0] = node.id;
 
 				if (node.def.length > 1) {
@@ -2814,7 +2814,7 @@ if (!Object.prototype.toJSON) {
 			node.id = ret;
 
 			// do we need to parse the Tag's declaration?
-			if (node.def && node.def.length) {
+			if (node.def && node.def.length > 0) {
 				ret = [node.id];
 				ret3 = stripWhitespace(node.def.slice(1));
 				for (i=0; i<ret3.length; i++) {
@@ -2825,7 +2825,7 @@ if (!Object.prototype.toJSON) {
 			}
 
 			// do we need to parse the Tag's children?
-			if (node.children && node.children.length) {
+			if (node.children && node.children.length > 0) {
 				node.children = combineNodes(node.children);
 				ret = [];
 				for (i=0; i<node.children.length; i++) {
@@ -2844,7 +2844,7 @@ if (!Object.prototype.toJSON) {
 			node.main_expr = ret;
 
 			// do we need to parse the Tag's declaration?
-			if (node.def && node.def.length) {
+			if (node.def && node.def.length > 0) {
 				ret = [node.main_expr];
 				ret3 = stripWhitespace(node.def.slice(1));
 				for (i=0; i<ret3.length; i++) {
@@ -2855,7 +2855,7 @@ if (!Object.prototype.toJSON) {
 			}
 
 			// do we need to parse the Tag's children?
-			if (node.children && node.children.length) {
+			if (node.children && node.children.length > 0) {
 				node.children = combineNodes(node.children);
 				ret = [];
 				for (i=0; i<node.children.length; i++) {
@@ -2869,7 +2869,7 @@ if (!Object.prototype.toJSON) {
 		}
 		else if (node.type === NODE_TAG_LET) {
 			// parse the Tag's declaration
-			if (node.def && node.def.length) {
+			if (node.def && node.def.length > 0) {
 				ret = stripWhitespace(node.def);
 				for (i=0; i<ret.length; i++) {
 					ret2 = parse(ret[i]);
@@ -2882,7 +2882,7 @@ if (!Object.prototype.toJSON) {
 			}
 
 			// do we need to parse the Tag's children?
-			if (node.children && node.children.length) {
+			if (node.children && node.children.length > 0) {
 				node.children = combineNodes(node.children);
 				ret = [];
 				for (i=0; i<node.children.length; i++) {
@@ -2901,7 +2901,7 @@ if (!Object.prototype.toJSON) {
 			node.main_expr = ret;
 
 			// besides the main EXPR, is there any non-whitespace left in the Tag declaration?
-			if (node.def && node.def.length) {
+			if (node.def && node.def.length > 0) {
 				if (node.def.length > 1) {
 					for (i=1; i<node.def.length; i++) {
 						if (node.def[i].type !== NODE_WHITESPACE) {
@@ -2945,7 +2945,7 @@ if (!Object.prototype.toJSON) {
 			return node;
 		}
 		else if (node.type === NODE_GENERAL_EXPR) {
-			if (node.def && node.def.length) {
+			if (node.def && node.def.length > 0) {
 				node.def = combineWhitespaceNodes(node.def);
 				node.def = stripWhitespace(node.def);
 
@@ -2961,7 +2961,7 @@ if (!Object.prototype.toJSON) {
 			return node;
 		}
 		else if (node.type === NODE_MAIN_REF_EXPR) {
-			if (node.def && node.def.length) {
+			if (node.def && node.def.length > 0) {
 				// remove all whitespace from a main expr
 				ret = [];
 				for (i=0; i<node.def.length; i++) {

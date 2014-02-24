@@ -1,6 +1,6 @@
 {
 	"name": "grips",
-	"version": "0.3.3-d",
+	"version": "0.3.3-e",
 	"description": "grips templating engine",
 	"main": "./node-base.js",
 	"bin": {
