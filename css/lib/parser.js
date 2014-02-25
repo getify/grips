@@ -916,10 +916,19 @@
 				return node;
 			}
 		}
+		else if (node.type === NODE_PARAM_LIST ||
+			node.type === NODE_SET_PARAMS
+		) {
+			if (parse_collector_node) {
+				parse_collector_node.children.push(node);
+				return null; // already captured node into `children`
+			}
+			else {
+				return node;
+			}
+		}
 		else if (
 			node.type === NODE_PREFIX_EXPANDER ||
-			node.type === NODE_PARAM_LIST ||
-			node.type === NODE_SET_PARAMS ||
 			node.type === NODE_RULES_BODY ||
 			node.type === NODE_RULE_VALUE ||
 			node.type === NODE_INCLUDE_REF
