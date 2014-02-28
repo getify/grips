@@ -1812,10 +1812,10 @@ if (!Array.isArray) {
 				else if (!/^#/.test(id.val)) {
 					return unknown_error;
 				}
-				else if (!/^#[a-z0-9_\-$.]/i.test(id.val)) {
+				else if (!/^#[a-z0-9_\-$.+=\/]/i.test(id.val)) {
 					return unknown_error;
 				}
-				else if ((tmp = id.val.match(/(#.*?)([^a-z0-9_\-$.]).*$/i))) {
+				else if ((tmp = id.val.match(/(#.*?)([^a-z0-9_\-$.+=\/]).*$/i))) {
 					return unknown_error;
 				}
 				// need to add the collectionID to the Define Tag ID
@@ -1836,7 +1836,7 @@ if (!Array.isArray) {
 				) {
 					return unknown_error;
 				}
-				else if ((tmp = id.val.match(/(#.*?)([^a-z0-9_\-$.]).*$/i))) {
+				else if ((tmp = id.val.match(/(#.*?)([^a-z0-9_\-$.+=\/]).*$/i))) {
 					return unknown_error;
 				}
 			}

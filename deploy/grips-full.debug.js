@@ -2247,10 +2247,10 @@ if (!Object.prototype.toJSON) {
 				else if (!/^#/.test(id.val)) {
 					return new ParserError("Unexpected text before #id",id) ||unknown_error;
 				}
-				else if (!/^#[a-z0-9_\-$.]/i.test(id.val)) {
+				else if (!/^#[a-z0-9_\-$.+=\/]/i.test(id.val)) {
 					return new ParserError("Expected #id",id) ||unknown_error;
 				}
-				else if ((tmp = id.val.match(/(#.*?)([^a-z0-9_\-$.]).*$/i))) {
+				else if ((tmp = id.val.match(/(#.*?)([^a-z0-9_\-$.+=\/]).*$/i))) {
 					return new _Grips.tokenizer.TokenizerError(
 						"Unexpected token",
 						new _Grips.tokenizer.Token({
@@ -2285,7 +2285,7 @@ if (!Object.prototype.toJSON) {
 				) {
 					return new ParserError("Expected #id",id) ||unknown_error;
 				}
-				else if ((tmp = id.val.match(/(#.*?)([^a-z0-9_\-$.]).*$/i))) {
+				else if ((tmp = id.val.match(/(#.*?)([^a-z0-9_\-$.+=\/]).*$/i))) {
 					return new _Grips.tokenizer.TokenizerError(
 						"Unexpected token",
 						new _Grips.tokenizer.Token({
