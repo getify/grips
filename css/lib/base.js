@@ -11,6 +11,28 @@
 			return new_grips_css;
 		}
 
+		function trim(str) {
+			return str.trim ? str.trim() : str.replace(/^\s+/,"").replace(/\s+$/,"");
+		}
+
+		function encodeSelector(selector) {
+			return _Grips_CSS.btoa(
+				unescape(
+					encodeURIComponent(
+						trim(selector)
+					)
+				)
+			);
+		}
+
+		function decodeSelector(b64) {
+			return decodeURIComponent(
+				escape(
+					_Grips_CSS.atob(selector)
+				)
+			);
+		}
+
 /* START_COMPILER */
 		function compile(sources,initialize) {
 			var ret = "", i, file_id;
@@ -50,16 +72,7 @@
 			try {
 				if (_Grips_CSS.tokenizer.process(source,fileID)) {
 					_Grips_CSS.parser.end(); // end the file stream
-					//return _Grips_CSS.generator.process(initialize);
-
-					var nodes = [], node;
-
-					while ((node = _Grips_CSS.parser.parseNextNode())) {
-						nodes.push(node);
-					}
-
-					//return _Grips_CSS.parser.dumpNodes();
-					return JSON.stringify(nodes,null,"\t");
+					return _Grips_CSS.generator.process(initialize);
 				}
 			}
 			catch (err) {
@@ -121,8 +134,20 @@
 			render: render,
 
 			noConflict: noConflict,
-			sandbox: createSandbox
+			sandbox: createSandbox,
+			trim: trim,
+			encodeSelector: encodeSelector,
+			decodeSelector: decodeSelector
 		};
+
+		if (global && global.atob) {
+			_Grips_CSS.atob = global.atob;
+			_Grips_CSS.btoa = global.btoa;
+		}
+		else if (typeof require !== "undefined") {
+			_Grips_CSS.atob = require("atob");
+			_Grips_CSS.btoa = require("btoa");
+		}
 
 		return _Grips_CSS;
 	}
