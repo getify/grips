@@ -56,7 +56,7 @@
 		return node.delimiter + node.val + node.delimiter;
 	}
 
-	function commonNode(node) {
+	function simpleValue(node) {
 		if (node.type === _Grips_CSS.parser.TEXT ||
 			node.type === _Grips_CSS.parser.WHITESPACE ||
 			node.type === _Grips_CSS.parser.OPERATOR
@@ -114,7 +114,7 @@
 		var sel_text = "", param_list = "", tmp, id, i, j;
 
 		for (i=0; i<node.children.length; i++) {
-			if (tmp = commonNode(node.children[i])) {
+			if (tmp = simpleValue(node.children[i])) {
 				sel_text += tmp;
 			}
 			else if (node.children[i].type === _Grips_CSS.parser.PARAM_LIST) {
@@ -137,11 +137,23 @@
 			"{$: \"" + id + "_\"" + param_list + " }";
 	}
 
+	function variableReference(node) {
+		var ref_str = "", tmp, i;
+
+		for (i=0; i<node.children.length; i++) {
+			if (tmp = simpleValue(node.children[i])) {
+				ref_str += tmp;
+			}
+		}
+
+		return ref_str;
+	}
+
 	function ruleProperty(node) {
 		var prop_str = "", tmp, i;
 
 		for (i=0; i<node.children.length; i++) {
-			if (tmp = commonNode(node.children[i])) {
+			if (tmp = simpleValue(node.children[i])) {
 				prop_str += tmp;
 			}
 		}
@@ -153,8 +165,11 @@
 		var val_str = "", tmp, i;
 
 		for (i=0; i<node.children.length; i++) {
-			if (tmp = commonNode(node.children[i])) {
+			if (tmp = simpleValue(node.children[i])) {
 				val_str += tmp;
+			}
+			else if (node.children[i].type === _Grips_CSS.parser.VARIABLE) {
+				val_str += "{$= " + variableReference(node.children[i]) + " $}";
 			}
 		}
 
@@ -165,7 +180,7 @@
 		var rules_body = "", post_rules_body = "", tmp, i;
 
 		for (i=0; i<node.children.length; i++) {
-			if (tmp = commonNode(node.children[i])) {
+			if (tmp = simpleValue(node.children[i])) {
 				rules_body += tmp;
 			}
 			else if (node.children[i].type === _Grips_CSS.parser.SELECTOR) {
@@ -208,7 +223,7 @@
 		var sel_text = "", param_list = "", tmp, id, i, j;
 
 		for (i=0; i<node.children.length; i++) {
-			if (tmp = commonNode(node.children[i])) {
+			if (tmp = simpleValue(node.children[i])) {
 				sel_text += tmp;
 			}
 			else if (node.children[i].type === _Grips_CSS.parser.SET_PARAMS) {
@@ -246,7 +261,7 @@
 						render_all_collection = "";
 					}
 				}
-				else if (tmp = commonNode(node)) {
+				else if (tmp = simpleValue(node)) {
 					render_all_collection += tmp;
 				}
 				else if (node.type === _Grips_CSS.parser.IMPORT_DIRECTIVE) {

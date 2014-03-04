@@ -295,7 +295,7 @@
 					}));
 				}
 				else {
-					return /* START_DEBUG */new _Grips.tokenizer.TokenizerError("Unexpected token2",new _Grips.tokenizer.Token({
+					return /* START_DEBUG */new _Grips.tokenizer.TokenizerError("Unexpected token",new _Grips.tokenizer.Token({
 						type: TOKEN_UNKNOWN,
 						val: tmp[0]/* START_DEBUG */,
 						pos: lineCol(prev_match_idx + tmp.index,fileID)/* STOP_DEBUG */

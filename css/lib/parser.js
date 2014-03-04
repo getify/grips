@@ -895,7 +895,8 @@
 
 		// process various node types
 		if (node.type === NODE_TEXT ||
-			node.type === NODE_OPERATOR
+			node.type === NODE_OPERATOR ||
+			node.type === NODE_VARIABLE
 		) {
 			// implicitly starting a collector node?
 			if (!parse_collector_node) {
