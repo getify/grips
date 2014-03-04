@@ -270,9 +270,6 @@
 			}
 		}
 
-		// console.log(JSON.stringify(nodes,null,"\t"));
-		// return "";
-
 		return code;
 	}
 
