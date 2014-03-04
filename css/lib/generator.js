@@ -52,55 +52,75 @@
 		return ret;
 	}
 
-	function selector(node) {
-		function param(node) {
-			var varname = "", varvalue = "", k;
-			for (k=0; k<node.children.length; k++) {
-				if (node.children[k].type === _Grips_CSS.parser.OPERATOR &&
-					node.children[k].token.type === _Grips_CSS.tokenizer.COLON
-				) {
-					break;
-				}
-				else if (!(
-					node.children[k].type === _Grips_CSS.parser.WHITESPACE ||
-					node.children[k].type === _Grips_CSS.parser.COMMENT
-				)) {
-					varname += node.children[k].token.val;
-				}
-			}
-			for (k=k+1; k<node.children.length; k++) {
-				if (!(
-					node.children[k].type === _Grips_CSS.parser.WHITESPACE ||
-					node.children[k].type === _Grips_CSS.parser.COMMENT
-				)) {
-					if (node.children[k].type === _Grips_CSS.parser.STRING_LITERAL) {
-						varvalue += "\"" + node.children[k].val + "\"";
-					}
-					else {
-						varvalue += node.children[k].token.val;
-					}
-				}
-			}
+	function stringLiteral(node) {
+		return node.delimiter + node.val + node.delimiter;
+	}
 
-			return varname + " = " + varname + " ? " + varname + " : " + varvalue;
+	function commonNode(node) {
+		if (node.type === _Grips_CSS.parser.TEXT ||
+			node.type === _Grips_CSS.parser.WHITESPACE ||
+			node.type === _Grips_CSS.parser.OPERATOR
+		) {
+			return node.token.val;
+		}
+		else if (node.type === _Grips_CSS.parser.STRING_LITERAL) {
+			return stringLiteral(node);
+		}
+		else if (node.type === _Grips_CSS.parser.COMMENT) {
+			return comment(node);
+		}
+	}
+
+	function param(node) {
+		var varname = "", varvalue = "", k;
+
+		for (k=0; k<node.children.length; k++) {
+			if (node.children[k].type === _Grips_CSS.parser.OPERATOR &&
+				node.children[k].token.type === _Grips_CSS.tokenizer.COLON
+			) {
+				break;
+			}
+			else if (!(
+				node.children[k].type === _Grips_CSS.parser.WHITESPACE ||
+				node.children[k].type === _Grips_CSS.parser.COMMENT
+			)) {
+				varname += node.children[k].token.val;
+			}
+		}
+		for (k=k+1; k<node.children.length; k++) {
+			if (!(
+				node.children[k].type === _Grips_CSS.parser.WHITESPACE ||
+				node.children[k].type === _Grips_CSS.parser.COMMENT
+			)) {
+				if (node.children[k].type === _Grips_CSS.parser.STRING_LITERAL) {
+					varvalue += "\"" + node.children[k].val + "\"";
+				}
+				else {
+					varvalue += node.children[k].token.val;
+				}
+			}
 		}
 
-		var sel_text = "", param_list = "", id, i, j;
+		return [varname,varvalue];
+	}
+
+	function selector(node) {
+
+		function paramStr(node) {
+			var param_parts = param(node);
+			return param_parts[0] + " = " + param_parts[0] + " ? " + param_parts[0] + " : " + param_parts[1];
+		}
+
+		var sel_text = "", param_list = "", tmp, id, i, j;
 
 		for (i=0; i<node.children.length; i++) {
-			if (node.children[i].type === _Grips_CSS.parser.TEXT ||
-				node.children[i].type === _Grips_CSS.parser.WHITESPACE ||
-				node.children[i].type === _Grips_CSS.parser.OPERATOR
-			) {
-				sel_text += node.children[i].token.val;
-			}
-			else if (node.children[i].type === _Grips_CSS.parser.STRING_LITERAL) {
-				sel_text += node.children[i].delimiter + node.children[i].val + node.children[i].delimiter;
+			if (tmp = commonNode(node.children[i])) {
+				sel_text += tmp;
 			}
 			else if (node.children[i].type === _Grips_CSS.parser.PARAM_LIST) {
 				for (j=0; j<node.children[i].children.length; j++) {
 					if (node.children[i].children[j].type === _Grips_CSS.parser.PARAM) {
-						param_list += " | " + param(node.children[i].children[j]);
+						param_list += " | " + paramStr(node.children[i].children[j]);
 					}
 				}
 			}
@@ -117,10 +137,93 @@
 			"{$: \"" + id + "_\"" + param_list + " }";
 	}
 
-	function rulesBody(node) {
-		var rules_body = "";
+	function ruleProperty(node) {
+		var prop_str = "", tmp, i;
 
-		return "{" + rules_body + "}{$}\n";
+		for (i=0; i<node.children.length; i++) {
+			if (tmp = commonNode(node.children[i])) {
+				prop_str += tmp;
+			}
+		}
+
+		return prop_str;
+	}
+
+	function ruleValue(node) {
+		var val_str = "", tmp, i;
+
+		for (i=0; i<node.children.length; i++) {
+			if (tmp = commonNode(node.children[i])) {
+				val_str += tmp;
+			}
+		}
+
+		return ":" + val_str;
+	}
+
+	function rulesBody(node) {
+		var rules_body = "", post_rules_body = "", tmp, i;
+
+		for (i=0; i<node.children.length; i++) {
+			if (tmp = commonNode(node.children[i])) {
+				rules_body += tmp;
+			}
+			else if (node.children[i].type === _Grips_CSS.parser.SELECTOR) {
+				tmp = selector(node.children[i]);
+				post_rules_body += tmp;
+			}
+			else if (node.children[i].type === _Grips_CSS.parser.RULES_BODY) {
+				tmp = rulesBody(node.children[i]);
+				post_rules_body += tmp;
+			}
+			else if (node.children[i].type === _Grips_CSS.parser.INCLUDE_REF) {
+				tmp = includeReference(node.children[i]);
+				rules_body += tmp;
+			}
+			else if (node.children[i].type === _Grips_CSS.parser.RULE_PROPERTY) {
+				tmp = ruleProperty(node.children[i]);
+				rules_body += tmp;
+			}
+			else if (node.children[i].type === _Grips_CSS.parser.RULE_VALUE) {
+				tmp = ruleValue(node.children[i]);
+				rules_body += tmp;
+			}
+			else {
+				throw /* START_DEBUG */new _Grips.parser.ParserError("Unexpected text inside rules body",node) ||/* STOP_DEBUG */unknown_error;
+			}
+		}
+
+		parent_selector.pop();
+
+		return rules_body + "{$}\n" + (post_rules_body !== "" ? post_rules_body + "\n" : "");
+	}
+
+	function includeReference(node) {
+
+		function paramStr(node) {
+			var param_parts = param(node);
+			return param_parts[0] + " = " + param_parts[1];
+		}
+
+		var sel_text = "", param_list = "", tmp, id, i, j;
+
+		for (i=0; i<node.children.length; i++) {
+			if (tmp = commonNode(node.children[i])) {
+				sel_text += tmp;
+			}
+			else if (node.children[i].type === _Grips_CSS.parser.SET_PARAMS) {
+				for (j=0; j<node.children[i].children.length; j++) {
+					if (node.children[i].children[j].type === _Grips_CSS.parser.PARAM) {
+						param_list += (param_list !== "" ? " | " : "") + paramStr(node.children[i].children[j]);
+					}
+				}
+			}
+		}
+
+		sel_text = _Grips_CSS.trim(sel_text);
+		id = _Grips_CSS.encodeSelector(sel_text);
+
+		return "{$# " + param_list + " }{$= @\"" + id + "_\" $}{$}";
 	}
 
 	function process(initialize) {
@@ -143,19 +246,13 @@
 						render_all_collection = "";
 					}
 				}
-				else if (node.type === _Grips_CSS.parser.TEXT ||
-					node.type === _Grips_CSS.parser.WHITESPACE
-				) {
-					render_all_collection += node.token.val;
+				else if (tmp = commonNode(node)) {
+					render_all_collection += tmp;
 				}
 				else if (node.type === _Grips_CSS.parser.IMPORT_DIRECTIVE) {
 					tmp = importDirective(node);
 					file += tmp;
 					code += tmp;
-				}
-				else if (node.type === _Grips_CSS.parser.COMMENT) {
-					tmp = comment(node);
-					render_all_collection += tmp;
 				}
 				else if (node.type === _Grips_CSS.parser.SELECTOR) {
 					tmp = selector(node);
@@ -168,10 +265,13 @@
 					code += tmp;
 				}
 				else {
-					//throw /* START_DEBUG */new _Grips.parser.ParserError("Unexpected text outside of tag",node) ||/* STOP_DEBUG */unknown_error;
+					throw /* START_DEBUG */new _Grips.parser.ParserError("Unexpected text outside of rules body",node) ||/* STOP_DEBUG */unknown_error;
 				}
 			}
 		}
+
+		// console.log(JSON.stringify(nodes,null,"\t"));
+		// return "";
 
 		return code;
 	}

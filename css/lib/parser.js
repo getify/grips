@@ -792,12 +792,12 @@
 	}
 
 	function parseChildren(node) {
-		var ret, ret2, i;
+		var ret = [], ret2, i;
 
 		// need to parse a node's children?
 		if (node.children && node.children.length > 0) {
 			node.children = combineNodes(node.children);
-			ret = [];
+
 			for (i=0; i<node.children.length; i++) {
 				ret2 = parse(node.children[i]);
 				if (ret2) ret.push(ret2);
@@ -850,10 +850,13 @@
 				node.type = NODE_RULE_VALUE;
 				parse_collector_node = node;
 
+				node = { children: parse_collector_node.children };
+				parse_collector_node.children = [];
+
 				// parse children (if any)
 				parseChildren(node);
 
-				return node; // already processed node and its children
+				return parse_collector_node; // already processed node and its children
 			}
 			// semicolon ending current collector?
 			else if (node.type === NODE_OPERATOR &&
