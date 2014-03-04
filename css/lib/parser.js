@@ -11,10 +11,86 @@
 	}
 /* START_DEBUG */
 	Node.prototype.toString = function __Node_toString__(includeToken) {
+
+		function showStringLiteral(node) {
+			return (node.delimiter || "\"") + (node.val || "") + (node.delimiter || "\"");
+		}
+
+		function showChildren(node) {
+			var i, ret = "";
+			if (node.children) {
+				for (var i=0; i<node.children.length; i++) {
+					if (node.children[i].type !== NODE_WHITESPACE) {
+						ret += node.children[i].toString();
+					}
+				}
+			}
+			return ret;
+		}
+
+		function showParams(node) {
+			var i, ret = "";
+			if (node.children) {
+				for (var i=0; i<node.children.length; i++) {
+					ret += (ret !== "" ? ", " : "") + showChildren(node.children[i]);
+				}
+			}
+			return ret;
+		}
+
+		function showSetParams(node) {
+			var i, ret = "";
+			if (node.children) {
+				for (var i=0; i<node.children.length; i++) {
+					ret += (ret !== "" ? " | " : "") + showChildren(node.children[i]);
+				}
+			}
+			return ret;
+		}
+
 		var ret = "";
 
-		if (this.type === NODE_TEXT) {
-			ret = this.val;
+		if (this.type === NODE_TEXT ||
+			this.type === NODE_OPERATOR ||
+			this.type === NODE_UNKNOWN
+		) {
+			ret = this.token.val;
+		}
+		else if (this.type === NODE_WHITESPACE) {
+			ret = " ";
+		}
+		else if (this.type === NODE_STRING_LITERAL) {
+			ret = showStringLiteral(this);
+		}
+		else if (this.type === NODE_IMPORT_DIRECTIVE) {
+			ret = "@import " + showChildren(this) + ";";
+		}
+		else if (this.type === NODE_RULES_BODY) {
+			ret = "{ " + this.children[0].toString() + ".. }";
+		}
+		else if (this.type === NODE_PARAM_LIST) {
+			ret = "(" + showParams(this) + ")";
+		}
+		else if (this.type === NODE_SET_PARAMS) {
+			ret = "(" + showSetParams(this) + ")";
+		}
+		else if (this.type === NODE_PARAM) {
+			ret = showChildren(this);
+		}
+		else if (this.type === NODE_VARIABLE) {
+			ret = "=" + showChildren(this);
+		}
+		else if (this.type === NODE_SELECTOR) {
+			ret = _Grips_CSS.trim(showChildren(this));
+		}
+		else if (this.type === NODE_RULE_PROPERTY ||
+			this.type === NODE_RULE_VALUE ||
+			this.type === NODE_INCLUDE_REF
+		) {
+			ret = showChildren(this);
+		}
+		else {
+			ret = JSON.stringify(this);
 		}
 
 		if (includeToken && this.token) {
@@ -690,7 +766,7 @@
 		// loop over the tokens
 		for (idx=0; idx<tokens.length; idx++) {
 			if (instance_api.state === NODE_STATE_INVALID) {
-				return /* START_DEBUG */new ParserError("Invalid parser state") ||/* STOP_DEBUG */unknown_error;
+				return /* START_DEBUG */new _Grips.parser.ParserError("Invalid parser state") ||/* STOP_DEBUG */unknown_error;
 			}
 
 			// invoke the parser state handler
@@ -807,6 +883,8 @@
 	}
 
 	function parse(node) {
+		var tmp, i;
+
 		delete node.parent;
 		delete node.previous_state;
 
@@ -865,6 +943,9 @@
 				// ; encountered where collector is unknown?
 				if (parse_collector_node.type === NODE_UNKNOWN) {
 					parse_collector_node.type = NODE_INCLUDE_REF;
+
+					// re-parse now that we know what kind of node the collector is!
+					parse(parse_collector_node);
 				}
 				parse_collector_node.complete = true;
 				parse_collector_node.children = combineNodes(parse_collector_node.children);
@@ -878,6 +959,9 @@
 				// close out previous "unknown" node
 				if (parse_collector_node.type === NODE_UNKNOWN) {
 					parse_collector_node.type = NODE_INCLUDE_REF;
+
+					// re-parse now that we know what kind of node the collector is!
+					parse(parse_collector_node);
 				}
 				parse_collector_node.complete = true;
 				parse_collector_node.children = combineNodes(parse_collector_node.children);
@@ -940,9 +1024,25 @@
 			node.type === NODE_IMPORT_DIRECTIVE ||
 			node.type === NODE_PREFIX_EXPANDER ||
 			node.type === NODE_RULES_BODY ||
-			node.type === NODE_RULE_VALUE ||
-			node.type === NODE_INCLUDE_REF
+			node.type === NODE_RULE_VALUE
 		) {
+			parseChildren(node);
+			return node;
+		}
+		else if (node.type === NODE_INCLUDE_REF) {
+			// validate acceptable children of include-ref node
+			for (i=0; i<node.children.length; i++) {
+				if (!(
+					node.children[i].type === NODE_TEXT ||
+					node.children[i].type === NODE_WHITESPACE ||
+					node.children[i].type === NODE_OPERATOR ||
+					node.children[i].type === NODE_STRING_LITERAL ||
+					node.children[i].type === NODE_COMMENT
+				)) {
+					throw /* START_DEBUG */new _Grips.parser.ParserError("Unexpected",node.children[i]) ||/* STOP_DEBUG */unknown_error;
+				}
+			}
+
 			parseChildren(node);
 			return node;
 		}
