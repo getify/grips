@@ -891,7 +891,9 @@
 		}
 
 		// process various node types
-		if (node.type === NODE_TEXT) {
+		if (node.type === NODE_TEXT ||
+			node.type === NODE_OPERATOR
+		) {
 			// implicitly starting a collector node?
 			if (!parse_collector_node) {
 				parse_collector_node = new Node({
@@ -904,10 +906,13 @@
 				return parse_collector_node;
 			}
 			else {
-				return node;
+				parse_collector_node.children.push(node);
+				return null; // already captured node into `children`
 			}
 		}
-		else if (node.type === NODE_WHITESPACE) {
+		else if (node.type === NODE_WHITESPACE ||
+			node.type === NODE_STRING_LITERAL
+		) {
 			if (parse_collector_node) {
 				parse_collector_node.children.push(node);
 				return null; // already captured node into `children`
