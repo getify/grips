@@ -95,8 +95,11 @@
 				if (node.children[k].type === _Grips_CSS.parser.STRING_LITERAL) {
 					varvalue += "\"" + node.children[k].val + "\"";
 				}
+				else if (node.children[k].type === _Grips_CSS.parser.VARIABLE) {
+					varvalue += variableReference(node.children[k]);
+				}
 				else {
-					varvalue += node.children[k].token.val;
+					varvalue += "\"" + node.children[k].token.val + "\"";
 				}
 			}
 		}

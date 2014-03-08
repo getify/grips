@@ -604,6 +604,10 @@
 				else if (match[0] === "}") {
 					token.type = TOKEN_BRACE_CLOSE;
 				}
+				// | found?
+				else if (match[0] === "|") {
+					token.type = TOKEN_PIPE;
+				}
 				// whitespace found?
 				else if (/^\s+$/.test(match[0])) {
 					token.type = TOKEN_WHITESPACE;
