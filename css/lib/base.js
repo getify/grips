@@ -141,8 +141,8 @@
 		};
 
 		if (global && global.atob) {
-			_Grips_CSS.atob = global.atob;
-			_Grips_CSS.btoa = global.btoa;
+			_Grips_CSS.atob = global.atob.bind(global);
+			_Grips_CSS.btoa = global.btoa.bind(global);
 		}
 		else if (typeof require !== "undefined") {
 			_Grips_CSS.atob = require("atob");

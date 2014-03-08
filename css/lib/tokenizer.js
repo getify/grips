@@ -547,6 +547,10 @@
 				else if (match[0] === ";") {
 					token.type = TOKEN_SEMICOLON;
 				}
+				// brace close?
+				else if (match[0] === "}") {
+					token.type = TOKEN_BRACE_CLOSE;
+				}
 				// = found?
 				else if (match[0] === "=") {
 					token.type = TOKEN_EQUALS;
@@ -763,6 +767,10 @@
 				else if (match[0] === "=") {
 					token.type = TOKEN_EQUALS;
 				}
+				// } found?
+				else if (match[0] === "}") {
+					token.type = TOKEN_BRACE_CLOSE;
+				}
 				else {
 					token.type = TOKEN_GENERAL;
 				}
@@ -926,10 +934,10 @@
 			/[:,\)"']|\s+|(?:\/\*|\/\/)/g, /*params*/
 			null, /*string literal*/
 			/::|[~|^$*]\=|[=;:*|{}"'(,>+~\[\]]|(?:\/\*|\/\/)/g, /*inside*/
-			/[=;:]|(?:\/\*|\/\/)/g, /*prefix expansion*/
+			/[=;:}]|(?:\/\*|\/\/)/g, /*prefix expansion*/
 			/\s+|(?:\/\*|\/\/)|[^a-zA-Z0-9_]/g, /*variable*/
 			/[;:=|"'}]|\s+|(?:\/\*|\/\/)/g, /*set-param*/
-			/[;"'=]|(?:\/\*|\/\/)/g /*rule-value*/
+			/[;"'=}]|(?:\/\*|\/\/)/g /*rule-value*/
 		],
 
 		unknown_error = new Error("Unknown error")

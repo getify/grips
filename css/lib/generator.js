@@ -176,7 +176,7 @@
 			}
 		}
 
-		return ":" + val_str;
+		return ":" + val_str + ";";
 	}
 
 	function rulesBody(node) {
