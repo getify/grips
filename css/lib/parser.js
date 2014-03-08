@@ -381,7 +381,7 @@
 			var node;
 
 			node = new Node({
-				parent: null,
+				parent: current_parent,
 				type: NODE_UNKNOWN,
 				token: token,
 				children: [],
@@ -875,6 +875,9 @@
 			node.children = combineNodes(node.children);
 
 			for (i=0; i<node.children.length; i++) {
+				if (!("parent" in node.children[i])) {
+					node.children[i].parent = node;
+				}
 				ret2 = parse(node.children[i]);
 				if (ret2) ret.push(ret2);
 			}
@@ -883,7 +886,7 @@
 	}
 
 	function parse(node) {
-		var tmp, i;
+		var tmp, i, parent_node = node.parent;
 
 		delete node.parent;
 		delete node.previous_state;
@@ -915,24 +918,26 @@
 			// colon ending current collector?
 			else if (node.type === NODE_OPERATOR &&
 				node.token.type === _Grips_CSS.tokenizer.COLON &&
-				parse_collector_node &&
-				parse_collector_node.type === NODE_UNKNOWN
+				parse_collector_node.type === NODE_UNKNOWN &&
+				parent_node &&
+				parent_node.type === NODE_RULES_BODY
 			) {
 				// close out previous "unknown" node as rule-property
 				parse_collector_node.complete = true;
 				parse_collector_node.type = NODE_RULE_PROPERTY;
 				parse_collector_node.children = combineNodes(parse_collector_node.children);
-				parse_collector_node = null;
+
+				// re-parse node as newly identified type
+				parse_collector_node.parent = parent_node;
+				parse(parse_collector_node);
 
 				// hijack operator node as collector node
-				node.type = NODE_RULE_VALUE;
 				parse_collector_node = node;
+				parse_collector_node.type = NODE_RULE_VALUE;
 
-				node = { children: parse_collector_node.children };
-				parse_collector_node.children = [];
-
-				// parse children (if any)
-				parseChildren(node);
+				// re-parse node as newly identified type
+				parse_collector_node.parent = parent_node;
+				parse(parse_collector_node);
 
 				return parse_collector_node; // already processed node and its children
 			}
@@ -944,7 +949,8 @@
 				if (parse_collector_node.type === NODE_UNKNOWN) {
 					parse_collector_node.type = NODE_INCLUDE_REF;
 
-					// re-parse now that we know what kind of node the collector is!
+					// re-parse node as newly identified type
+					parse_collector_node.parent = parent_node;
 					parse(parse_collector_node);
 				}
 				parse_collector_node.complete = true;
@@ -960,7 +966,8 @@
 				if (parse_collector_node.type === NODE_UNKNOWN) {
 					parse_collector_node.type = NODE_INCLUDE_REF;
 
-					// re-parse now that we know what kind of node the collector is!
+					// re-parse node as newly identified type
+					parse_collector_node.parent = parent_node;
 					parse(parse_collector_node);
 				}
 				parse_collector_node.complete = true;
@@ -977,86 +984,126 @@
 			}
 		}
 
-		// process various node types
-		if (node.type === NODE_TEXT ||
-			node.type === NODE_OPERATOR ||
-			node.type === NODE_VARIABLE
+		// in a parent node where the collector is in force?
+		if (!parent_node ||
+			parent_node.type === NODE_RULES_BODY
 		) {
-			// implicitly starting a collector node?
-			if (!parse_collector_node) {
-				parse_collector_node = new Node({
-					type: NODE_UNKNOWN,
-					token: node.token,
-					children: [ node ],
-					complete: false
-				});
+			if (node.type === NODE_TEXT ||
+				node.type === NODE_OPERATOR ||
+				node.type === NODE_VARIABLE ||
+				node.type === NODE_STRING_LITERAL
+			) {
+				// implicitly starting a collector node?
+				if (!parse_collector_node) {
+					parse_collector_node = new Node({
+						type: NODE_UNKNOWN,
+						token: node.token,
+						children: [ node ],
+						complete: false
+					});
 
-				return parse_collector_node;
-			}
-			else {
-				parse_collector_node.children.push(node);
-				return null; // already captured node into `children`
-			}
-		}
-		else if (node.type === NODE_WHITESPACE ||
-			node.type === NODE_STRING_LITERAL
-		) {
-			if (parse_collector_node) {
-				parse_collector_node.children.push(node);
-				return null; // already captured node into `children`
-			}
-			else {
-				return node;
-			}
-		}
-		else if (node.type === NODE_PARAM_LIST ||
-			node.type === NODE_SET_PARAMS
-		) {
-			if (parse_collector_node) {
-				parse_collector_node.children.push(node);
-				return null; // already captured node into `children`
-			}
-			else {
-				return node;
-			}
-		}
-		else if (
-			node.type === NODE_IMPORT_DIRECTIVE ||
-			node.type === NODE_PREFIX_EXPANDER ||
-			node.type === NODE_RULES_BODY ||
-			node.type === NODE_RULE_VALUE
-		) {
-			parseChildren(node);
-			return node;
-		}
-		else if (node.type === NODE_INCLUDE_REF) {
-			// validate acceptable children of include-ref node
-			for (i=0; i<node.children.length; i++) {
-				if (!(
-					node.children[i].type === NODE_TEXT ||
-					node.children[i].type === NODE_WHITESPACE ||
-					node.children[i].type === NODE_OPERATOR ||
-					node.children[i].type === NODE_STRING_LITERAL ||
-					node.children[i].type === NODE_COMMENT
-				)) {
-					throw /* START_DEBUG */new _Grips.parser.ParserError("Unexpected",node.children[i]) ||/* STOP_DEBUG */unknown_error;
+					if (parent_node) {
+						parse_collector_node.parent = parent_node;
+					}
+					node.parent = parse_collector_node;
+
+					return parse_collector_node;
+				}
+				else {
+					parse_collector_node.children.push(node);
+					return null; // already captured node into `children`
 				}
 			}
+			else if (node.type === NODE_PREFIX_EXPANDER ||
+				node.type === NODE_PARAM_LIST ||
+				node.type === NODE_SET_PARAMS
+			) {
+				// implicitly starting a collector node?
+				if (!parse_collector_node) {
+					parse_collector_node = new Node({
+						type: NODE_UNKNOWN,
+						token: node.token,
+						children: [ node ],
+						complete: false
+					});
 
-			parseChildren(node);
-			return node;
-		}
-		else if (node.type === NODE_FILE_MARKER) {
-			if (node.start) {
-				current_file_id = node.start;
+					if (parent_node) {
+						parse_collector_node.parent = parent_node;
+					}
+					node.parent = parse_collector_node;
+
+					parseChildren(node);
+					return parse_collector_node;
+				}
+				else {
+					parse_collector_node.children.push(node);
+					parseChildren(node);
+					return null; // already captured node into `children`
+				}
 			}
-			else if (node.close) {
-				current_file_id = null;
+			else if (node.type === NODE_WHITESPACE ||
+				node.type === NODE_COMMENT
+			) {
+				if (parse_collector_node) {
+					parse_collector_node.children.push(node);
+					return null; // already captured node into `children`
+				}
+				else {
+					return node;
+				}
 			}
-			return node;
+			else if (node.type === NODE_IMPORT_DIRECTIVE ||
+				node.type === NODE_RULES_BODY ||
+				node.type === NODE_RULE_PROPERTY ||
+				node.type === NODE_RULE_VALUE
+			) {
+				parseChildren(node);
+				return node;
+			}
+			else if (node.type === NODE_INCLUDE_REF) {
+				// validate acceptable children of include-ref node
+				for (i=0; i<node.children.length; i++) {
+					if (!(
+						node.children[i].type === NODE_TEXT ||
+						node.children[i].type === NODE_WHITESPACE ||
+						node.children[i].type === NODE_OPERATOR ||
+						node.children[i].type === NODE_STRING_LITERAL ||
+						node.children[i].type === NODE_COMMENT ||
+						node.children[i].type === NODE_SET_PARAMS
+					)) {
+						throw /* START_DEBUG */new _Grips.parser.ParserError("Unexpected",node.children[i]) ||/* STOP_DEBUG */unknown_error;
+					}
+				}
+
+				parseChildren(node);
+				return node;
+			}
+			else if (node.type === NODE_FILE_MARKER) {
+				if (node.start) {
+					current_file_id = node.start;
+				}
+				else if (node.close) {
+					current_file_id = null;
+				}
+				return node;
+			}
+			else {
+				throw /* START_DEBUG */new _Grips.parser.ParserError("Unexpected",node) ||/* STOP_DEBUG */unknown_error;
+			}
 		}
+		// otherwise, parent node not the collector
 		else {
-			return node;
+			if (node.type === NODE_PARAM_LIST ||
+				node.type === NODE_SET_PARAMS ||
+				node.type === NODE_PARAM ||
+				node.type === NODE_PREFIX_EXPANDER
+			) {
+				parseChildren(node);
+				return node;
+			}
+			else {
+				return node;
+			}
 		}
 	}
 
