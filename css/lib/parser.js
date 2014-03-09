@@ -5,10 +5,10 @@
 
 	/* Node */
 	function Node(props) {
-		for (var i in props) { if (props.hasOwnProperty(i)) {
-			this[i] = props[i];
-		}}
+		_Grips.parser.Node.call(this,props);
 	}
+	Node.prototype = Object.create(_Grips.parser.Node);
+
 /* START_DEBUG */
 	Node.prototype.toString = function __Node_toString__(includeToken) {
 
@@ -67,6 +67,9 @@
 		}
 		else if (this.type === NODE_RULES_BODY) {
 			ret = "{ " + this.children[0].toString() + ".. }";
+		}
+		else if (this.type === NODE_RULE_VALUE) {
+			ret = ":" + showChildren(this) + ";";
 		}
 		else if (this.type === NODE_PARAM_LIST) {
 			ret = "(" + showParams(this) + ")";
@@ -454,7 +457,19 @@
 			}
 			else if (token.type === _Grips_CSS.tokenizer.STAR) {
 				node.type = NODE_PREFIX_EXPANDER;
+				current_parent.children.push(node);
+				current_parent = new Node({
+					parent: node,
+					type: NODE_RULE_PROPERTY,
+					token: token,
+					children: [],
+					complete: false,
+					previous_state: NODE_STATE_PREFIX_EXPANSION
+				});
+				node.children.push(current_parent);
 				instance_api.state = NODE_STATE_PREFIX_EXPANSION;
+
+				return;
 			}
 			else if (token.type === _Grips_CSS.tokenizer.EQUALS) {
 				node.type = NODE_VARIABLE;
@@ -511,6 +526,14 @@
 		function handlePrefixExpansionState(token) {
 			var node;
 
+			// first child to be added to rule-property node?
+			if (current_parent.type === NODE_RULE_PROPERTY &&
+				current_parent.children.length === 0
+			) {
+				// overwrite the property's * token annotation
+				current_parent.token = token;
+			}
+
 			node = new Node({
 				parent: current_parent,
 				type: NODE_UNKNOWN,
@@ -521,13 +544,10 @@
 			});
 
 			// implicitly ending the prefix expansion state?
-			if (token.type === _Grips_CSS.tokenizer.SEMICOLON /*|| // TODO: handle @*
-				(
-					token.type === _Grips_CSS.tokenizer.BRACE &&
-					{brace-count} == 0
-				)*/
-			) {
+			if (token.type === _Grips_CSS.tokenizer.SEMICOLON) {
 				revertToPreviousState();
+
+				// drop/ignore semicolon node, not needed
 				return null;
 			}
 			// closing brace?
@@ -551,10 +571,12 @@
 			}
 			// colon operator?
 			else if (token.type === _Grips_CSS.tokenizer.COLON) {
-				instance_api.state = NODE_STATE_RULE_VALUE;
 				node.type = NODE_RULE_VALUE;
-				current_parent.children.push(node);
+				node.parent = current_parent.parent;
+				node.parent.children.push(node);
+				current_parent.complete = true;
 				current_parent = node;
+				instance_api.state = NODE_STATE_RULE_VALUE;
 			}
 			// recognized general token?
 			else if (token.type === _Grips_CSS.tokenizer.GENERAL) {
@@ -677,6 +699,12 @@
 		function handleRuleValueState(token) {
 			var node;
 
+			// first child to be added to rule-value node?
+			if (current_parent.children.length === 0) {
+				// overwrite the value's : token annotation
+				current_parent.token = token;
+			}
+
 			node = new Node({
 				parent: current_parent,
 				type: NODE_UNKNOWN,
@@ -708,7 +736,14 @@
 			}
 			else if (token.type === _Grips_CSS.tokenizer.SEMICOLON) {
 				revertToPreviousState();
-				return null;
+
+				if (instance_api.state === NODE_STATE_PREFIX_EXPANSION) {
+					return state_handlers[instance_api.state](token);
+				}
+				else {
+					// drop/ignore semicolon node, not needed
+					return null;
+				}
 			}
 			else if (token.type === _Grips_CSS.tokenizer.BRACE_CLOSE) {
 				revertToPreviousState();
@@ -779,7 +814,7 @@
 		// loop over the tokens
 		for (idx=0; idx<tokens.length; idx++) {
 			if (instance_api.state === NODE_STATE_INVALID) {
-				return /* START_DEBUG */new _Grips.parser.ParserError("Invalid parser state") ||/* STOP_DEBUG */unknown_error;
+				return /* START_DEBUG */new _Grips.parser.ParserError("Invalid parser state: " + instance_api.state) ||/* STOP_DEBUG */unknown_error;
 			}
 
 			// invoke the parser state handler
@@ -1072,15 +1107,6 @@
 			else {
 				throw /* START_DEBUG */new _Grips.parser.ParserError("Unexpected",node) ||/* STOP_DEBUG */unknown_error;
 			}
-		}
-		else if (parent_node.type === NODE_RULE_VALUE) {
-			return node; // placeholder for now
-		}
-		else if (parent_node.type === NODE_PREFIX_EXPANDER &&
-			node.type === NODE_RULE_VALUE &&
-			node.token.type === _Grips_CSS.tokenizer.COLON
-		) {
-			return node; // placeholder for now
 		}
 		else if (node.type === NODE_PARAM_LIST ||
 			node.type === NODE_SET_PARAMS ||

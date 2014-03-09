@@ -176,7 +176,17 @@
 			}
 		}
 
-		return ":" + val_str + ";";
+		return val_str;
+	}
+
+	function prefixExpander(node) {
+		var ex_str = "";
+
+		ex_str += "{$* $.__prefixes | $.__newline = _.last ? \"\" : \"\\n\" }";
+		ex_str += "{$= _.value $}" + ruleProperty(node.children[0]) + ":" + ruleValue(node.children[1]) + ";{$= $.__newline $}";
+		ex_str += "{$}";
+
+		return ex_str;
 	}
 
 	function rulesBody(node) {
@@ -204,10 +214,14 @@
 			}
 			else if (node.children[i].type === _Grips_CSS.parser.RULE_VALUE) {
 				tmp = ruleValue(node.children[i]);
+				rules_body += ":" + tmp + ";";
+			}
+			else if (node.children[i].type === _Grips_CSS.parser.PREFIX_EXPANDER) {
+				tmp = prefixExpander(node.children[i]);
 				rules_body += tmp;
 			}
 			else {
-				throw /* START_DEBUG */new _Grips.parser.ParserError("Unexpected text inside rules body",node) ||/* STOP_DEBUG */unknown_error;
+				throw /* START_DEBUG */new _Grips.parser.ParserError("Unexpected",node.children[i]) ||/* STOP_DEBUG */unknown_error;
 			}
 		}
 

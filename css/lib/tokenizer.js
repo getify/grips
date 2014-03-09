@@ -867,7 +867,7 @@
 				if (parser_res && parser_res !== true) break;
 			}
 			else {
-				parser_res = /* START_DEBUG */new _Grips.parser.ParserError("Invalid parser state") ||/* STOP_DEBUG */unknown_error;
+				parser_res = /* START_DEBUG */new _Grips.parser.ParserError("Invalid parser state: " + parser_state) ||/* STOP_DEBUG */unknown_error;
 				break;
 			}
 		}
