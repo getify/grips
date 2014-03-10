@@ -133,11 +133,11 @@
 		parent_selector.push(sel_text);
 		id = _Grips_CSS.encodeSelector(sel_text);
 
-		render_all_collection += "{$= @\"" + id + "\" $}\n";
+		render_all_collection += "{$= @\"#" + id + "\" $}\n";
 
-		return "{$: \"" + id + "\" }" +
-			sel_text + " {{$= @\"" + id + "_\" $}}\n" +
-			"{$: \"" + id + "_\"" + param_list + " }";
+		return "{$: \"#" + id + "\" }" +
+			sel_text + " {{$= @\"#" + id + "_\" $}}{$}\n" +
+			"{$: \"#" + id + "_\"" + param_list + " }";
 	}
 
 	function variableReference(node) {
@@ -174,6 +174,9 @@
 			else if (node.children[i].type === _Grips_CSS.parser.VARIABLE) {
 				val_str += "{$= " + variableReference(node.children[i]) + " $}";
 			}
+			else if (node.children[i].type === _Grips_CSS.parser.PREFIX_INCLUDE) {
+				val_str += "{$= __vprfx__ $}";
+			}
 		}
 
 		return val_str;
@@ -182,8 +185,8 @@
 	function prefixExpander(node) {
 		var ex_str = "";
 
-		ex_str += "{$* $.__prefixes | $.__newline = _.last ? \"\" : \"\\n\" }";
-		ex_str += "{$= _.value $}" + ruleProperty(node.children[0]) + ":" + ruleValue(node.children[1]) + ";{$= $.__newline $}";
+		ex_str += "{$* $.__prefixes__ | __vprfx__ = vendor_prefix ? vendor_prefix : _.value | $.__newline = _.last ? \"\" : \"\\n\" }";
+		ex_str += "{$= __vprfx__ $}" + ruleProperty(node.children[0]) + ":" + ruleValue(node.children[1]) + ";{$= $.__newline $}";
 		ex_str += "{$}";
 
 		return ex_str;
@@ -255,7 +258,7 @@
 		sel_text = _Grips_CSS.trim(sel_text);
 		id = _Grips_CSS.encodeSelector(sel_text);
 
-		return "{$# " + param_list + " }{$= @\"" + id + "_\" $}{$}";
+		return "{$# " + param_list + " }{$= @\"#" + id + "_\" $}{$}";
 	}
 
 	function process(initialize) {

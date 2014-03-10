@@ -937,7 +937,7 @@
 			/[=;:}]|(?:\/\*|\/\/)/g, /*prefix expansion*/
 			/\s+|(?:\/\*|\/\/)|[^a-zA-Z0-9_]/g, /*variable*/
 			/[;:=|"'}]|\s+|(?:\/\*|\/\/)/g, /*set-param*/
-			/[;"'=}]|(?:\/\*|\/\/)/g /*rule-value*/
+			/[;"'=}*]|(?:\/\*|\/\/)/g /*rule-value*/
 		],
 
 		unknown_error = new Error("Unknown error")

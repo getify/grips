@@ -9,6 +9,18 @@
 	}
 	Node.prototype = Object.create(_Grips.parser.Node);
 
+	Node.prototype.showChildren = function() {
+		var i, ret = "";
+		if (this.children) {
+			for (var i=0; i<this.children.length; i++) {
+				if (this.children[i].type !== NODE_WHITESPACE) {
+					ret += this.children[i].toString();
+				}
+			}
+		}
+		return ret;
+	};
+
 /* START_DEBUG */
 	Node.prototype.toString = function __Node_toString__(includeToken) {
 
@@ -16,23 +28,11 @@
 			return (node.delimiter || "\"") + (node.val || "") + (node.delimiter || "\"");
 		}
 
-		function showChildren(node) {
-			var i, ret = "";
-			if (node.children) {
-				for (var i=0; i<node.children.length; i++) {
-					if (node.children[i].type !== NODE_WHITESPACE) {
-						ret += node.children[i].toString();
-					}
-				}
-			}
-			return ret;
-		}
-
 		function showParams(node) {
 			var i, ret = "";
 			if (node.children) {
 				for (var i=0; i<node.children.length; i++) {
-					ret += (ret !== "" ? ", " : "") + showChildren(node.children[i]);
+					ret += (ret !== "" ? ", " : "") + node.children[i].showChildren();
 				}
 			}
 			return ret;
@@ -42,7 +42,7 @@
 			var i, ret = "";
 			if (node.children) {
 				for (var i=0; i<node.children.length; i++) {
-					ret += (ret !== "" ? " | " : "") + showChildren(node.children[i]);
+					ret += (ret !== "" ? " | " : "") + node.children[i].showChildren();
 				}
 			}
 			return ret;
@@ -63,13 +63,13 @@
 			ret = showStringLiteral(this);
 		}
 		else if (this.type === NODE_IMPORT_DIRECTIVE) {
-			ret = "@import " + showChildren(this) + ";";
+			ret = "@import " + this.showChildren() + ";";
 		}
 		else if (this.type === NODE_RULES_BODY) {
 			ret = "{ " + this.children[0].toString() + ".. }";
 		}
 		else if (this.type === NODE_RULE_VALUE) {
-			ret = ":" + showChildren(this) + ";";
+			ret = ":" + this.showChildren() + ";";
 		}
 		else if (this.type === NODE_PARAM_LIST) {
 			ret = "(" + showParams(this) + ")";
@@ -78,22 +78,22 @@
 			ret = "(" + showSetParams(this) + ")";
 		}
 		else if (this.type === NODE_PARAM) {
-			ret = showChildren(this);
+			ret = this.showChildren();
 		}
 		else if (this.type === NODE_VARIABLE) {
-			ret = "=" + showChildren(this);
+			ret = "=" + this.showChildren();
 		}
 		else if (this.type === NODE_PREFIX_EXPANDER) {
-			ret = "*" + showChildren(this);
+			ret = "*" + this.showChildren();
 		}
 		else if (this.type === NODE_SELECTOR) {
-			ret = _Grips_CSS.trim(showChildren(this));
+			ret = _Grips_CSS.trim(this.showChildren());
 		}
 		else if (this.type === NODE_RULE_PROPERTY ||
 			this.type === NODE_RULE_VALUE ||
 			this.type === NODE_INCLUDE_REF
 		) {
-			ret = showChildren(this);
+			ret = this.showChildren();
 		}
 		else {
 			ret = JSON.stringify(this);
@@ -750,8 +750,26 @@
 				return state_handlers[instance_api.state](token);
 			}
 			else if (token.type === _Grips_CSS.tokenizer.STAR) {
-				// TODO: handle nested * if appropriate
-				throw "Not Supported Yet";
+				// in a prefix-expander and * is first (non-whitespace)
+				// token in rule-value?
+				if (current_parent.parent.type === NODE_PREFIX_EXPANDER &&
+					(
+						// no contents yet?
+						current_parent.children.length === 0 ||
+						// only whitespace so far?
+						/^\s*$/.test(current_parent.showChildren())
+					)
+				) {
+					node.type = NODE_PREFIX_INCLUDE;
+				}
+				else {
+					node.type = NODE_OPERATOR;
+				}
+
+				node.complete = true;
+				delete node.previous_state;
+				delete node.children;
+				current_parent.children.push(node);
 			}
 			else if (token.type === _Grips_CSS.tokenizer.EQUALS) {
 				node.type = NODE_VARIABLE;
@@ -1166,7 +1184,8 @@
 		NODE_RULE_PROPERTY = 14,
 		NODE_RULE_VALUE = 15,
 		NODE_INCLUDE_REF = 16,
-		NODE_UNKNOWN = 17,
+		NODE_PREFIX_INCLUDE = 17,
+		NODE_UNKNOWN = 18,
 
 		instance_api,
 
@@ -1205,6 +1224,7 @@
 		RULE_PROPERTY: NODE_RULE_PROPERTY,
 		RULE_VALUE: NODE_RULE_VALUE,
 		INCLUDE_REF: NODE_INCLUDE_REF,
+		PREFIX_INCLUDE: NODE_PREFIX_INCLUDE,
 		UNKNOWN: NODE_UNKNOWN,
 
 		state: NODE_STATE_OUTSIDE,
