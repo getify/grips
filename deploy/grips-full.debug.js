@@ -1644,6 +1644,7 @@ if (!Object.prototype.toJSON) {
 
 					if (current_parent.type === NODE_TAG_DEFINE ||
 						current_parent.type === NODE_TAG_LOOP ||
+						current_parent.type === NODE_TAG_LET ||
 						(
 							current_parent.type === NODE_TAG_INCL_TMPL &&
 							!current_parent.context_expr
