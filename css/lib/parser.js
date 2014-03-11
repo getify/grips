@@ -757,7 +757,7 @@
 						// no contents yet?
 						current_parent.children.length === 0 ||
 						// only whitespace so far?
-						/^\s*$/.test(current_parent.showChildren())
+						/(?:^|,)\s*$/.test(current_parent.showChildren())
 					)
 				) {
 					node.type = NODE_PREFIX_INCLUDE;

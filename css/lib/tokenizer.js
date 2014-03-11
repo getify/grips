@@ -702,36 +702,11 @@
 
 			// capture preceeding unmatched string, if any
 			if (unmatched) {
-				tmp = unmatched.match(/[^a-z0-9%.#_-\s]/i);
-
-				if (!tmp) {
-					tmp = unmatched.split(/(\s+)/);
-					for (i=0; i<tmp.length; i++) {
-						if (tmp[i]) {
-							token = new _Grips.tokenizer.Token({
-								type: null,
-								val: tmp[i]/* START_DEBUG */,
-								pos: lineCol(prev_match_idx,fileID)/* STOP_DEBUG */
-							});
-
-							if (/^\s+$/.test(tmp[i])) {
-								token.type = TOKEN_WHITESPACE;
-							}
-							else {
-								token.type = TOKEN_GENERAL;
-							}
-
-							tokens.push(token);
-						}
-					}
-				}
-				else {
-					return /* START_DEBUG */new _Grips.tokenizer.TokenizerError("Unexpected token",new _Grips.tokenizer.Token({
-						type: TOKEN_UNKNOWN,
-						val: tmp[0]/* START_DEBUG */,
-						pos: lineCol(prev_match_idx + tmp.index,fileID)/* STOP_DEBUG */
-					})) ||/* STOP_DEBUG */unknown_error;
-				}
+				tokens.push(new _Grips.tokenizer.Token({
+					type: TOKEN_GENERAL,
+					val: unmatched/* START_DEBUG */,
+					pos: lineCol(prev_match_idx,fileID)/* STOP_DEBUG */
+				}));
 			}
 			if (match) {
 				token = new _Grips.tokenizer.Token({
