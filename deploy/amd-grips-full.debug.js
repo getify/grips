@@ -914,7 +914,6 @@ if (!Object.prototype.toJSON) {
 			regex = parser_state_patterns[parser_state];
 
 			if (regex) {
-				unmatched = "";
 				regex.lastIndex = next_match_idx;
 				match = regex.exec(chunk);
 
