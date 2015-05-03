@@ -3,22 +3,24 @@
 /* grips (c) 2012-2014 Kyle Simpson | http://getify.mit-license.org/ */
 
 function printHelp() {
-	console.log("grips templating engine");
-	console.log("(c) 2012-2013 Kyle Simpson | http://getify.mit-license.org/");
-	console.log("");
-	console.log("usage: grips opt [, ..opt]");
-	console.log("");
-	console.log("options:");
-	console.log("--help                                    show this help");
-	console.log("");
-	console.log("--nodebug                                 use the non-debug library");
-	console.log("--keep-paths                              for --compile, keep the full path in the collection ID, instead of just the filename");
-	console.log("--minify                                  minify compiled templates with uglify.js");
-	console.log("");
-	console.log("--compile=file                            compile a template file (using {file} as the collection ID)");
-	console.log("--initialize=file                         initializes an already compiled template collection from a file");
-	console.log("--render='{collection-ID}#{partial-ID}'   render the specified partial, using data from stdin");
-	console.log("");
+  console.log(
+  "grips templating engine \n",
+  "(c) 2012-2013 Kyle Simpson | http://getify.mit-license.org/ \n",
+   "\n",
+  "usage: grips opt [, ..opt] \n",
+   "\n",
+  "options: \n",
+  "--help                                    show this help \n",
+   "\n",
+  "--nodebug                                 use the non-debug library \n",
+  "--keep-paths                              for --compile, keep the full path in the collection ID, instead of just the filename \n",
+  "--minify                                  minify compiled templates with uglify.js \n",
+  "\n",
+  "--compile=file                            compile a template file (using {file} as the collection ID) \n",
+  "--initialize=file                         initializes an already compiled template collection from a file \n",
+  "--render='{collection-ID}#{partial-ID}'   render the specified partial, using data from stdin \n",
+  "\n"
+  );
 }
 
 function minify(str) {
