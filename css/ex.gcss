@@ -8,6 +8,8 @@
 @font-face { color:blue; }
 */
 
+*, *:after { margin: 2; }
+
 html[abc=def]/*:after (foo : "bar", baz:"#222")*/ {
 
 /*
@@ -25,7 +27,7 @@ html[abc=def]/*:after (foo : "bar", baz:"#222")*/ {
 }
 
 /*
-@*keyframe { 
+@*keyframe {
    0% { top:0px; }
    100% { top:100px; }
 }

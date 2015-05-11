@@ -170,6 +170,9 @@
 					parser_state_patterns[_Grips_CSS.parser.STATE.STRING_LITERAL] = new RegExp(match[0],"g");
 					parser_state_patterns[_Grips_CSS.parser.STATE.STRING_LITERAL].lastIndex = 0; // reset to prevent browser "regex caching" bug
 				}
+				else if (match[0] == "*") {
+					token.type = TOKEN_STAR;
+				}
 				else {
 					return /* START_DEBUG */new _Grips.tokenizer.TokenizerError("Unexpected token",token) ||/* STOP_DEBUG */unknown_error;
 				}
@@ -901,7 +904,7 @@
 
 		not_escaped_pattern = /(?:[^\\]|(?:^|[^\\])(?:\\\\)+)$/,
 		parser_state_patterns = [
-			/(?:@import(?=\s)|\/\*|\/\/|@\*|::|[~|^$*]\=)|[{("',>+~:\[\]=]/g, /*outside*/
+			/(?:@import(?=\s)|\/\*|\/\/|@\*|::|[~|^$*]\=)|[{("',>+~:\[\]=*]/g, /*outside*/
 			/\*\//g, /*multi-line comment*/
 			/\r?\n/g, /*single-line comment */
 			/[;"']|\s+/g, /*@import*/

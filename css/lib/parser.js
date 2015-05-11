@@ -200,6 +200,12 @@
 				delete node.previous_state;
 				delete node.children;
 			}
+			else if (token.type === _Grips_CSS.tokenizer.STAR) {
+				node.type = NODE_TEXT;
+				node.complete = true;
+				delete node.previous_state;
+				delete node.children;
+			}
 			else if (token.type === _Grips_CSS.tokenizer.EQUALS) {
 				node.type = NODE_VARIABLE;
 				instance_api.state = NODE_STATE_VARIABLE;
