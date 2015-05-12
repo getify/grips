@@ -1,4 +1,4 @@
-/* grips-css (c) 2012-2014 Kyle Simpson | http://getify.mit-license.org/ */
+/* grips-css (c) 2012-2015 Kyle Simpson | http://getify.mit-license.org/ */
 
 (function __grips_css_base__(global){
 	var old_grips_css = global.grips.css;

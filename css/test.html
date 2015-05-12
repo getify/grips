@@ -1,0 +1,14 @@
+<script src="../deploy/grips-full.debug.js"></script>
+<script src="lib/base.js"></script>
+<script src="lib/tokenizer.js"></script>
+<script src="lib/parser.js"></script>
+<script src="lib/generator.js"></script>
+
+<script>
+try {
+	var css = grips.css.compileFile(".foo{*color:red;}","ex2.gcss",false);
+	console.log(css);
+} catch (err) {
+	console.log(err.toString());
+}
+</script>

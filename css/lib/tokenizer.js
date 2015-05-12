@@ -1,4 +1,4 @@
-/* grips-css (c) 2012-2014 Kyle Simpson | http://getify.mit-license.org/ */
+/* grips-css (c) 2012-2015 Kyle Simpson | http://getify.mit-license.org/ */
 
 /* START_COMPILER */
 (function __grips_tokenizer__(global,_Grips,_Grips_CSS){
@@ -99,8 +99,8 @@
 				else {
 					return /* START_DEBUG */new _Grips.tokenizer.TokenizerError("Unexpected token",new _Grips.tokenizer.Token({
 						type: TOKEN_UNKNOWN,
-						val: tmp[0]/* START_DEBUG */,
-						pos: lineCol(prev_match_idx + tmp.index,fileID)/* STOP_DEBUG */
+						val: tmp[0],
+						pos: lineCol(prev_match_idx + tmp.index,fileID)
 					})) ||/* STOP_DEBUG */unknown_error;
 				}
 			}
@@ -244,8 +244,8 @@
 				else {
 					return /* START_DEBUG */new _Grips.tokenizer.TokenizerError("Unexpected token",new _Grips.tokenizer.Token({
 						type: TOKEN_UNKNOWN,
-						val: tmp[0]/* START_DEBUG */,
-						pos: lineCol(prev_match_idx + tmp.index,fileID)/* STOP_DEBUG */
+						val: tmp[0],
+						pos: lineCol(prev_match_idx + tmp.index,fileID)
 					})) ||/* STOP_DEBUG */unknown_error;
 				}
 			}
@@ -300,8 +300,8 @@
 				else {
 					return /* START_DEBUG */new _Grips.tokenizer.TokenizerError("Unexpected token",new _Grips.tokenizer.Token({
 						type: TOKEN_UNKNOWN,
-						val: tmp[0]/* START_DEBUG */,
-						pos: lineCol(prev_match_idx + tmp.index,fileID)/* STOP_DEBUG */
+						val: tmp[0],
+						pos: lineCol(prev_match_idx + tmp.index,fileID)
 					})) ||/* STOP_DEBUG */unknown_error;
 				}
 			}
@@ -418,8 +418,8 @@
 				else {
 					return /* START_DEBUG */new _Grips.tokenizer.TokenizerError("Unexpected token",new _Grips.tokenizer.Token({
 						type: TOKEN_UNKNOWN,
-						val: tmp[0]/* START_DEBUG */,
-						pos: lineCol(prev_match_idx + tmp.index,fileID)/* STOP_DEBUG */
+						val: tmp[0],
+						pos: lineCol(prev_match_idx + tmp.index,fileID)
 					})) ||/* STOP_DEBUG */unknown_error;
 				}
 			}
@@ -649,8 +649,8 @@
 				else {
 					return /* START_DEBUG */new _Grips.tokenizer.TokenizerError("Unexpected token2",new _Grips.tokenizer.Token({
 						type: TOKEN_UNKNOWN,
-						val: tmp[0]/* START_DEBUG */,
-						pos: lineCol(prev_match_idx + tmp.index,fileID)/* STOP_DEBUG */
+						val: tmp[0],
+						pos: lineCol(prev_match_idx + tmp.index,fileID)
 					})) ||/* STOP_DEBUG */unknown_error;
 				}
 			}

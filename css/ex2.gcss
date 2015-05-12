@@ -1,0 +1,13 @@
+@import "blah.gcss";
+
+.foo(a: red,c: blue) {
+	color: =a;
+	*transition: opacity, *transform 1s;
+	#blah|b: =a|d: =c;
+	~ tr(n: blue) {
+		> td(m: green) {
+			background: =m;
+		}
+		border: =n;
+	}
+}
